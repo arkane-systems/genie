@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# This script handles transitions to and from the "bottle" namespace for systemd under WSL.
+
+# Check if the bottle exists.
+
+pgrep -x systemd > /dev/null
+if [ $? -eq 0 ]
+then
+
+   # If it does exist, check if we are inside it...
+   if [ `pidof systemd` -eq 1 ]
+   then
+      echo "genie: inside bottle"
+
+      # ...if we are, just quit.
+      exit
+
+   else
+      echo "genie: outside bottle"
+
+      # ...if we are not, enter it and run the command passed in.
+      sudo /usr/bin/nsenter --t `pidof systemd` -m -p /bin/login -f `whoami`
+
+   fi
+
+else
+   echo "genie: no bottle found"
+
+   # If it does not exist, create it...
+   sudo /usr/sbin/daemonize /usr/bin/unshare -fp --mount-proc /lib/systemd/systemd
+
+   # ...wait for startup...
+   until pid=$(pidof systemd)
+   do
+      sleep 1
+   done
+
+   # ...then enter it and run the command passed in.
+   sudo /usr/bin/nsenter -t $pid -m -p /bin/login -f `whoami`
+fi
