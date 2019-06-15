@@ -11,6 +11,8 @@ For those familiar with or coming here from my first cut (https://randomactsofco
 
 ## INSTALLATION
 
+You will first need to _apt install_ the _dbus_, _policykit-1_ and _daemonize_ packages
+
 Download genie.tar.gz from the releases page, untar it, and place it in _/usr/local/bin_ . Make sure that it is _chown root_, and _chmod u+s_; i.e., setuid root.
 
 ### ...OR BUILD IT YOURSELF
@@ -43,6 +45,10 @@ _genie -i_ will set up the bottle and run systemd, and then exit. This is intend
 _genie -s_ runs your login shell inside the bottle; basically, Windows-side, _wsl genie -s_ is your substitute for just _wsl_ to get started, or for the shortcut you get to start a shell in the distro.
 
 _genie -c [command]_ runs _command_ inside the bottle, then exits. The return code is the return code of the command.
+
+## RECOMMENDATIONS
+
+Once you have this up and running, I suggest disabling via systemctl the _systemd-timesyncd_ service (since the system clock is already synchronized by the host Windows) and the _getty@tty1_ service (since logging on and using WSL is done via ptsen, not ttys).
 
 ## BUGS
 
