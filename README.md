@@ -48,7 +48,7 @@ _genie -c [command]_ runs _command_ inside the bottle, then exits. The return co
 
 ## RECOMMENDATIONS
 
-Once you have this up and running, I suggest disabling via systemctl the _systemd-timesyncd_ service (since the system clock is already synchronized by the host Windows) and the _getty@tty1_ service (since logging on and using WSL is done via ptsen, not ttys).
+Once you have this up and running, I suggest disabling via systemctl the _getty@tty1_ service (since logging on and using WSL is done via ptsen, not ttys).
 
 ## BUGS
 
