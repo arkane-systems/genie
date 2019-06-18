@@ -129,10 +129,11 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             }
 
             // Wait for systemd to be up. (Polling, sigh.)
-            while (GetSystemdPid() == 0)
+            do
             {
                 Thread.Sleep (500);
-            }
+                systemdPid = GetSystemdPid();                
+            } while (systemdPid == 0);
         }
 
         // Previous UID while rootified.
@@ -146,6 +147,38 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             previousUid = getuid();
             setuid(0);
+        }
+
+        // Do the work of running a command inside the bottle.
+        private static void RunCommand (bool verbose, string commandLine)
+        {
+            if (verbose)
+                Console.WriteLine ($"genie: running command '{commandLine}'");
+
+            var p = Process.Start ("/usr/bin/nsenter", $"-t {systemdPid} -S {realUserId} -m -p {commandLine}");
+            p.WaitForExit();
+
+            if (p.ExitCode != 0)
+            {
+                Console.WriteLine ($"genie: running command failed; nsenter returned {p.ExitCode}.");
+                Environment.Exit (p.ExitCode);
+            }
+        }
+
+        // Do the work of starting a shell inside the bottle.
+        private static void StartShell (bool verbose)
+        {
+            if (verbose)
+                Console.WriteLine ("genie: starting shell");
+
+            var p = Process.Start ("/usr/bin/nsenter", $"-t {systemdPid} -m -p /bin/login -f {realUserName}");
+            p.WaitForExit();
+
+            if (p.ExitCode != 0)
+            {
+                Console.WriteLine ($"genie: starting shell failed; nsenter returned {p.ExitCode}.");
+                Environment.Exit (p.ExitCode);
+            }
         }
 
         // Revert from root.
@@ -191,7 +224,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 startedWithinBottle = false;
 
                 if (verbose)
-                    Console.WriteLine ("genie: outside bottle.");
+                    Console.WriteLine ($"genie: outside bottle {systemdPid}.");
             }
         }
 
@@ -229,15 +262,35 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             return 0;
         }
 
+        // Initialize the bottle, if necessary, then start a shell in it.
         public static int ShellHandler (bool verbose)
         {
             // Update the system status.
             UpdateStatus(verbose);
 
-            Console.WriteLine($"shell: Verbose is {verbose}.");
+            if (startedWithinBottle)
+            {
+                Console.WriteLine ("genie: already inside the bottle; cannot start shell!");
+                return EINVAL;
+            }
+
+            Rootify();
+
+            if (!bottleExistedAtStart)
+                InitializeBottle(verbose);
+
+            // At this point, we should be outside an existing bottle, one way or another.
+
+            // It shouldn't matter whether we have setuid here, since we start the shell with
+            // login, which expects root and reassigns uid appropriately.
+            StartShell(verbose);
+
+            Unrootify();
+
             return 0;
         }
 
+        // Initialize the bottle, if necessary, then run a command in it.
         public static int ExecHandler (bool verbose, List<string> command)
         {
             // Update the system status.
@@ -245,14 +298,30 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             // Recombine command argument.
             StringBuilder cmdLine = new StringBuilder (2048);
-            foreach (var s in command)
+            foreach (var s in command.Skip (1))
             {
                 cmdLine.Append (s);
                 cmdLine.Append (' ');
             }
             cmdLine.Remove (cmdLine.Length - 1, 1);
 
-            Console.WriteLine($"command: Verbose is {verbose}; command is {cmdLine.ToString()}.");
+            // If already inside, just execute it.
+            if (startedWithinBottle)
+            {
+                var p = Process.Start (command.First(), cmdLine.ToString());
+                p.WaitForExit();
+                return p.ExitCode;
+            }
+
+            Rootify();
+
+            if (!bottleExistedAtStart)
+                InitializeBottle(verbose);
+
+            // At this point, we should be outside an existing bottle, one way or another.
+
+            RunCommand (verbose, $"{command.First()} {cmdLine.ToString()}");
+
             return 0;
         }
     }
