@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace genie
+namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 {
     class Program
     {
