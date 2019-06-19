@@ -52,7 +52,13 @@ Once you have this up and running, I suggest disabling via systemctl the _getty@
 
 ## BUGS
 
-1. I've only tested this on Debian, because I only use Debian and only have so much time to tinker. Your distro may vary and you may have to hack about with this somewhat to make it work. Pull requests gratefully accepted.
+1. I've only personally tested this on Debian, because I only use Debian and only have so much time to tinker. Your distro may vary and you may have to hack about with this somewhat to make it work. Pull requests gratefully accepted.
+
+Other distributions on which I have reports of success:
+
+ * Ubuntu 18.04
+ 
+Note that this does not imply that it won't work on other distributions; merely that no-one's tried it and reported it back to me yet.
 
 2. This breaks _pstree_ and other _/proc_-walking tools that count on everything being a hild of pid 1, because entering the namespace with a shell or other process leaves that process with a ppid of 0. To the best of my knowledge, I can't set the ppid of a process, and if I'm wrong about that, please send edification and pull requests to be gratefully accepted.
 
