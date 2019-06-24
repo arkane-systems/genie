@@ -61,6 +61,8 @@ Reported working:
  * Ubuntu 18.04
  * Ubuntu 19.04
 
+I have a report of this (mostly) working for Arch, but I also have reports of various odd issues with it not working or not fully working on Arch. I could very much use some help debugging here.
+
 Note that this does not imply that it won't work on other distributions; merely that no-one's tried it and reported it back to me yet. If you do, please do.
 
 ## BUGS
