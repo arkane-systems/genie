@@ -50,16 +50,21 @@ _genie -c [command]_ runs _command_ inside the bottle, then exits. The return co
 
 Once you have this up and running, I suggest disabling via systemctl the _getty@tty1_ service (since logging on and using WSL is done via ptsen, not ttys).
 
-## BUGS
+## DISTRIBUTIONS
 
-1. I've only personally tested this on Debian, because I only use Debian and only have so much time to tinker. Your distro may vary and you may have to hack about with this somewhat to make it work. Pull requests gratefully accepted.
+Personally tested by me:
 
-Other distributions on which I have reports of success:
+ * Debian 9 (stretch)
+ 
+Reported working:
 
  * Ubuntu 18.04
- 
-Note that this does not imply that it won't work on other distributions; merely that no-one's tried it and reported it back to me yet.
+ * Ubuntu 19.04
 
-2. This breaks _pstree_ and other _/proc_-walking tools that count on everything being a hild of pid 1, because entering the namespace with a shell or other process leaves that process with a ppid of 0. To the best of my knowledge, I can't set the ppid of a process, and if I'm wrong about that, please send edification and pull requests to be gratefully accepted.
+Note that this does not imply that it won't work on other distributions; merely that no-one's tried it and reported it back to me yet. If you do, please do.
 
-3. It is considerably clunkier than I'd like it to be, inasmuch as you have to invoke genie every time to get inside the bottle, either manually (replacing, for example, _wsl [command]_ with _wsl genie -c [command]_), or by using your own shortcut in place of the one WSL gives you for the distro, using which will put you _outside_ the bottle. Pull requests, etc.
+## BUGS
+
+1. This breaks _pstree_ and other _/proc_-walking tools that count on everything being a hild of pid 1, because entering the namespace with a shell or other process leaves that process with a ppid of 0. To the best of my knowledge, I can't set the ppid of a process, and if I'm wrong about that, please send edification and pull requests to be gratefully accepted.
+
+2. It is considerably clunkier than I'd like it to be, inasmuch as you have to invoke genie every time to get inside the bottle, either manually (replacing, for example, _wsl [command]_ with _wsl genie -c [command]_), or by using your own shortcut in place of the one WSL gives you for the distro, using which will put you _outside_ the bottle. Pull requests, etc.
