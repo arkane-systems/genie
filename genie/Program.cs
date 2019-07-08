@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -138,6 +138,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
         // Previous UID while rootified.
         private static uid_t previousUid = 0;
+	private static gid_t previousGid = 0;
 
         // Become root.
         private static void Rootify ()
@@ -146,7 +147,11 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 throw new InvalidOperationException("Cannot rootify root.");
 
             previousUid = getuid();
-            setuid(0);
+            previousGid = getgid();
+            setreuid(0, 0);
+            setregid(0, 0);
+
+	    // Console.WriteLine ($"uid={getuid()} gid={getgid()} euid={geteuid()} egid={getegid()}");
         }
 
         // Do the work of running a command inside the bottle.
@@ -184,11 +189,13 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         // Revert from root.
         private static void Unrootify ()
         {
-            if (previousUid == 0)
-                throw new InvalidOperationException("Cannot unrootify unroot.");
+            // if (previousUid == 0)
+            //    throw new InvalidOperationException("Cannot unrootify unroot.");
 
-            setuid(previousUid);
+            setreuid(previousUid, previousUid);
+            setregid(previousGid, previousGid);
             previousUid = 0;
+            previousGid = 0;
         }
 
         // Update the status of the system for use by the command handlers.
