@@ -11,31 +11,31 @@ For those familiar with or coming here from my first cut (https://randomactsofco
 
 ## INSTALLATION
 
-You will first need to _apt install_ the _dbus_, _policykit-1_ and _daemonize_ packages
+You will first need to _apt install_ the _dbus_, _policykit-1_ and _daemonize_ packages. You will also need to install .NET Core 2.2 inside WSL, following the instructions here: https://dotnet.microsoft.com/download/linux-package-manager/debian9/runtime-2.2.5
 
-Download genie.tar.gz from the releases page, untar it, and place it in _/usr/local/bin_ . Make sure that it is _chown root_, and _chmod u+s_; i.e., setuid root.
+Download genie.tar.gz from the releases page, untar it, and **copy** the files therewithin into  _/usr/local/bin_ . Make sure that they are _chown root_, and that `genie` is _chmod u+s_ - i.e., setuid root - and _chmod a+rx_ . The other files, including `genie.dll`, do not need to be either setuid or world-readable.
 
 ### ...OR BUILD IT YOURSELF
 
-Or you can build it easily enough if you don't want to trust the binary. You need python 2.7, with PyInstaller and psutil installed (both available from pip). Simply clone the repository and run the included _./make_.
+Or you can build it easily enough if you don't want to trust the binary. You need the dotnet 2.2 SDK. Simply clone the repository and run the included _./build_ inside the _genie_ subdirectory. The build will be placed into the _exec_ subfolder, and permissions changed appropriately. (You will need to enter your password at the sudo prompt.)
 
 ## USAGE
 
 ```
-usage: genie [-h] [-v] [-V] (-i | -s | -c COMMAND [COMMAND ...])
+genie:
+  Handles transitions to the "bottle" namespace for systemd under WSL.
 
-Handles transitions to the "bottle" namespace for systemd under WSL.
+Usage:
+  genie [options] [command]
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -v, --verbose         display verbose progress messages
-  -V, --version         show program's version number and exit
-  -i, --initialize      initialize the bottle (if necessary) only
-  -s, --shell           initialize the bottle (if necessary) and run a shell
-                        in it
-  -c COMMAND [COMMAND ...], --command COMMAND [COMMAND ...]
-                        initialize the bottle (if necessary), and run the
-                        specified command in it
+Options:
+  -v, --verbose <VERBOSE>    Display verbose progress messages
+  --version                  Display version information
+
+Commands:
+  -i, --initialize           Initialize the bottle (if necessary) only.
+  -s, --shell                Initialize the bottle (if necessary), and run a shell in it.
+  -c, --command <COMMAND>    Initialize the bottle (if necessary), and run the specified command in it.
 ```
 
 So, it has three modes, all of which will set up the bottle and run systemd in it if it isn't already running for simplicity of use.
@@ -50,16 +50,23 @@ _genie -c [command]_ runs _command_ inside the bottle, then exits. The return co
 
 Once you have this up and running, I suggest disabling via systemctl the _getty@tty1_ service (since logging on and using WSL is done via ptsen, not ttys).
 
+## DISTRIBUTIONS
+
+Personally tested by me:
+
+ * Debian 9 (stretch)
+ 
+Reported working:
+
+ * Ubuntu 18.04
+ * Ubuntu 19.04
+
+I have a report of this (mostly) working for Arch, but I also have reports of various odd issues with it not working or not fully working on Arch. I could very much use some help debugging here.
+
+Note that this does not imply that it won't work on other distributions; merely that no-one's tried it and reported it back to me yet. If you do, please do.
+
 ## BUGS
 
-1. I've only tested this on Debian, because I only use Debian and only have so much time to tinker. Your distro may vary and you may have to hack about with this somewhat to make it work. Pull requests gratefully accepted.
+1. This breaks _pstree_ and other _/proc_-walking tools that count on everything being a hild of pid 1, because entering the namespace with a shell or other process leaves that process with a ppid of 0. To the best of my knowledge, I can't set the ppid of a process, and if I'm wrong about that, please send edification and pull requests to be gratefully accepted.
 
-2. At the moment, something (I suspect in the packaging) causes genie to segfault on exiting when invoked with the -s or -c switches _and_ the bottle did not already exist. This doesn't seem to break anything - and is easily avoided by preinitializing with _genie -i_ - but is obviously undesirable. Pull requests gratefully accepted.
-
-3. This breaks _pstree_ and other _/proc_-walking tools that count on everything being a child of pid 1, because entering the namespace with a shell or other process leaves that process with a ppid of 0. To the best of my knowledge, I can't set the ppid of a process, and if I'm wrong about that, please send edification and pull requests to be gratefully accepted.
-
-4. _genie -c_ doesn't preserve the working directory. I'm working on this one when I have a minute, but pull requests will...
-
-5. It is considerably clunkier than I'd like it to be, inasmuch as you have to invoke genie every time to get inside the bottle, either manually (replacing, for example, _wsl [command]_ with _wsl genie -c [command]_), or by using your own shortcut in place of the one WSL gives you for the distro, using which will put you _outside_ the bottle. Pull requests, etc.
-
-6. It is considerably clunkier than I'd like it to be because I'm not actually all that familiar with Linux namespaces, etc., don't do this sort of development much, and so forth. Pull req -- well, by now I think we've established the theme, yes?
+2. It is considerably clunkier than I'd like it to be, inasmuch as you have to invoke genie every time to get inside the bottle, either manually (replacing, for example, _wsl [command]_ with _wsl genie -c [command]_), or by using your own shortcut in place of the one WSL gives you for the distro, using which will put you _outside_ the bottle. Pull requests, etc.
