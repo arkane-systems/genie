@@ -9,8 +9,6 @@ If you want to try it, please read this entire document first, _especially_ the 
 
 For those familiar with or coming here from my first cut (https://randomactsofcoding.wordpress.com/2019/06/13/systemd-on-wsl2/) at attempting to get _systemd_ working, this is the revised one after being schooled on the topic by @therealkenc, over here https://github.com/microsoft/WSL/issues/994 .
 
-[Discuss Genie on our Discord](https://discord.gg/sv4ZKZH)
-
 ## INSTALLATION
 
 You will first need to _apt install_ the _dbus_, _policykit-1_ and _daemonize_ packages. You will also need to install .NET Core 2.2 inside WSL, following the instructions here: https://dotnet.microsoft.com/download/linux-package-manager/debian9/runtime-2.2.5
