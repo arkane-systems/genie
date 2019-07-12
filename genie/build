@@ -1,9 +1,9 @@
 #!/bin/sh
-sudo rm -f exec/*
+sudo rm -f ../systemd-genie/usr/bin/*
 dotnet publish -r linux-x64 --self-contained false
-cp bin/Debug/netcoreapp2.2/linux-x64/publish/genie exec
-cp bin/Debug/netcoreapp2.2/linux-x64/publish/*.dll exec
-cp bin/Debug/netcoreapp2.2/linux-x64/publish/genie.runtimeconfig.json exec
-sudo chown root:root exec/genie
-sudo chmod u+s exec/genie
-sudo chmod a+rx exec/genie
+cp bin/Debug/netcoreapp2.2/linux-x64/publish/genie ../systemd-genie/usr/bin/
+cp bin/Debug/netcoreapp2.2/linux-x64/publish/*.dll ../systemd-genie/usr/bin/
+cp bin/Debug/netcoreapp2.2/linux-x64/publish/genie.runtimeconfig.json ../systemd-genie/usr/bin/
+sudo chown root:root ../systemd-genie/usr/bin/*
+sudo chmod u+s ../systemd-genie/usr/bin/genie
+sudo chmod a+rx ../systemd-genie/usr/bin/genie

@@ -1,7 +1,8 @@
 build/
 dist/
-exec/
+systemd-genie/usr/bin
 genie.spec
+*.deb
 
 ### ASPNETCore ###
 ## Ignore Visual Studio temporary files, build results, and
@@ -40,5 +41,3 @@ bld/
 # NuGet v3's project.json files produces more ignoreable files
 *.nuget.props
 *.nuget.targets
-
-
