@@ -30,6 +30,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         // User name of the real user running genie.
         public static string realUserName { get; set;}
 
+        // Group ID of the real user running genie.
+        public static gid_t realGroupId { get; set; }
+
         // PID of the earliest running root systemd, or 0 if there is no running root systemd
         public static int systemdPid { get; set;}
 
@@ -69,7 +72,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             var rootCommand = new RootCommand();
             rootCommand.Description = "Handles transitions to the \"bottle\" namespace for systemd under WSL.";
             rootCommand.AddOption (optVerbose);
-            rootCommand.Handler = CommandHandler.Create<bool>(RootHandler);            
+            rootCommand.Handler = CommandHandler.Create<bool>(RootHandler);
 
             var cmdInitialize = new Command ("--initialize");
             cmdInitialize.AddAlias ("-i");
@@ -115,13 +118,33 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         // Do the work of initializing the bottle.
         private static void InitializeBottle (bool verbose)
         {
+            Process p;
+
             if (verbose)
                 Console.WriteLine ("genie: initializing bottle.");
 
-            // Run systemd in a container.
-            var p = Process.Start ("/usr/sbin/daemonize", "/usr/bin/unshare -fp --mount-proc /lib/systemd/systemd");
+            // Fix hostname.
+            p = Process.Start ("/bin/sh", "-c \"/bin/echo `hostname`-wsl > /etc/hostname-wsl\"");
             p.WaitForExit();
-            
+
+            if (p.ExitCode != 0)
+            {
+                Console.WriteLine ($"genie: initializing bottle failed; making new hostname returned {p.ExitCode}.");
+                Environment.Exit (p.ExitCode);
+            }
+
+            p = Process.Start ("/bin/mount", "--bind /etc/hostname-wsl /etc/hostname");
+            p.WaitForExit();
+            if (p.ExitCode != 0)
+            {
+                Console.WriteLine ($"genie: initializing bottle failed; bind mounting hostname returned {p.ExitCode}.");
+                Environment.Exit (p.ExitCode);
+            }
+
+            // Run systemd in a container.
+            p = Process.Start ("/usr/sbin/daemonize", "/usr/bin/unshare -fp --mount-proc /lib/systemd/systemd");
+            p.WaitForExit();
+
             if (p.ExitCode != 0)
             {
                 Console.WriteLine ($"genie: initializing bottle failed; daemonize returned {p.ExitCode}.");
@@ -132,13 +155,13 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             do
             {
                 Thread.Sleep (500);
-                systemdPid = GetSystemdPid();                
+                systemdPid = GetSystemdPid();
             } while (systemdPid == 0);
         }
 
         // Previous UID while rootified.
         private static uid_t previousUid = 0;
-	private static gid_t previousGid = 0;
+    private static gid_t previousGid = 0;
 
         // Become root.
         private static void Rootify ()
@@ -151,7 +174,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             setreuid(0, 0);
             setregid(0, 0);
 
-	    // Console.WriteLine ($"uid={getuid()} gid={getgid()} euid={geteuid()} egid={getegid()}");
+        // Console.WriteLine ($"uid={getuid()} gid={getgid()} euid={geteuid()} egid={getegid()}");
         }
 
         // Do the work of running a command inside the bottle.
@@ -160,7 +183,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ($"genie: running command '{commandLine}'");
 
-            var p = Process.Start ("/usr/bin/nsenter", $"-t {systemdPid} -S {realUserId} --wd=\"{Environment.CurrentDirectory}\" -m -p {commandLine}");
+            var p = Process.Start ("/usr/bin/nsenter", $"-t {systemdPid} -S {realUserId} -G {realGroupId}  --wd=\"{Environment.CurrentDirectory}\" -m -p {commandLine}");
             p.WaitForExit();
 
             if (p.ExitCode != 0)
@@ -204,6 +227,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             // Store the UID and name of the real user.
             realUserId = getuid();
             realUserName = Environment.GetEnvironmentVariable("LOGNAME");
+
+            realGroupId = getgid();
 
             // Get systemd PID.
             systemdPid = GetSystemdPid();
@@ -256,7 +281,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
                 return 0;
             }
-            
+
             // Become root - daemonize expects real uid root as well as effective uid root.
             Rootify();
 
@@ -327,7 +352,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (!bottleExistedAtStart)
                 InitializeBottle(verbose);
 
-            // At this point, we should be outside an existing bottle, one way or another.
+            // At this point, we should be inside an existing bottle, one way or another.
 
             RunCommand (verbose, $"{command.First()} {cmdLine.ToString()}");
 
