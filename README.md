@@ -13,7 +13,9 @@ For those familiar with or coming here from my first cut (https://randomactsofco
 
 You will first need to _apt install_ the _dbus_, _policykit-1_ and _daemonize_ packages. You will also need to install .NET Core 2.2 inside WSL, following the instructions here: https://dotnet.microsoft.com/download/linux-package-manager/debian9/runtime-2.2.5
 
-Download genie.tar.gz from the releases page, untar it, and **copy** the files therewithin into  _/usr/local/bin_ . Make sure that they are _chown root_, and that `genie` is _chmod u+s_ - i.e., setuid root - and _chmod a+rx_ . The other files, including `genie.dll`, do not need to be either setuid or world-readable.
+Debian and Ubuntu users can simply install from the wsl-translinux apt repository, here: https://packagecloud.io/arkane-systems/wsl-translinux . Most dependencies will install automatically, but since the .NET Core runtime is in its own repository, you will still need to install it first.
+
+Otherwise, download genie.tar.gz from the releases page, untar it, and **copy** the files therewithin into  _/usr/local/bin_ . Make sure that they are _chown root_, and that `genie` is _chmod u+s_ - i.e., setuid root - and _chmod a+rx_ . The other files, including `genie.dll`, do not need to be either setuid or world-readable.
 
 ### ...OR BUILD IT YOURSELF
 
