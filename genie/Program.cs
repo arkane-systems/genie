@@ -141,6 +141,14 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 Environment.Exit (p.ExitCode);
             }
 
+            p = Process.Start ("/bin/sh", "-c \"/bin/echo 127.0.0.1 `hostname`-wsl >> /etc/hosts\"");
+            p.WaitForExit();
+            if (p.ExitCode != 0)
+            {
+                Console.WriteLine ($"genie: initializing bottle failed; adding new hostname to hosts returned {p.ExitCode}.");
+                Environment.Exit (p.ExitCode);
+            }
+
             // Run systemd in a container.
             p = Process.Start ("/usr/sbin/daemonize", "/usr/bin/unshare -fp --mount-proc /lib/systemd/systemd");
             p.WaitForExit();
