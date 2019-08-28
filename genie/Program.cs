@@ -183,7 +183,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ($"genie: running command '{commandLine}'");
 
-            var p = Process.Start ("/usr/bin/nsenter", $"-t {systemdPid} --wd=\"{Environment.CurrentDirectory}\" -m -p su {realUserName} -c {commandLine}");
+            var p = Process.Start ("/usr/bin/nsenter", $"-t {systemdPid} --wd=\"{Environment.CurrentDirectory}\" -m -p su {realUserName} -c \"{commandLine}\"");
             p.WaitForExit();
 
             if (p.ExitCode != 0)
