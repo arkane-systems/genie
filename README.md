@@ -11,11 +11,11 @@ For those familiar with or coming here from my first cut (https://randomactsofco
 
 ## INSTALLATION
 
-You will first need to _apt install_ the _dbus_, _policykit-1_ and _daemonize_ packages. You will also need to install .NET Core 2.2 inside WSL, following the instructions here: https://dotnet.microsoft.com/download/linux-package-manager/debian9/runtime-2.2.5
+You will first need to _apt install_ the _dbus_, _policykit-1_ and _daemonize_ packages. You will also need to install .NET Core 2.2 inside WSL, following the instructions here: https://dotnet.microsoft.com/download/linux-package-manager/debian9/runtime-2.2.5 . Genie also has a dependency on hostess ( https://github.com/cbednarski/hostess ), a copy of which has been placed in the wsl-translinux repo for your convenience and should install automatically.
 
 Debian and Ubuntu LTS users can simply install from the wsl-translinux apt repository, here: https://packagecloud.io/arkane-systems/wsl-translinux . Most dependencies will install automatically, but since the .NET Core runtime is in its own repository, you will still need to install it first.
 
-Otherwise, download genie.tar.gz from the releases page, untar it, and **copy** the files therewithin into  _/usr/local/bin_ . Make sure that they are _chown root_, and that `genie` is _chmod u+s_ - i.e., setuid root - and _chmod a+rx_ . The other files, including `genie.dll`, do not need to be either setuid or world-readable.
+Otherwise, download genie.tar.gz from the releases page, untar it, and **copy** the files therewithin into  _/usr/local/bin_ . Make sure that they are _chown root_, and that `genie` is _chmod u+s_ - i.e., setuid root - and _chmod a+rx_ . The other files, including `genie.dll`, do not need to be either setuid or world-readable. You will also need to install hostess manually from the releases page of https://github.com/cbednarski/hostess .
 
 ### ...OR BUILD IT YOURSELF
 
@@ -44,9 +44,9 @@ So, it has three modes, all of which will set up the bottle and run systemd in i
 
 _genie -i_ will set up the bottle - including changing the WSL hostname by suffixing -wsl, to distinguish it from the Windows host -  run systemd, and then exit. This is intended for use if you want services running all the time in the background, or to preinitialize things so you needn't worry about startup time later on, and for this purpose is ideally run from Task Scheduler on logon.
 
-_genie -s_ runs your login shell inside the bottle; basically, Windows-side, _wsl genie -s_ is your substitute for just _wsl_ to get started, or for the shortcut you get to start a shell in the distro.
+_genie -s_ runs your login shell inside the bottle; basically, Windows-side, _wsl genie -s_ is your substitute for just _wsl_ to get started, or for the shortcut you get to start a shell in the distro. It follows login semantics, and as such does not preserve the current working directory.
 
-_genie -c [command]_ runs _command_ inside the bottle, then exits. The return code is the return code of the command.
+_genie -c [command]_ runs _command_ inside the bottle, then exits. The return code is the return code of the command. It follows sudo semantics, and so does preserve the cwd.
 
 ## RECOMMENDATIONS
 
@@ -56,6 +56,7 @@ Once you have this up and running, I suggest disabling via systemctl the _getty@
 
 Personally tested by me:
 
+ * Debian 10 (buster)
  * Debian 9 (stretch)
  
 Reported working:
