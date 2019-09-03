@@ -1,6 +1,6 @@
-b6908656a504d1fa5090dacc978c81c4  usr/bin/Linux.ProcessManager.dll
-2ae18c3d97281e43a83dcb15a43eebe6  usr/bin/System.CommandLine.dll
-bbe0d4cb14fe8e94aa08c2b33812d29c  usr/bin/Tmds.LibC.dll
-ca191fb120642635c07dde2ada7c16f1  usr/bin/genie
-640df240be9a4034f8bde9e108a695f0  usr/bin/genie.dll
-e4ca3e89d81d78b08b37be3ce2ba6b7f  usr/bin/genie.runtimeconfig.json
+ca191fb120642635c07dde2ada7c16f1  systemd-genie/usr/bin/genie
+a60692017d71b76935b6336ef74eee70  systemd-genie/usr/bin/genie.dll
+e4ca3e89d81d78b08b37be3ce2ba6b7f  systemd-genie/usr/bin/genie.runtimeconfig.json
+b6908656a504d1fa5090dacc978c81c4  systemd-genie/usr/bin/Linux.ProcessManager.dll
+2ae18c3d97281e43a83dcb15a43eebe6  systemd-genie/usr/bin/System.CommandLine.dll
+bbe0d4cb14fe8e94aa08c2b33812d29c  systemd-genie/usr/bin/Tmds.LibC.dll

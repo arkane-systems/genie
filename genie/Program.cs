@@ -123,7 +123,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: initializing bottle.");
 
-            // Fix hostname.
+            // Generate new hostname.
             p = Process.Start ("/bin/sh", "-c \"/bin/echo `hostname`-wsl > /etc/hostname-wsl\"");
             p.WaitForExit();
 
@@ -133,6 +133,32 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 Environment.Exit (p.ExitCode);
             }
 
+            p = Process.Start ("/usr/bin/chmod", "644 /etc/hostname-wsl");
+            p.WaitForExit();
+
+            if (p.ExitCode != 0)
+            {
+                Console.WriteLine ($"genie: initializing bottle failed; permissioning new hostname returned {p.ExitCode}.");
+                Environment.Exit (p.ExitCode);
+            }
+
+            // Hosts file: check for old host name; if there, remove it.
+            p = Process.Start ("/bin/sh", "-c \"/usr/bin/hostess has `hostname`\"");
+            p.WaitForExit();
+
+            if (p.ExitCode == 0)
+            {
+                p = Process.Start ("/bin/sh", "-c \"/usr/bin/hostess del `hostname`\"");
+                p.WaitForExit();
+
+                if (p.ExitCode != 0)
+                {
+                    Console.WriteLine ($"genie: initializing bottle failed; removing old hostname returned {p.ExitCode}.");
+                    Environment.Exit (p.ExitCode);
+                }
+            }
+
+            // Set the new hostname.
             p = Process.Start ("/bin/mount", "--bind /etc/hostname-wsl /etc/hostname");
             p.WaitForExit();
             if (p.ExitCode != 0)
@@ -141,12 +167,20 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 Environment.Exit (p.ExitCode);
             }
 
-            p = Process.Start ("/bin/sh", "-c \"/bin/echo 127.0.0.1 `hostname`-wsl >> /etc/hosts\"");
+            // Hosts file: check for new host name; if not there, update it.
+            p = Process.Start ("/bin/sh", "-c \"/usr/bin/hostess has `hostname`-wsl\"");
             p.WaitForExit();
-            if (p.ExitCode != 0)
+
+            if (p.ExitCode == 1)
             {
-                Console.WriteLine ($"genie: initializing bottle failed; adding new hostname to hosts returned {p.ExitCode}.");
-                Environment.Exit (p.ExitCode);
+                p = Process.Start ("/bin/sh", "-c \"/usr/bin/hostess add `hostname`-wsl 127.0.0.1\"");
+                p.WaitForExit();
+
+                if (p.ExitCode != 0)
+                {
+                    Console.WriteLine ($"genie: initializing bottle failed; adding new hostname returned {p.ExitCode}.");
+                    Environment.Exit (p.ExitCode);
+                }
             }
 
             // Run systemd in a container.
@@ -169,7 +203,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
         // Previous UID while rootified.
         private static uid_t previousUid = 0;
-    private static gid_t previousGid = 0;
+        private static gid_t previousGid = 0;
 
         // Become root.
         private static void Rootify ()
