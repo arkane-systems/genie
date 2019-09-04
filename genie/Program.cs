@@ -157,8 +157,14 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             Chain ("/bin/sh", "-c \"/bin/echo `hostname`-wsl > /etc/hostname-wsl\"",
                    "initializing bottle failed; making new hostname");
 
-            Chain ("/usr/bin/chmod", "644 /etc/hostname-wsl",
-                   "initializing bottle failed; permissioning new hostname");
+            unsafe
+            {
+                var bytes = Encoding.UTF8.GetBytes("/etc/hostname-wsl");
+                fixed (byte* buffer = bytes)
+                {
+                    chmod (buffer, Convert.ToUInt16 ("644", 8));
+                }
+            }
 
             // Hosts file: check for old host name; if there, remove it.
             r = RunAndWait ("/bin/sh", "-c \"/usr/bin/hostess has `hostname`\"");
