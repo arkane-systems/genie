@@ -226,7 +226,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             Chain ("/usr/bin/nsenter",
                    $"-t {systemdPid} --wd=\"{Environment.CurrentDirectory}\" -m -p su {realUserName} -c \"{commandLine}\"",
-                   "genie: running command failed; nsenter");
+                   "running command failed; nsenter");
         }
 
         // Do the work of starting a shell inside the bottle.
