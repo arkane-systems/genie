@@ -115,83 +115,76 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             return processInfo != null ? processInfo.ProcessId : 0;
         }
 
+        private static int RunAndWait (string command, string args)
+        {
+            try
+            {
+                var p = Process.Start (command, args);
+                p.WaitForExit();
+
+                return p.ExitCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine ($"genie: error executing command '{command} {args}':\r\n{ex.Message}");
+                Environment.Exit (127);
+
+                // never reached
+                return 127;
+            }
+        }
+
+        private static void Chain (string command, string args, string onError = "command execution failed;")
+        {
+            int r = RunAndWait (command, args);
+
+            if (r != 0)
+            {
+                Console.WriteLine ($"genie: {onError} returned {r}.");
+                Environment.Exit (r);
+            }
+        }
+
         // Do the work of initializing the bottle.
         private static void InitializeBottle (bool verbose)
         {
-            Process p;
+            int r;
 
             if (verbose)
                 Console.WriteLine ("genie: initializing bottle.");
 
             // Generate new hostname.
-            p = Process.Start ("/bin/sh", "-c \"/bin/echo `hostname`-wsl > /etc/hostname-wsl\"");
-            p.WaitForExit();
+            Chain ("/bin/sh", "-c \"/bin/echo `hostname`-wsl > /etc/hostname-wsl\"",
+                   "initializing bottle failed; making new hostname");
 
-            if (p.ExitCode != 0)
-            {
-                Console.WriteLine ($"genie: initializing bottle failed; making new hostname returned {p.ExitCode}.");
-                Environment.Exit (p.ExitCode);
-            }
-
-            p = Process.Start ("/usr/bin/chmod", "644 /etc/hostname-wsl");
-            p.WaitForExit();
-
-            if (p.ExitCode != 0)
-            {
-                Console.WriteLine ($"genie: initializing bottle failed; permissioning new hostname returned {p.ExitCode}.");
-                Environment.Exit (p.ExitCode);
-            }
+            Chain ("/usr/bin/chmod", "644 /etc/hostname-wsl",
+                   "initializing bottle failed; permissioning new hostname");
 
             // Hosts file: check for old host name; if there, remove it.
-            p = Process.Start ("/bin/sh", "-c \"/usr/bin/hostess has `hostname`\"");
-            p.WaitForExit();
+            r = RunAndWait ("/bin/sh", "-c \"/usr/bin/hostess has `hostname`\"");
 
-            if (p.ExitCode == 0)
+            if (r == 0)
             {
-                p = Process.Start ("/bin/sh", "-c \"/usr/bin/hostess del `hostname`\"");
-                p.WaitForExit();
-
-                if (p.ExitCode != 0)
-                {
-                    Console.WriteLine ($"genie: initializing bottle failed; removing old hostname returned {p.ExitCode}.");
-                    Environment.Exit (p.ExitCode);
-                }
+                Chain ("/bin/sh", "-c \"/usr/bin/hostess del `hostname`\"",
+                       "initializing bottle failed; removing old hostname");
             }
 
             // Set the new hostname.
-            p = Process.Start ("/bin/mount", "--bind /etc/hostname-wsl /etc/hostname");
-            p.WaitForExit();
-            if (p.ExitCode != 0)
-            {
-                Console.WriteLine ($"genie: initializing bottle failed; bind mounting hostname returned {p.ExitCode}.");
-                Environment.Exit (p.ExitCode);
-            }
+            Chain ("/bin/mount", "--bind /etc/hostname-wsl /etc/hostname",
+                   "initializing bottle failed; bind mounting hostname");
 
             // Hosts file: check for new host name; if not there, update it.
-            p = Process.Start ("/bin/sh", "-c \"/usr/bin/hostess has `hostname`-wsl\"");
-            p.WaitForExit();
+            r = RunAndWait ("/bin/sh", "-c \"/usr/bin/hostess has `hostname`-wsl\"");
 
-            if (p.ExitCode == 1)
+            if (r == 1)
             {
-                p = Process.Start ("/bin/sh", "-c \"/usr/bin/hostess add `hostname`-wsl 127.0.0.1\"");
-                p.WaitForExit();
-
-                if (p.ExitCode != 0)
-                {
-                    Console.WriteLine ($"genie: initializing bottle failed; adding new hostname returned {p.ExitCode}.");
-                    Environment.Exit (p.ExitCode);
-                }
+                Chain ("/bin/sh", "-c \"/usr/bin/hostess add `hostname`-wsl 127.0.0.1\"",
+                       "initializing bottle failed; adding new hostname");
             }
 
             // Run systemd in a container.
-            p = Process.Start ("/usr/sbin/daemonize", "/usr/bin/unshare -fp --mount-proc /lib/systemd/systemd");
-            p.WaitForExit();
-
-            if (p.ExitCode != 0)
-            {
-                Console.WriteLine ($"genie: initializing bottle failed; daemonize returned {p.ExitCode}.");
-                Environment.Exit (p.ExitCode);
-            }
+            Chain ("/usr/sbin/daemonize", "/usr/bin/unshare -fp --mount-proc /lib/systemd/systemd",
+                   "initializing bottle failed; daemonize");
 
             // Wait for systemd to be up. (Polling, sigh.)
             do
@@ -225,14 +218,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ($"genie: running command '{commandLine}'");
 
-            var p = Process.Start ("/usr/bin/nsenter", $"-t {systemdPid} --wd=\"{Environment.CurrentDirectory}\" -m -p su {realUserName} -c \"{commandLine}\"");
-            p.WaitForExit();
-
-            if (p.ExitCode != 0)
-            {
-                Console.WriteLine ($"genie: running command failed; nsenter returned {p.ExitCode}.");
-                Environment.Exit (p.ExitCode);
-            }
+            Chain ("/usr/bin/nsenter",
+                   $"-t {systemdPid} --wd=\"{Environment.CurrentDirectory}\" -m -p su {realUserName} -c \"{commandLine}\"",
+                   "genie: running command failed; nsenter");
         }
 
         // Do the work of starting a shell inside the bottle.
@@ -241,14 +229,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: starting shell");
 
-            var p = Process.Start ("/usr/bin/nsenter", $"-t {systemdPid} -m -p /bin/login -f {realUserName}");
-            p.WaitForExit();
-
-            if (p.ExitCode != 0)
-            {
-                Console.WriteLine ($"genie: starting shell failed; nsenter returned {p.ExitCode}.");
-                Environment.Exit (p.ExitCode);
-            }
+            Chain ("/usr/bin/nsenter",
+                   $"-t {systemdPid} -m -p /bin/login -f {realUserName}",
+                   "starting shell failed; nsenter");
         }
 
         // Revert from root.
