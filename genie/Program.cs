@@ -175,9 +175,24 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                        "initializing bottle failed; removing old hostname");
             }
 
-            // Set the new hostname.
-            Chain ("/bin/mount", "--bind /etc/hostname-wsl /etc/hostname",
-                   "initializing bottle failed; bind mounting hostname");
+            int mountRet;
+
+            unsafe
+            {
+                var srcbytes = Encoding.UTF8.GetBytes("/etc/hostname-wsl");
+                var trgbytes = Encoding.UTF8.GetBytes("/etc/hostname");
+
+                fixed (byte* srcbuf = srcbytes)
+                fixed (byte* trgbuf = trgbytes)
+                {
+                    mount (srcbuf, trgbuf, null, MS_BIND, null);
+                }
+            }
+
+            if (mountRet != 0)
+            {
+                Console.WriteLine ($"genie: initializing bottle failed; bind mounting hostname returned {LibC.errno}");
+            }
 
             // Hosts file: check for new host name; if not there, update it.
             r = RunAndWait ("/bin/sh", "-c \"/usr/bin/hostess has `hostname`-wsl\"");
