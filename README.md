@@ -17,6 +17,8 @@ Debian and Ubuntu LTS users can simply install from the wsl-translinux apt repos
 
 Otherwise, download genie.tar.gz from the releases page, untar it, and **copy** the files therewithin into  _/usr/local/bin_ . Make sure that they are _chown root_, and that `genie` is _chmod u+s_ - i.e., setuid root - and _chmod a+rx_ . The other files, including `genie.dll`, do not need to be either setuid or world-readable. You will also need to install hostess manually from the releases page of https://github.com/cbednarski/hostess .
 
+Arch Linux users should be aware that there are issues with packaged .NET apps on Arch: read this https://github.com/arkane-systems/genie/issues/9 for a workaround.
+
 ### ...OR BUILD IT YOURSELF
 
 Or you can build it easily enough if you don't want to trust the binary. You need the dotnet 2.2 SDK. Simply clone the repository and run the included _./build_ inside the _genie_ subdirectory. The build will be placed into the _exec_ subfolder, and permissions changed appropriately. (You will need to enter your password at the sudo prompt.)
