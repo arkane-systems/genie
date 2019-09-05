@@ -225,7 +225,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 Console.WriteLine ($"genie: running command '{commandLine}'");
 
             Chain ("/usr/bin/nsenter",
-                   $"-t {systemdPid} --wd=\"{Environment.CurrentDirectory}\" -m -p su {realUserName} -c \"{commandLine}\"",
+                   $"-t {systemdPid} --wd=\"{Environment.CurrentDirectory}\" -m -p runuser -u {realUserName} {commandLine}",
                    "running command failed; nsenter");
         }
 
