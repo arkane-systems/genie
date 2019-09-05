@@ -1,11 +1,11 @@
 Package: systemd-genie
-Version: 1.6
+Version: 1.7
 Architecture: amd64
 Essential: no
 Section: utils
 Priority: optional
 Maintainer: Alistair Young <avatar@arkane-systems.net>
-Depends: dbus, policykit-1, daemonize, systemd, dotnet-runtime-2.2, hostess
+Depends: util-linux, dbus, policykit-1, daemonize, systemd, dotnet-runtime-2.2, hostess
 Installed-Size: 2
 Description: A quick way into a systemd "bottle" for WSL.
  What does that even mean?
