@@ -3,6 +3,7 @@ dist/
 systemd-genie/usr/bin
 genie.spec
 *.deb
+*.tar.gz
 
 ### ASPNETCore ###
 ## Ignore Visual Studio temporary files, build results, and
