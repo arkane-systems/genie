@@ -21,7 +21,7 @@ Arch Linux users should be aware that there are issues with packaged .NET apps o
 
 ### ...OR BUILD IT YOURSELF
 
-Or you can build it easily enough if you don't want to trust the binary. You need the dotnet 2.2 SDK. Simply clone the repository and run the included _./build_ inside the _genie_ subdirectory. The build will be placed into the _exec_ subfolder, and permissions changed appropriately. (You will need to enter your password at the sudo prompt.)
+Or you can build it easily enough if you don't want to trust the binary. You need the dotnet 2.2 SDK. Simply clone the repository and run the included _./build_ inside the _genie_ subdirectory. The build will be placed into the _systemd-genie/usr/bin_ folder, and permissions changed appropriately. (You will need to enter your password at the sudo prompt.) A tarfile will be produced of the binaries in the top-level folder, as will a _.deb_ package; if your distro does not include _dpkg-deb_, the build script will produce an error which can be safely ignored.
 
 ## USAGE
 
