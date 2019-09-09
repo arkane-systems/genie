@@ -153,6 +153,10 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: initializing bottle.");
 
+	    // Dump the envars
+            Chain ("/lib/genie/dumpwslenv.sh", "",
+                   "initializing bottle failed; dumping WSL envars");
+
             // Generate new hostname.
             Chain ("/bin/sh", "-c \"/bin/echo `hostname`-wsl > /etc/hostname-wsl\"",
                    "initializing bottle failed; making new hostname");

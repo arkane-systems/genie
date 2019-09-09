@@ -10,7 +10,7 @@ sudo chmod u+s ../systemd-genie/usr/bin/genie
 sudo chmod a+rx ../systemd-genie/usr/bin/genie
 cd ..
 sudo md5sum systemd-genie/usr/bin/* > systemd-genie/DEBIAN/md5sums
+sudo md5sum systemd-genie/lib/genie/* >> systemd-genie/DEBIAN/md5sums
+sudo md5sum systemd-genie/lib/systemd/system-environment-generators/* >> systemd-genie/DEBIAN/md5sums
 sudo dpkg-deb --build systemd-genie
-sudo tar zcvf genie.tar.gz systemd-genie/usr/bin/*
-
-
+sudo tar zcvf genie.tar.gz systemd-genie/*
