@@ -17,7 +17,8 @@ Debian and Ubuntu LTS users can simply install from the wsl-translinux apt repos
 
 For Arch Linux users, there are prebuilt packages available at:
 
-https://aur.archlinux.org/packages/genie-systemd/
+https://aur.archlinux.org/packages/genie-systemd/ and
+
 https://aur.archlinux.org/packages/genie-systemd-git/
 
 The former of which is prebuilt and the latter of which compiles it from source. Both install all needed dependencies. Thanks to Arley Henostroza for providing these.
