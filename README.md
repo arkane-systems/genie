@@ -15,9 +15,14 @@ You will first need to _apt install_ the _dbus_, _policykit-1_ and _daemonize_ p
 
 Debian and Ubuntu LTS users can simply install from the wsl-translinux apt repository, here: https://packagecloud.io/arkane-systems/wsl-translinux . Most dependencies will install automatically, but since the .NET Core runtime is in its own repository, you will still need to install it first.
 
-Otherwise, download genie.tar.gz from the releases page, untar it, and **copy** the files therewithin into  _/usr/local/bin_ . Make sure that they are _chown root_, and that `genie` is _chmod u+s_ - i.e., setuid root - and _chmod a+rx_ . The other files, including `genie.dll`, do not need to be either setuid or world-readable. You will also need to install hostess manually from the releases page of https://github.com/cbednarski/hostess .
+For Arch Linux users, there are prebuilt packages available at:
 
-Arch Linux users should be aware that there are issues with packaged .NET apps on Arch: read this https://github.com/arkane-systems/genie/issues/9 for a workaround.
+https://aur.archlinux.org/packages/genie-systemd/
+https://aur.archlinux.org/packages/genie-systemd-git/
+
+The former of which is prebuilt and the latter of which compiles it from source. Both install all needed dependencies. Thanks to Arley Henostroza for providing these.
+
+Otherwise, download genie.tar.gz from the releases page, untar it, and **copy** the files therewithin into  _/usr/local/bin_ . Make sure that they are _chown root_, and that `genie` is _chmod u+s_ - i.e., setuid root - and _chmod a+rx_ . The other files, including `genie.dll`, do not need to be either setuid or world-readable. You will also need to install hostess manually from the releases page of https://github.com/cbednarski/hostess .
 
 ### ...OR BUILD IT YOURSELF
 
