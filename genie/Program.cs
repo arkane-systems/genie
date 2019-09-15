@@ -153,6 +153,10 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: initializing bottle.");
 
+	    // Dump the envars
+            Chain ("/lib/genie/dumpwslenv.sh", "",
+                   "initializing bottle failed; dumping WSL envars");
+
             // Generate new hostname.
             Chain ("/bin/sh", "-c \"/bin/echo `hostname`-wsl > /etc/hostname-wsl\"",
                    "initializing bottle failed; making new hostname");
@@ -167,7 +171,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             }
 
             // Hosts file: check for old host name; if there, remove it.
-            r = RunAndWait ("/bin/sh", "-c \"/usr/bin/hostess has `hostname`\"");
+            r = RunAndWait ("/bin/sh", "-c \"/usr/bin/hostess has `hostname` > /dev/null\"");
 
             if (r == 0)
             {
@@ -180,7 +184,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                    "initializing bottle failed; bind mounting hostname");
 
             // Hosts file: check for new host name; if not there, update it.
-            r = RunAndWait ("/bin/sh", "-c \"/usr/bin/hostess has `hostname`-wsl\"");
+            r = RunAndWait ("/bin/sh", "-c \"/usr/bin/hostess has `hostname`-wsl > /dev/null\"");
 
             if (r == 1)
             {
@@ -225,7 +229,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 Console.WriteLine ($"genie: running command '{commandLine}'");
 
             Chain ("/usr/bin/nsenter",
-                   $"-t {systemdPid} --wd=\"{Environment.CurrentDirectory}\" -m -p /sbin/runuser -u {realUserName} -- {commandLine.Trim()}",
+                   $"-t {systemdPid} --wd=\"{Environment.CurrentDirectory}\" -m -p /sbin/runuser -u {realUserName} -- /lib/genie/runinwsl.sh {commandLine.Trim()}",
                    "running command failed; nsenter");
         }
 
