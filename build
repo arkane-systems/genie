@@ -1,16 +1,25 @@
 #!/bin/sh
-sudo rm -f ../systemd-genie/usr/bin/*
+sudo rm -f systemd-genie/usr/bin/*
+
+# Build genie
+cd genie
 dotnet publish -r linux-x64 --self-contained false
 mkdir -p ../systemd-genie/usr/bin/
 cp bin/Debug/netcoreapp2.2/linux-x64/publish/genie ../systemd-genie/usr/bin/
 cp bin/Debug/netcoreapp2.2/linux-x64/publish/*.dll ../systemd-genie/usr/bin/
 cp bin/Debug/netcoreapp2.2/linux-x64/publish/genie.runtimeconfig.json ../systemd-genie/usr/bin/
-sudo chown root:root ../systemd-genie/usr/bin/*
-sudo chmod u+s ../systemd-genie/usr/bin/genie
-sudo chmod a+rx ../systemd-genie/usr/bin/genie
 cd ..
+
+# Set permissions
+sudo chown root:root systemd-genie/usr/bin/*
+sudo chmod u+s systemd-genie/usr/bin/genie
+sudo chmod a+rx systemd-genie/usr/bin/genie
+
+# Compute md5 sums
 sudo md5sum systemd-genie/usr/bin/* > systemd-genie/DEBIAN/md5sums
 sudo md5sum systemd-genie/lib/genie/* >> systemd-genie/DEBIAN/md5sums
 sudo md5sum systemd-genie/lib/systemd/system-environment-generators/* >> systemd-genie/DEBIAN/md5sums
+
+# Build packages
 sudo dpkg-deb --build systemd-genie
 sudo tar zcvf genie.tar.gz systemd-genie/*
