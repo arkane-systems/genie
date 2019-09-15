@@ -239,8 +239,30 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: starting shell");
 
+            // Read environment variables
+            var envars = new StringBuilder (256);
+            var envnames = new StringBuilder (128);
+
+            if (File.Exists ("/run/genie.env"))
+            {
+		foreach (string s in File.ReadAllLines ("/run/genie.env"))
+                {
+                    var v = s.Split (new char[] {'='});
+
+                    envars.Append ($"{s} ");
+                    envnames.Append ($"{v[0]},");
+
+                    if (verbose)
+                        Console.WriteLine ($"envar: {v[0]}={v[1]}");
+                }
+                if (envars.Length > 0) envars.Length--;
+                if (envnames.Length > 0) envnames.Length--;
+            }
+            else
+              Console.WriteLine ("genie: environment file missing; continuing anyway");
+
             Chain ("/usr/bin/nsenter",
-                   $"-t {systemdPid} -m -p /sbin/runuser -l {realUserName}",
+                   $"-t {systemdPid} -m -p env {envars.ToString()} /sbin/runuser -l {realUserName} -w {envnames.ToString()}",
                    "starting shell failed; nsenter");
         }
 
