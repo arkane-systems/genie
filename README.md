@@ -63,6 +63,8 @@ _genie -c [command]_ runs _command_ inside the bottle, then exits. The return co
 
 Once you have this up and running, I suggest disabling via systemctl the _getty@tty1_ service (since logging on and using WSL is done via ptsen, not ttys).
 
+Further tips on usage from other genie users can be found on the wiki for this repo.
+
 ## DISTRIBUTIONS
 
 Personally tested by me:
