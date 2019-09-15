@@ -1,0 +1,33 @@
+#!/bin/bash
+
+PKGNAME=genie-systemd
+
+# Enable dotnet repository setting
+sudo dnf copr enable @dotnet-sig/dotnet -y
+
+# Install hostess
+if [ ! -e /usr/bin/hostess ]; then
+  sudo curl -o /usr/bin/hostess -LO https://github.com/cbednarski/hostess/releases/download/v0.3.0/hostess_linux_amd64
+  sudo chmod 755 /usr/bin/hostess
+fi
+
+# Install dotnet and dependent packages
+sudo dnf install daemonize dotnet-runtime-2.2 dotnet-host-fxr-2.2 dotnet-sdk-2.2
+
+# Build genie
+cd genie
+dotnet publish -r linux-x64 --self-contained false
+cd ..
+
+# Install genie
+sudo install -Dm 4755 -o root "genie/bin/Debug/netcoreapp2.2/linux-x64/publish/genie" -t "/usr/bin"
+sudo install -Dm 644 -o root "genie/bin/Debug/netcoreapp2.2/linux-x64/publish/genie.dll" -t "/usr/bin"
+sudo install -Dm 744 -o root "genie/bin/Debug/netcoreapp2.2/linux-x64/publish/Linux.ProcessManager.dll" -t "/usr/bin"
+sudo install -Dm 744 -o root "genie/bin/Debug/netcoreapp2.2/linux-x64/publish/System.CommandLine.dll" -t "/usr/bin"
+sudo install -Dm 744 -o root "genie/bin/Debug/netcoreapp2.2/linux-x64/publish/Tmds.LibC.dll" -t "/usr/bin"
+sudo install -Dm 644 -o root "genie/bin/Debug/netcoreapp2.2/linux-x64/publish/genie.runtimeconfig.json" -t "/usr/bin"
+sudo install -Dm 755 -o root "systemd-genie/lib/genie/dumpwslenv.sh" -t "/usr/lib/genie/"
+sudo install -Dm 755 -o root "systemd-genie/lib/genie/readwslenv.sh" -t "/usr/lib/genie/"
+sudo install -Dm 755 -o root "systemd-genie/lib/genie/runinwsl.sh" -t "/usr/lib/genie/"
+sudo install -Dm 755 -o root "systemd-genie/lib/systemd/system-environment-generators/10-genie-envar.sh" -t "/usr/lib/systemd/system-environment-generators"
+sudo install -Dm 644 "LICENSE" "/usr/share/licenses/${PKGNAME}/LICENSE"
