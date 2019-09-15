@@ -72,19 +72,19 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             var rootCommand = new RootCommand();
             rootCommand.Description = "Handles transitions to the \"bottle\" namespace for systemd under WSL.";
             rootCommand.AddOption (optVerbose);
-            rootCommand.Handler = CommandHandler.Create<bool>(RootHandler);
+            rootCommand.Handler = CommandHandler.Create<bool>((Func<bool, int>)RootHandler);
 
             var cmdInitialize = new Command ("--initialize");
             cmdInitialize.AddAlias ("-i");
             cmdInitialize.Description = "Initialize the bottle (if necessary) only.";
-            cmdInitialize.Handler = CommandHandler.Create<bool>(InitializeHandler);
+            cmdInitialize.Handler = CommandHandler.Create<bool>((Func<bool, int>)InitializeHandler);
 
             rootCommand.Add (cmdInitialize);
 
             var cmdShell = new Command ("--shell");
             cmdShell.AddAlias ("-s");
             cmdShell.Description = "Initialize the bottle (if necessary), and run a shell in it.";
-            cmdShell.Handler = CommandHandler.Create<bool>(ShellHandler);
+            cmdShell.Handler = CommandHandler.Create<bool>((Func<bool, int>)ShellHandler);
 
             rootCommand.Add (cmdShell);
 
@@ -96,7 +96,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             cmdExec.AddAlias ("-c");
             cmdExec.Argument = argCmdLine;
             cmdExec.Description = "Initialize the bottle (if necessary), and run the specified command in it.";
-            cmdExec.Handler = CommandHandler.Create<bool, List<string>>(ExecHandler);
+            cmdExec.Handler = CommandHandler.Create<bool, List<string>>((Func<bool, List<string>, int>)ExecHandler);
 
             rootCommand.Add (cmdExec);
 
