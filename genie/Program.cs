@@ -262,7 +262,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
               Console.WriteLine ("genie: environment file missing; continuing anyway");
 
             Chain ("/usr/bin/nsenter",
-                   $"-t {systemdPid} -m -p env {envars.ToString()} /sbin/runuser -l {realUserName} -w {envnames.ToString()}",
+                   $"-t {systemdPid} -m -p /usr/bin/env {envars.ToString()} /sbin/runuser -l {realUserName} -w {envnames.ToString()}",
                    "starting shell failed; nsenter");
         }
 
