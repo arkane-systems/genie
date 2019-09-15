@@ -158,12 +158,12 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                    "initializing bottle failed; dumping WSL envars");
 
             // Generate new hostname.
-            Chain ("/bin/sh", "-c \"/bin/echo `hostname`-wsl > /etc/hostname-wsl\"",
+            Chain ("/bin/sh", "-c \"/bin/echo `hostname`-wsl > /run/hostname-wsl\"",
                    "initializing bottle failed; making new hostname");
 
             unsafe
             {
-                var bytes = Encoding.UTF8.GetBytes("/etc/hostname-wsl");
+                var bytes = Encoding.UTF8.GetBytes("/run/hostname-wsl");
                 fixed (byte* buffer = bytes)
                 {
                     chmod (buffer, Convert.ToUInt16 ("644", 8));
@@ -180,7 +180,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             }
 
             // Set the new hostname.
-            Chain ("/bin/mount", "--bind /etc/hostname-wsl /etc/hostname",
+            Chain ("/bin/mount", "--bind /run/hostname-wsl /etc/hostname",
                    "initializing bottle failed; bind mounting hostname");
 
             // Hosts file: check for new host name; if not there, update it.
@@ -239,8 +239,30 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: starting shell");
 
+            // Read environment variables
+            var envars = new StringBuilder (256);
+            var envnames = new StringBuilder (128);
+
+            if (File.Exists ("/run/genie.env"))
+            {
+		foreach (string s in File.ReadAllLines ("/run/genie.env"))
+                {
+                    var v = s.Split (new char[] {'='});
+
+                    envars.Append ($"{s} ");
+                    envnames.Append ($"{v[0]},");
+
+                    if (verbose)
+                        Console.WriteLine ($"envar: {v[0]}={v[1]}");
+                }
+                if (envars.Length > 0) envars.Length--;
+                if (envnames.Length > 0) envnames.Length--;
+            }
+            else
+              Console.WriteLine ("genie: environment file missing; continuing anyway");
+
             Chain ("/usr/bin/nsenter",
-                   $"-t {systemdPid} -m -p /sbin/runuser -l {realUserName}",
+                   $"-t {systemdPid} -m -p /usr/bin/env {envars.ToString()} /sbin/runuser -l {realUserName} -w {envnames.ToString()}",
                    "starting shell failed; nsenter");
         }
 
@@ -349,7 +371,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             // At this point, we should be outside an existing bottle, one way or another.
 
             // It shouldn't matter whether we have setuid here, since we start the shell with
-            // login, which expects root and reassigns uid appropriately.
+            // runuser, which expects root and reassigns uid appropriately.
             StartShell(verbose);
 
             Unrootify();
