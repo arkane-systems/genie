@@ -175,7 +175,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             if (r == 0)
             {
-                Chain ("/bin/sh", "-c \"/usr/bin/hostess del `hostname`\"",
+                Chain ("/bin/sh", "-c \"/usr/bin/hostess del `hostname` > /dev/null\"",
                        "initializing bottle failed; removing old hostname");
             }
 
@@ -188,12 +188,12 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             if (r == 1)
             {
-                Chain ("/bin/sh", "-c \"/usr/bin/hostess add `hostname`-wsl 127.0.0.1\"",
+                Chain ("/bin/sh", "-c \"/usr/bin/hostess add `hostname`-wsl 127.0.0.1 > /dev/null\"",
                        "initializing bottle failed; adding new hostname");
             }
 
             // Run systemd in a container.
-            Chain ("/usr/sbin/daemonize", "/usr/bin/unshare -fp --mount-proc /lib/systemd/systemd",
+            Chain ("/usr/sbin/daemonize", "/usr/bin/unshare -fp --propagation shared --mount-proc /lib/systemd/systemd",
                    "initializing bottle failed; daemonize");
 
             // Wait for systemd to be up. (Polling, sigh.)
