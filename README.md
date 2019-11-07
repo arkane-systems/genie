@@ -75,7 +75,7 @@ Personally tested by me:
  
 Reported working:
 
- * Ubuntu 18.04 (xenial)
+ * Ubuntu 18.04 (xenial) - **except** for _genie -s_ (use _genie -c bash_ instead). Please see case https://github.com/arkane-systems/genie/issues/28 for more details.
  * Ubuntu 19.04 (disco)
 
 I have a report of this (mostly) working for Arch, but I also have reports of various odd issues with it not working or not fully working on Arch. I could very much use some help debugging here.
