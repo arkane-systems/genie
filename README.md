@@ -14,7 +14,7 @@ For those familiar with or coming here from my first cut (https://randomactsofco
 
 ## INSTALLATION
 
-You will first need to _apt install_ the _dbus_, _policykit-1_ and _daemonize_ packages. You will also need to install .NET Core 2.2 inside WSL, following the instructions here: https://dotnet.microsoft.com/download/linux-package-manager/debian9/runtime-2.2.5 . Genie also has a dependency on hostess ( https://github.com/cbednarski/hostess ), a copy of which has been placed in the wsl-translinux repo for your convenience and should install automatically.
+You will first need to _apt install_ the _dbus_, _policykit-1_ and _daemonize_ packages. You will also need to install .NET Core 3.0 inside WSL, following the instructions here: https://dotnet.microsoft.com/download/linux-package-manager/debian9/runtime-3.0.0 . Genie also has a dependency on hostess ( https://github.com/cbednarski/hostess ), a copy of which has been placed in the wsl-translinux repo for your convenience and should install automatically.
 
 Debian and Ubuntu LTS users can simply install from the wsl-translinux apt repository, here: https://packagecloud.io/arkane-systems/wsl-translinux . Most dependencies will install automatically, but since the .NET Core runtime is in its own repository, you will still need to install it first.
 
@@ -30,7 +30,7 @@ Otherwise, download genie.tar.gz from the releases page, untar it, and **copy** 
 
 ### ...OR BUILD IT YOURSELF
 
-Or you can build it easily enough if you don't want to trust the binary. You need the dotnet 2.2 SDK. Simply clone the repository and run the included _./build_ inside the _genie_ subdirectory. The build will be placed into the _systemd-genie/usr/bin_ folder, and permissions changed appropriately. (You will need to enter your password at the sudo prompt.) A tarfile will be produced of the binaries in the top-level folder, as will a _.deb_ package; if your distro does not include _dpkg-deb_, the build script will produce an error which can be safely ignored.
+Or you can build it easily enough if you don't want to trust the binary. You need the dotnet 3.0 SDK. Simply clone the repository and run the included _./build_ inside the _genie_ subdirectory. The build will be placed into the _systemd-genie/usr/bin_ folder, and permissions changed appropriately. (You will need to enter your password at the sudo prompt.) A tarfile will be produced of the binaries in the top-level folder, as will a _.deb_ package; if your distro does not include _dpkg-deb_, the build script will produce an error which can be safely ignored.
 
 ## USAGE
 
@@ -69,6 +69,7 @@ Further tips on usage from other genie users can be found on the wiki for this r
 
 Personally tested by me:
 
+ * Debian 11 (bullseye)
  * Debian 10 (buster)
  * Debian 9 (stretch)
  
