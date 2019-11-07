@@ -1,9 +1,9 @@
 b6908656a504d1fa5090dacc978c81c4  systemd-genie/usr/bin/Linux.ProcessManager.dll
 2ae18c3d97281e43a83dcb15a43eebe6  systemd-genie/usr/bin/System.CommandLine.dll
 bbe0d4cb14fe8e94aa08c2b33812d29c  systemd-genie/usr/bin/Tmds.LibC.dll
-ca191fb120642635c07dde2ada7c16f1  systemd-genie/usr/bin/genie
-4f10756e3a8ebe6cdcb0cee4892cbe5f  systemd-genie/usr/bin/genie.dll
-e4ca3e89d81d78b08b37be3ce2ba6b7f  systemd-genie/usr/bin/genie.runtimeconfig.json
+e6a278177700236e3f6173d04a1ae0b0  systemd-genie/usr/bin/genie
+18d4b6c931dc563d3e904412d15e5cb7  systemd-genie/usr/bin/genie.dll
+1abef3305ea6ac7033d6182c984a935a  systemd-genie/usr/bin/genie.runtimeconfig.json
 5cb5c3cf5c3c2b7c4e555f4a44dd0199  systemd-genie/lib/genie/dumpwslenv.sh
 9de463e7a8451bb0a01cad9826c5f006  systemd-genie/lib/genie/readwslenv.sh
 2a4897994020e80312b4ae32e28bdb31  systemd-genie/lib/genie/runinwsl.sh
