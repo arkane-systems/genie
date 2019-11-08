@@ -1,33 +1,36 @@
 #!/bin/bash
 
+set -ex
+
 PKGNAME=genie-systemd
+PREFIX=/usr/local
 
 # Enable dotnet repository setting
 sudo dnf copr enable @dotnet-sig/dotnet -y
 
 # Install hostess
-if [ ! -e /usr/bin/hostess ]; then
-  sudo curl -o /usr/bin/hostess -LO https://github.com/cbednarski/hostess/releases/download/v0.3.0/hostess_linux_amd64
-  sudo chmod 755 /usr/bin/hostess
+if ! [ -x "$(command -v hostess)" ]; then
+  sudo curl -o "$PREFIX/bin/hostess" -LO https://github.com/cbednarski/hostess/releases/download/v0.3.0/hostess_linux_amd64
+  sudo chmod 755 "$PREFIX/bin/hostess"
 fi
 
 # Install dotnet and dependent packages
-sudo dnf install daemonize dotnet-runtime-2.2 dotnet-host-fxr-2.2 dotnet-sdk-2.2
+sudo dnf install daemonize dotnet-runtime-3.0 dotnet-host-fxr-3.0 dotnet-sdk-3.0
 
 # Build genie
-cd genie
+pushd genie
 dotnet publish -r linux-x64 --self-contained false
-cd ..
+popd
 
 # Install genie
-sudo install -Dm 4755 -o root "genie/bin/Debug/netcoreapp2.2/linux-x64/publish/genie" -t "/usr/bin"
-sudo install -Dm 644 -o root "genie/bin/Debug/netcoreapp2.2/linux-x64/publish/genie.dll" -t "/usr/bin"
-sudo install -Dm 744 -o root "genie/bin/Debug/netcoreapp2.2/linux-x64/publish/Linux.ProcessManager.dll" -t "/usr/bin"
-sudo install -Dm 744 -o root "genie/bin/Debug/netcoreapp2.2/linux-x64/publish/System.CommandLine.dll" -t "/usr/bin"
-sudo install -Dm 744 -o root "genie/bin/Debug/netcoreapp2.2/linux-x64/publish/Tmds.LibC.dll" -t "/usr/bin"
-sudo install -Dm 644 -o root "genie/bin/Debug/netcoreapp2.2/linux-x64/publish/genie.runtimeconfig.json" -t "/usr/bin"
-sudo install -Dm 755 -o root "systemd-genie/lib/genie/dumpwslenv.sh" -t "/usr/lib/genie/"
-sudo install -Dm 755 -o root "systemd-genie/lib/genie/readwslenv.sh" -t "/usr/lib/genie/"
-sudo install -Dm 755 -o root "systemd-genie/lib/genie/runinwsl.sh" -t "/usr/lib/genie/"
-sudo install -Dm 755 -o root "systemd-genie/lib/systemd/system-environment-generators/10-genie-envar.sh" -t "/usr/lib/systemd/system-environment-generators"
-sudo install -Dm 644 "LICENSE" "/usr/share/licenses/${PKGNAME}/LICENSE"
+sudo install -Dm 4755 -o root "genie/bin/Debug/netcoreapp3.0/linux-x64/publish/genie" -t "$PREFIX/bin"
+sudo install -Dm 644 -o root "genie/bin/Debug/netcoreapp3.0/linux-x64/publish/genie.dll" -t "$PREFIX/bin"
+sudo install -Dm 744 -o root "genie/bin/Debug/netcoreapp3.0/linux-x64/publish/Linux.ProcessManager.dll" -t "$PREFIX/bin"
+sudo install -Dm 744 -o root "genie/bin/Debug/netcoreapp3.0/linux-x64/publish/System.CommandLine.dll" -t "$PREFIX/bin"
+sudo install -Dm 744 -o root "genie/bin/Debug/netcoreapp3.0/linux-x64/publish/Tmds.LibC.dll" -t "$PREFIX/bin"
+sudo install -Dm 644 -o root "genie/bin/Debug/netcoreapp3.0/linux-x64/publish/genie.runtimeconfig.json" -t "$PREFIX/bin"
+sudo install -Dm 755 -o root "systemd-genie/lib/genie/dumpwslenv.sh" -t "$PREFIX/lib/genie/"
+sudo install -Dm 755 -o root "systemd-genie/lib/genie/readwslenv.sh" -t "$PREFIX/lib/genie/"
+sudo install -Dm 755 -o root "systemd-genie/lib/genie/runinwsl.sh" -t "$PREFIX/lib/genie/"
+sudo install -Dm 755 -o root "systemd-genie/lib/systemd/system-environment-generators/10-genie-envar.sh" -t "$PREFIX/lib/systemd/system-environment-generators"
+sudo install -Dm 644 "LICENSE" "$PREFIX/share/licenses/${PKGNAME}/LICENSE"
