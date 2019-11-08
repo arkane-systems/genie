@@ -1,16 +1,18 @@
-#!/bin/sh
+#!/bin/bash
 sudo rm -f systemd-genie/usr/bin/*
 
 # Build genie
 pushd genie
-dotnet publish -r linux-x64 --self-contained false
+dotnet publish -c Release -r linux-x64 --self-contained false
 mkdir -p ../systemd-genie/usr/bin/
-cp bin/Debug/netcoreapp3.0/linux-x64/publish/genie ../systemd-genie/usr/bin/
-cp bin/Debug/netcoreapp3.0/linux-x64/publish/*.dll ../systemd-genie/usr/bin/
-cp bin/Debug/netcoreapp3.0/linux-x64/publish/genie.runtimeconfig.json ../systemd-genie/usr/bin/
+cp bin/Release/netcoreapp3.0/linux-x64/publish/genie ../systemd-genie/usr/bin/
+cp bin/Release/netcoreapp3.0/linux-x64/publish/*.dll ../systemd-genie/usr/bin/
+cp bin/Release/netcoreapp3.0/linux-x64/publish/genie.runtimeconfig.json ../systemd-genie/usr/bin/
 popd
 
 # Set permissions
+sudo chmod -R 0755 systemd-genie/DEBIAN
+
 sudo chown root:root systemd-genie/usr/bin/*
 sudo chmod u+s systemd-genie/usr/bin/genie
 sudo chmod a+rx systemd-genie/usr/bin/genie
