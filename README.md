@@ -12,6 +12,10 @@ If you want to try it, please read this entire document first, _especially_ the 
 
 For those familiar with or coming here from my first cut (https://randomactsofcoding.wordpress.com/2019/06/13/systemd-on-wsl2/) at attempting to get _systemd_ working, this is the revised one after being schooled on the topic by @therealkenc, over here https://github.com/microsoft/WSL/issues/994 .
 
+## NOTE: WSL 2 ONLY
+
+Note: it is only possible to run _systemd_ (and thus _genie_ ) under WSL 2; WSL 1 does not support the system calls required to do so. If you are running inside a distro configured as WSL 1, even if your system supports WSL 2, genie will fail to operate properly.
+
 ## INSTALLATION
 
 You will first need to _apt install_ the _dbus_, _policykit-1_ and _daemonize_ packages. You will also need to install .NET Core 3.0 inside WSL, following the instructions here: https://dotnet.microsoft.com/download/linux-package-manager/debian9/runtime-3.0.0 . Genie also has a dependency on hostess ( https://github.com/cbednarski/hostess ), a copy of which has been placed in the wsl-translinux repo for your convenience and should install automatically.
