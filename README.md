@@ -30,11 +30,11 @@ https://aur.archlinux.org/packages/genie-systemd-git/
 
 The former of which is prebuilt and the latter of which compiles it from source. Both install all needed dependencies. Thanks to Arley Henostroza for providing these.
 
-Otherwise, download genie.tar.gz from the releases page, untar it, and **copy** the files therewithin into  _/usr/local/bin_ . Make sure that they are _chown root_, and that `genie` is _chmod u+s_ - i.e., setuid root - and _chmod a+rx_ . The other files, including `genie.dll`, do not need to be either setuid or world-readable. You will also need to install hostess manually from the releases page of https://github.com/cbednarski/hostess .
+(Other installation methods forthcoming after revision.)
 
 ### ...OR BUILD IT YOURSELF
 
-Or you can build it easily enough if you don't want to trust the binary. You need the dotnet 3.0 SDK. Simply clone the repository and run the included _./build_ inside the _genie_ subdirectory. The build will be placed into the _systemd-genie/usr/bin_ folder, and permissions changed appropriately. (You will need to enter your password at the sudo prompt.) A tarfile will be produced of the binaries in the top-level folder, as will a _.deb_ package; if your distro does not include _dpkg-deb_, the build script will produce an error which can be safely ignored.
+(Build instructions forthcoming after revision.)
 
 ## USAGE
 
