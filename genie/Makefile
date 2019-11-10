@@ -14,7 +14,7 @@ all:
 #
 
 local:
-	echo "Local build not yet implemented."
+	dotnet publish -c ReleaseLocal -r linux-x64 --self-contained false
 
 #
 # clean: delete the package interim files

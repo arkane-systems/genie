@@ -16,4 +16,10 @@
     <PackageReference Include="System.CommandLine.Experimental" Version="0.2.0-alpha.19174.3" />
     <PackageReference Include="Tmds.LibC" Version="0.2.0" />
   </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'ReleaseLocal'">
+    <ConfigurationGroup>Release</ConfigurationGroup>
+    <DefineConstants>LOCAL</DefineConstants>
+  </PropertyGroup>
+
 </Project>
