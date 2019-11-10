@@ -163,6 +163,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             return true;
         }
 
+        private static string GetPrefixedPath (string path) => Path.Combine (Prefix, path);
+
         // Get the pid of the earliest running root systemd, or 0 if none is running.
         private static int GetSystemdPid ()
         {
@@ -213,7 +215,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 Console.WriteLine ("genie: initializing bottle.");
 
 	    // Dump the envars
-            Chain ("/lib/genie/dumpwslenv.sh", "",
+            Chain (GetPrefixedPath ("/lib/genie/dumpwslenv.sh"), "",
                    "initializing bottle failed; dumping WSL envars");
 
             // Generate new hostname.
@@ -230,11 +232,11 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             }
 
             // Hosts file: check for old host name; if there, remove it.
-            r = RunAndWait ("/bin/sh", "-c \"/usr/bin/hostess has `hostname` > /dev/null 2>&1\"");
+            r = RunAndWait ("/bin/sh", String.Concat ("-c \"", GetPrefixedPath ("/bin/hostess"), " has `hostname` > /dev/null 2>&1\""));
 
             if (r == 0)
             {
-                Chain ("/bin/sh", "-c \"/usr/bin/hostess del `hostname` > /dev/null 2>&1\"",
+                Chain ("/bin/sh", String.Concat ("-c \"", GetPrefixedPath ("/bin/hostess"), " del `hostname` > /dev/null 2>&1\""),
                        "initializing bottle failed; removing old hostname");
             }
 
@@ -243,11 +245,11 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                    "initializing bottle failed; bind mounting hostname");
 
             // Hosts file: check for new host name; if not there, update it.
-            r = RunAndWait ("/bin/sh", "-c \"/usr/bin/hostess has `hostname`-wsl > /dev/null 2&>1\"");
+            r = RunAndWait ("/bin/sh", String.Concat ("-c \"", GetPrefixedPath ("/bin/hostess"), " has `hostname`-wsl > /dev/null 2&>1\""));
 
             if (r == 1)
             {
-                Chain ("/bin/sh", "-c \"/usr/bin/hostess add `hostname`-wsl 127.0.0.1 > /dev/null 2&>1\"",
+                Chain ("/bin/sh", String.Concat ("-c \"", GetPrefixedPath ("/bin/hostess"), " add `hostname`-wsl 127.0.0.1 > /dev/null 2&>1\""),
                        "initializing bottle failed; adding new hostname");
             }
 
@@ -288,7 +290,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 Console.WriteLine ($"genie: running command '{commandLine}'");
 
             Chain ("/usr/bin/nsenter",
-                   $"-t {systemdPid} --wd=\"{Environment.CurrentDirectory}\" -m -p /sbin/runuser -u {realUserName} -- /usr/lib/genie/runinwsl.sh {commandLine.Trim()}",
+                   String.Concat ($"-t {systemdPid} --wd=\"{Environment.CurrentDirectory}\" -m -p /sbin/runuser -u {realUserName} -- ",
+                                  GetPrefixedPath ("/lib/genie/runinwsl.sh"),
+                                  $" {commandLine.Trim()}"),
                    "running command failed; nsenter");
         }
 
