@@ -22,6 +22,12 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 {
     public static class Program
     {
+#if LOCAL
+        public const string Prefix = "/usr/bin";
+#else
+        public const string Prefix = "/usr/local/bin";
+#endif
+
         #region System status
 
         // User ID of the real user running genie.
