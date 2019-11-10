@@ -4,6 +4,8 @@ systemd-genie/usr/bin
 genie.spec
 *.deb
 *.tar.gz
+systemd-genie/DEBIAN/md5sums
+.Makefile.swp
 
 ### ASPNETCore ###
 ## Ignore Visual Studio temporary files, build results, and

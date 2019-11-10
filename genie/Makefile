@@ -10,8 +10,11 @@ all:
 	dotnet publish -c Release -r linux-x64 --self-contained false
 
 #
-# install: build for /usr/local
+# local: build for /usr/local
 #
+
+local:
+	echo "Local build not yet implemented."
 
 #
 # clean: delete the package interim files
