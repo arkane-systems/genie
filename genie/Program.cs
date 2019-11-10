@@ -55,6 +55,18 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 return EBADF;
             }
 
+            if (!IsWsl())
+            {
+                Console.WriteLine ("genie: not executing under WSL - how did we get here?");
+                return EBADF;
+            }
+
+            if (IsWsl1())
+            {
+                Console.WriteLine ("genie: systemd is not supported under WSL 1.");
+                return EPERM;
+            }
+
             if (geteuid() != 0)
             {
                 Console.WriteLine ("genie: must execute as root - has the setuid bit gone astray?");
@@ -102,6 +114,47 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             // Parse the arguments and invoke the handler.
             return rootCommand.InvokeAsync(args).Result;
+        }
+
+        // Check if we are being run under WSL.
+        private static bool IsWsl()
+        {
+            var osrelease = File.ReadAllText("/proc/sys/kernel/osrelease");
+
+            return osrelease.Contains ("Microsoft");
+        }
+
+        // Check if we are being run under WSL 1.
+        private static bool IsWsl1()
+        {
+            // We check for WSL 1 by examining the type of the root filesystem. If the
+            // root filesystem is lxfs, then we're running under WSL 1. If not,
+            // and having already established that we're running under WSL, we
+            // assume 2.
+
+            var mounts = File.ReadAllLines("/proc/self/mounts");
+
+            foreach (var mnt in mounts)
+            {
+                var deets = mnt.Split(' ');
+                if (deets.Length < 6)
+                {
+                    Console.WriteLine ("genie: mounts format error; terminating.");
+                    Environment.Exit (EBADF);
+                }
+
+                if (deets[1] == "/")
+                {
+                    // Root filesystem.
+                    return (deets[2] == "lxfs") ;
+                }
+            }
+
+            Console.WriteLine ("genie: cannot find root filesystem mount; terminating.");
+            Environment.Exit (EPERM);
+
+            // should never get here
+            return true;
         }
 
         // Get the pid of the earliest running root systemd, or 0 if none is running.
