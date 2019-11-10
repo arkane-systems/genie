@@ -26,7 +26,7 @@ all:
 	sudo tar zcvf genie.tar.gz systemd-genie/*
 
 #
-# debian: build the deb installation package 
+# debian: build the deb installation package
 #
 
 pkg-deb:
@@ -41,7 +41,17 @@ debian: clean all pkg-deb
 
 install:
 	make -C genie local
-	echo "Local installation not yet supported."
+	echo "If you have not yet, you must install the dependent packages - daemonize, hostess, and all systemd deps."
+	sudo install -Dm 4755 -o root "genie/bin/ReleaseLocal/netcoreapp3.0/linux-x64/publish/genie" -t "/usr/local/bin"
+	sudo install -Dm 644 -o root "genie/bin/ReleaseLocal/netcoreapp3.0/linux-x64/publish/genie.dll" -t "/usr/local/bin"
+	sudo install -Dm 744 -o root "genie/bin/ReleaseLocal/netcoreapp3.0/linux-x64/publish/Linux.ProcessManager.dll" -t "/usr/local/bin"
+	sudo install -Dm 744 -o root "genie/bin/ReleaseLocal/netcoreapp3.0/linux-x64/publish/System.CommandLine.dll" -t "/usr/local/bin"
+	sudo install -Dm 744 -o root "genie/bin/ReleaseLocal/netcoreapp3.0/linux-x64/publish/Tmds.LibC.dll" -t "/usr/local/bin"
+	sudo install -Dm 644 -o root "genie/bin/ReleaseLocal/netcoreapp3.0/linux-x64/publish/genie.runtimeconfig.json" -t "/usr/local/bin"
+	sudo install -Dm 755 -o root "systemd-genie/lib/genie/dumpwslenv.sh" -t "/usr/local/lib/genie/"
+	sudo install -Dm 755 -o root "systemd-genie/lib/genie/readwslenv.sh" -t "/usr/local/lib/genie/"
+	sudo install -Dm 755 -o root "systemd-genie/lib/genie/runinwsl.sh" -t "/usr/local/lib/genie/"
+	sudo install -Dm 755 -o root "systemd-genie/lib/systemd/system-environment-generators/10-genie-envar.sh" -t "/usr/local/lib/systemd/system-environment-generators"
 
 #
 # clean: delete the package interim files and products
