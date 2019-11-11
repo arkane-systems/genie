@@ -26,7 +26,7 @@ https://aur.archlinux.org/packages/genie-systemd/ and
 
 https://aur.archlinux.org/packages/genie-systemd-git/
 
-The former of which is prebuilt and the latter of which compiles it from source. Both install all needed dependencies, save that for version 1.17 and above, you will have to install .NET Core 3.0 runtime explicitly.
+The former of which is prebuilt and the latter of which compiles it from source. Both install all needed dependencies, save that for version 1.17 and above, you will have to install .NET Core 3.0 runtime explicitly. A PKGBUILD file for this in Arch is available here for those who wish to use it: https://github.com/arkane-systems/genie/files/3827049/dotnet-PKGBUILD.tar.gz ; you can also make your own, and for security and good practice, please always check what a PKGBUILD does before you use it.
 
 Thanks to Arley Henostroza for providing these.
 
