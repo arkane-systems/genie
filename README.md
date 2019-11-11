@@ -10,17 +10,15 @@ Well, this gives you a way to run systemd as pid 1, with all the trimmings, insi
 
 If you want to try it, please read this entire document first, _especially_ the BUGS section.
 
-For those familiar with or coming here from my first cut (https://randomactsofcoding.wordpress.com/2019/06/13/systemd-on-wsl2/) at attempting to get _systemd_ working, this is the revised one after being schooled on the topic by @therealkenc, over here https://github.com/microsoft/WSL/issues/994 .
-
 ## NOTE: WSL 2 ONLY
 
 Note: it is only possible to run _systemd_ (and thus _genie_ ) under WSL 2; WSL 1 does not support the system calls required to do so. If you are running inside a distro configured as WSL 1, even if your system supports WSL 2, genie will fail to operate properly.
 
 ## INSTALLATION
 
-You will first need to _apt install_ the _dbus_, _policykit-1_ and _daemonize_ packages. You will also need to install .NET Core 3.0 inside WSL, following the instructions here: https://dotnet.microsoft.com/download/linux-package-manager/debian9/runtime-3.0.0 . Genie also has a dependency on hostess ( https://github.com/cbednarski/hostess ), a copy of which has been placed in the wsl-translinux repo for your convenience and should install automatically.
+If there is a package available for your distribution, this is the recommended method of installing genie.
 
-Debian and Ubuntu LTS users can simply install from the wsl-translinux apt repository, here: https://packagecloud.io/arkane-systems/wsl-translinux . Most dependencies will install automatically, but since the .NET Core runtime is in its own repository, you will still need to install it first.
+### Arch
 
 For Arch Linux users, there are prebuilt packages available at:
 
@@ -28,13 +26,45 @@ https://aur.archlinux.org/packages/genie-systemd/ and
 
 https://aur.archlinux.org/packages/genie-systemd-git/
 
-The former of which is prebuilt and the latter of which compiles it from source. Both install all needed dependencies. Thanks to Arley Henostroza for providing these.
+The former of which is prebuilt and the latter of which compiles it from source. Both install all needed dependencies, save that for version 1.17 and above, you will have to install .NET Core 3.0 runtime explicitly.
 
-(Other installation methods forthcoming after revision.)
+Thanks to Arley Henostroza for providing these.
+
+### Debian
+
+Dependent packages on Debian are _daemonize_, _dbus_, _dotnet-runtime-3.0_, _hostess_, _policykit-1_, _systemd_, and _util-linux_ . For the most part, these are either already installed or in the distro and able to be installed automatically.
+
+The chief exceptions are _dotnet-runtime-3.0_ , for which you will need to follow the installation instructions here:
+
+https://dotnet.microsoft.com/download/linux-package-manager/debian9/runtime-3.0.0
+
+And _hostess_ ( https://github.com/cbednarski/hostess ), a package for which has been placed in the wsl-translinux repo for your convenience and which should thus install automatically with genie.
+
+To install, add the wsl-translinux repository here: https://packagecloud.io/arkane-systems/wsl-translinux , and install genie using the command:
+
+_sudo apt install systemd-genie_
+
+### Ubuntu (and other Debian derivatives)
+
+Use the Debian package.
+
+### Other
+
+Currently, there are no installation packages available for other distributions/package-management systems. It is possible to download the genie.tar.gz file from the Releases page (essentially, the unwrapped Debian package) and manually place the files within, other than the DEBIAN folder, in the matching places and with the correct provisions. Note that this is a packaged build, rather than a local-install build, and thus expects itself and hostess to both be installed under _/usr/bin_.
+
+If you are able to build an install package for another distribution/package-management system, please consider adding your build process to the genie makefile in the same manner as the _debian_ target, and submitting a pull request. While not able to maintain packages myself for every distro, keeping the build processes for as many as possible in this repo would be useful to future genie users.
 
 ### ...OR BUILD IT YOURSELF
 
-(Build instructions forthcoming after revision.)
+It is possible to build your own version of genie and install it locally. To do so, you will require _build-essential_ and _dotnet-sdk-3.0_ in addition to the other dependencies, all of which must be installed manually. Note that since hostess is not normally installed from a package but by direct download from https://github.com/cbednarski/hostess , when using a local-install build of genie, hostess must be installed in _/usr/local/bin_ .
+
+After cloning the repository, run
+
+```
+make install
+```
+
+This will build genie and install it under _/usr/local_ .
 
 ## USAGE
 
@@ -68,23 +98,6 @@ _genie -c [command]_ runs _command_ inside the bottle, then exits. The return co
 Once you have this up and running, I suggest disabling via systemctl the _getty@tty1_ service (since logging on and using WSL is done via ptsen, not ttys).
 
 Further tips on usage from other genie users can be found on the wiki for this repo.
-
-## DISTRIBUTIONS
-
-Personally tested by me:
-
- * Debian 11 (bullseye)
- * Debian 10 (buster)
- * Debian 9 (stretch)
- 
-Reported working:
-
- * Ubuntu 18.04 (xenial) - **except** for _genie -s_ (use _genie -c bash_ instead). Please see case https://github.com/arkane-systems/genie/issues/28 for more details.
- * Ubuntu 19.04 (disco)
-
-I have a report of this (mostly) working for Arch, but I also have reports of various odd issues with it not working or not fully working on Arch. I could very much use some help debugging here.
-
-Note that this does not imply that it won't work on other distributions; merely that no-one's tried it and reported it back to me yet. If you do, please do.
 
 ## BUGS
 
