@@ -127,7 +127,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         {
             var osrelease = File.ReadAllText("/proc/sys/kernel/osrelease");
 
-            return osrelease.Contains ("Microsoft");
+            return osrelease.Contains ("microsoft", StringComparison.OrdinalIgnoreCase);
         }
 
         // Check if we are being run under WSL 1.

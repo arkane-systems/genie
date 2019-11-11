@@ -1,5 +1,5 @@
 Package: systemd-genie
-Version: 1.18
+Version: 1.19
 Architecture: amd64
 Essential: no
 Section: utils
