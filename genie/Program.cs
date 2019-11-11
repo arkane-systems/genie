@@ -23,9 +23,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
     public static class Program
     {
 #if LOCAL
-        public const string Prefix = "/usr/local/bin";
+        public const string Prefix = "/usr/local";
 #else
-        public const string Prefix = "/usr/bin";
+        public const string Prefix = "/usr";
 #endif
 
         #region System status
@@ -209,16 +209,20 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         // Do the work of initializing the bottle.
         private static void InitializeBottle (bool verbose)
         {
-            int r;
-
             if (verbose)
                 Console.WriteLine ("genie: initializing bottle.");
 
-	    // Dump the envars
+            // Dump the envars
+            if (verbose)
+                Console.WriteLine ("genie: dumping WSL environment variables.");
+
             Chain (GetPrefixedPath ("/lib/genie/dumpwslenv.sh"), "",
                    "initializing bottle failed; dumping WSL envars");
 
             // Generate new hostname.
+            if (verbose)
+                Console.WriteLine ("genie: generating new hostname.");
+
             Chain ("/bin/sh", "-c \"/bin/echo `hostname`-wsl > /run/hostname-wsl\"",
                    "initializing bottle failed; making new hostname");
 
@@ -232,28 +236,27 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             }
 
             // Hosts file: check for old host name; if there, remove it.
-            r = RunAndWait ("/bin/sh", String.Concat ("-c \"", GetPrefixedPath ("/bin/hostess"), " has `hostname` > /dev/null 2>&1\""));
+            if (verbose)
+                Console.WriteLine ("genie: removing old hostname.");
 
-            if (r == 0)
-            {
-                Chain ("/bin/sh", String.Concat ("-c \"", GetPrefixedPath ("/bin/hostess"), " del `hostname` > /dev/null 2>&1\""),
+            Chain ("/bin/sh", String.Concat ("-c \"", GetPrefixedPath ("bin/hostess"), " del `hostname`\""),
                        "initializing bottle failed; removing old hostname");
-            }
 
             // Set the new hostname.
+            if (verbose)
+                Console.WriteLine ("genie: setting new hostname.");
+
             Chain ("/bin/mount", "--bind /run/hostname-wsl /etc/hostname",
                    "initializing bottle failed; bind mounting hostname");
 
             // Hosts file: check for new host name; if not there, update it.
-            r = RunAndWait ("/bin/sh", String.Concat ("-c \"", GetPrefixedPath ("/bin/hostess"), " has `hostname`-wsl > /dev/null 2&>1\""));
-
-            if (r == 1)
-            {
-                Chain ("/bin/sh", String.Concat ("-c \"", GetPrefixedPath ("/bin/hostess"), " add `hostname`-wsl 127.0.0.1 > /dev/null 2&>1\""),
+            Chain ("/bin/sh", String.Concat ("-c \"", GetPrefixedPath ("bin/hostess"), " add `hostname`-wsl 127.0.0.1\""),
                        "initializing bottle failed; adding new hostname");
-            }
 
             // Run systemd in a container.
+            if (verbose)
+                Console.WriteLine ("genie: starting systemd.");
+
             Chain ("/usr/sbin/daemonize", "/usr/bin/unshare -fp --propagation shared --mount-proc /lib/systemd/systemd",
                    "initializing bottle failed; daemonize");
 
@@ -308,7 +311,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             if (File.Exists ("/run/genie.env"))
             {
-		foreach (string s in File.ReadAllLines ("/run/genie.env"))
+        foreach (string s in File.ReadAllLines ("/run/genie.env"))
                 {
                     var v = s.Split (new char[] {'='});
 
