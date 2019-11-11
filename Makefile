@@ -38,6 +38,12 @@ pkg-deb:
 debian: clean all pkg-deb
 
 #
+# arch: build the arch parts to import in PKGBUILD
+#
+
+arch:
+	rm -rf systemd-genie/DEBIAN
+#
 # install: build for /usr/local and install locally
 #
 
