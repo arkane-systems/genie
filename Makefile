@@ -14,14 +14,9 @@ all:
 	cp genie/bin/Release/netcoreapp3.0/linux-x64/publish/*.dll systemd-genie/usr/bin/
 	cp genie/bin/Release/netcoreapp3.0/linux-x64/publish/genie.runtimeconfig.json systemd-genie/usr/bin/
 	# Set in-package permissions
-	sudo chmod -R 0755 systemd-genie/DEBIAN
 	sudo chown root:root systemd-genie/usr/bin/*
 	sudo chmod u+s systemd-genie/usr/bin/genie
 	sudo chmod a+rx systemd-genie/usr/bin/genie
-	# Compute md5 sums
-	sudo md5sum systemd-genie/usr/bin/* > systemd-genie/DEBIAN/md5sums
-	sudo md5sum systemd-genie/lib/genie/* >> systemd-genie/DEBIAN/md5sums
-	sudo md5sum systemd-genie/lib/systemd/system-environment-generators/* >> systemd-genie/DEBIAN/md5sums
 	# Make the distro zip.
 	sudo tar zcvf genie.tar.gz systemd-genie/*
 
@@ -32,12 +27,24 @@ all:
 pkg-deb:
 	# Make debian subfolder
 	mkdir -p systemd-genie/DEBIAN
-	# Copy control file
+	# Set in-package permissions
+	sudo chmod -R 0755 systemd-genie/DEBIAN
+  # Copy control file
 	cp debian/control systemd-genie/DEBIAN/control
+	# Compute md5 sums
+	sudo md5sum systemd-genie/usr/bin/* > systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/lib/genie/* >> systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/lib/systemd/system-environment-generators/* >> systemd-genie/DEBIAN/md5sums
 	# Make .deb package
 	sudo dpkg-deb --build systemd-genie
 
 debian: clean all pkg-deb
+
+#
+# arch: build the arch installation package (files only)
+#
+
+arch: clean all
 
 #
 # install: build for /usr/local and install locally
