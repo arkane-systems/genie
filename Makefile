@@ -30,6 +30,10 @@ all:
 #
 
 pkg-deb:
+	# Make debian subfolder
+	mkdir -p systemd-genie/DEBIAN
+	# Copy control file
+	cp debian/control systemd-genie/DEBIAN/control
 	# Make .deb package
 	sudo dpkg-deb --build systemd-genie
 
@@ -59,5 +63,6 @@ install:
 
 clean:
 	make -C genie clean
+	rm -rf systemd-genie/DEBIAN
 	rm -rf systemd-genie/usr/bin/*
 	rm -f genie.tar.gz systemd-genie.deb
