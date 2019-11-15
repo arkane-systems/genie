@@ -4,7 +4,7 @@ systemd-genie/usr/bin
 genie.spec
 *.deb
 *.tar.gz
-systemd-genie/DEBIAN/md5sums
+systemd-genie/DEBIAN
 .Makefile.swp
 
 ### ASPNETCore ###
