@@ -20,14 +20,17 @@ all:
 	# Make the distro zip.
 	sudo tar zcvf genie.tar.gz systemd-genie/*
 
-
 #
 # debian: build the deb installation package
 #
 
 pkg-deb:
+	# Make debian subfolder
+	mkdir -p systemd-genie/DEBIAN
 	# Set in-package permissions
 	sudo chmod -R 0755 systemd-genie/DEBIAN
+  # Copy control file
+	cp debian/control systemd-genie/DEBIAN/control
 	# Compute md5 sums
 	sudo md5sum systemd-genie/usr/bin/* > systemd-genie/DEBIAN/md5sums
 	sudo md5sum systemd-genie/lib/genie/* >> systemd-genie/DEBIAN/md5sums
@@ -38,11 +41,11 @@ pkg-deb:
 debian: clean all pkg-deb
 
 #
-# arch: build the arch parts to import in PKGBUILD
+# arch: build the arch installation package (files only)
 #
 
-arch:
-	rm -rf systemd-genie/DEBIAN
+arch: clean all
+
 #
 # install: build for /usr/local and install locally
 #
@@ -67,5 +70,6 @@ install:
 
 clean:
 	make -C genie clean
+	rm -rf systemd-genie/DEBIAN
 	rm -rf systemd-genie/usr/bin/*
 	rm -f genie.tar.gz systemd-genie.deb
