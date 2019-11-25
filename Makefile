@@ -49,7 +49,7 @@ debian: clean all pkg-deb
 arch: clean basic
 	# No need to chown because the package is made in a fakeroot enviroment
 	# Change the location of lib to /usr/lib (location in arch)
-	mv -r systemd-genie/lib* systemd-genie/usr/lib
+	mv systemd-genie/lib* systemd-genie/usr/lib
 
 #
 # install: build for /usr/local and install locally
