@@ -78,5 +78,5 @@ install:
 
 clean:
 	make -C genie clean
-	rm -rf systemd-genie/*
+	rm -rf systemd-genie
 	rm -f genie.tar.gz systemd-genie.deb
