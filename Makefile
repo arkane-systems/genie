@@ -19,6 +19,8 @@ basic:
 all: basic
 	# Set owner to root
 	sudo chown root:root systemd-genie/usr/bin/*
+	# Copy lib to systemd-genie
+	cp lib systemd-genie/
 	# Make the distro zip.
 	sudo tar zcvf genie.tar.gz systemd-genie/*
 
@@ -48,8 +50,8 @@ debian: clean all pkg-deb
 
 arch: clean basic
 	# No need to chown because the package is made in a fakeroot enviroment
-	# Change the location of lib to /usr/lib (location in arch)
-	mv systemd-genie/lib* systemd-genie/usr/lib
+	# Move lib to /usr/lib (location in Arch Linux)
+	cp lib systemd-genie/usr/
 
 #
 # install: build for /usr/local and install locally
@@ -75,6 +77,5 @@ install:
 
 clean:
 	make -C genie clean
-	rm -rf systemd-genie/DEBIAN
-	rm -rf systemd-genie/usr/bin/*
+	rm -rf systemd-genie/*
 	rm -f genie.tar.gz systemd-genie.deb

@@ -1,6 +1,6 @@
 build/
 dist/
-systemd-genie/usr/bin
+systemd-genie/*
 genie.spec
 *.deb
 *.tar.gz
