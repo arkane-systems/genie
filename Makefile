@@ -20,7 +20,7 @@ all: basic
 	# Set owner to root
 	sudo chown root:root systemd-genie/usr/bin/*
 	# Copy lib to systemd-genie
-	cp lib systemd-genie/
+	cp -r lib systemd-genie/
 	# Make the distro zip.
 	sudo tar zcvf genie.tar.gz systemd-genie/*
 
@@ -51,13 +51,14 @@ debian: clean all pkg-deb
 arch: clean basic
 	# No need to chown because the package is made in a fakeroot enviroment
 	# Move lib to /usr/lib (location in Arch Linux)
-	cp lib systemd-genie/usr/
+	cp -r lib systemd-genie/usr/
 
 #
 # install: build for /usr/local and install locally
 #
 
 install:
+	cp -r lib systemd-genie/
 	make -C genie local
 	echo "If you have not yet, you must install the dependent packages - daemonize, hostess, and all systemd deps."
 	sudo install -Dm 4755 -o root "genie/bin/ReleaseLocal/netcoreapp3.0/linux-x64/publish/genie" -t "/usr/local/bin"
