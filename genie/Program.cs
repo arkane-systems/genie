@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Linux;
-
+using Nett;
 using Tmds.Linux;
 using static Tmds.Linux.LibC;
 
@@ -206,6 +206,88 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             }
         }
 
+        private static string GenerateEnvironmentString(string env)
+        {
+            return $"echo {env}=${env} >> /run/genie.env\n";
+        }
+
+        private static bool EnvironmentExist(string env)
+        {
+            return Environment.GetEnvironmentVariable(env) != null;
+        }
+
+        private static void insertToPATH(string str)
+        {
+            File.AppendText("/run/genie.env").Write($"PATH=\"${{PATH:+${{PATH}}:}}{str}\"");
+        }
+        
+        private static void ReadConfig() //TODO: reduce a lot of complexity
+        {
+            const string filename = "/etc/genie.conf";
+            try
+            {
+                var toml = Toml.ReadFile(filename);
+                var passEnvironment = toml.Get<bool>("PassEnvironment");
+                var tablePath = toml.Get<TomlTable>("PATH");
+                var passAllPath = tablePath.Get<bool>("PassAllPATH");
+                var passSelectedPath = tablePath.Get<bool>("PassSelectedPATH");
+                var addToPath = tablePath.Get <List<string>>("AddToPATH");
+                var environmentToPass = toml.Get<TomlTable>("ENVIRONMENT").Get <List<string>>("EnvironmentToPass");
+                if ( passAllPath && passSelectedPath)
+                {
+                    passAllPath = false;
+                    Console.WriteLine("WARNING: Both \"PassAllPATH\" and \"PassSelectedPATH\" enabled, using PassSelectedPATH only");
+                }
+
+                var dumpEnvFileLocation = GetPrefixedPath("/lib/genie/dumpwslenv.sh");
+                var dumpEnvFile = File.CreateText(dumpEnvFileLocation);
+                if (!passEnvironment) return;
+                if (passAllPath)
+                {
+                    dumpEnvFile.Write(GenerateEnvironmentString("PATH"));
+                }
+
+                if (passSelectedPath)
+                {
+                    switch (addToPath.Count)
+                    {
+                        case 0:
+                            Console.WriteLine("WARNING: The list AddToPATH in settings is empty but PassSelectedPATH is true");
+                            break;
+                        case 1:
+                            insertToPATH(addToPath[0]);
+                            break;
+                        default:
+                        {
+                            var toAdd = addToPath.Aggregate("", (current, value) => current + (value + ':'));
+
+                            // This should remove the trailing :, without the hassle to track the last one
+                            toAdd = toAdd.Substring(0, toAdd.Length -1);
+                            insertToPATH(toAdd);
+                            break;
+                        }
+                    }
+                }
+
+                foreach (var value in environmentToPass)
+                {
+                    if (EnvironmentExist(value))
+                    {
+                        dumpEnvFile.Write(GenerateEnvironmentString(value));
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Environment Value {value} don't exist, skipping");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
         // Do the work of initializing the bottle.
         private static void InitializeBottle (bool verbose)
         {
@@ -215,7 +297,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             // Dump the envars
             if (verbose)
                 Console.WriteLine ("genie: dumping WSL environment variables.");
-
+            
+            ReadConfig();
             Chain (GetPrefixedPath ("/lib/genie/dumpwslenv.sh"), "",
                    "initializing bottle failed; dumping WSL envars");
 

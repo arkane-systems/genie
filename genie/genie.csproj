@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -15,6 +15,7 @@
     <PackageReference Include="Linux.ProcessManager" Version="1.5.3" />
     <PackageReference Include="System.CommandLine.Experimental" Version="0.2.0-alpha.19174.3" />
     <PackageReference Include="Tmds.LibC" Version="0.2.0" />
+    <PackageReference Include="Nett" Version="0.13.0" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'ReleaseLocal'">
