@@ -180,8 +180,6 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         {
             try
             {
-                command = command.Trim();
-                args = args.Trim();
                 var p = Process.Start (command, args);
                 p.WaitForExit();
 
@@ -306,6 +304,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
                 var dumpEnvFileLocation = GetPrefixedPath("/lib/genie/dumpwslenv.sh");
                 var dumpEnvFile = File.CreateText(dumpEnvFileLocation);
+                dumpEnvFile.Write("#! /bin/sh");
+                dumpEnvFile.WriteLine();
                 if (!passEnvironment) return;
                 if (useFullPath)
                 {
