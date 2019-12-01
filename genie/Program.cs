@@ -221,7 +221,45 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             File.AppendText("/run/genie.env").Write($"PATH=\"${{PATH:+${{PATH}}:}}{str}\"");
         }
         
-        private static void ReadConfig() //TODO: reduce a lot of complexity
+        //This creates all the “static” environment values, all that are referenced as given names
+        private static void CreateStaticEnv(List<string> environmentToPass, StreamWriter dumpEnvFile)
+        {
+            foreach (var value in environmentToPass)
+            {
+                if (EnvironmentExist(value))
+                {
+                    dumpEnvFile.Write(GenerateEnvironmentString(value));
+                }
+                else
+                {
+                    Console.WriteLine($"Environment Value {value} don't exist, skipping");
+                }
+            }
+        }
+        
+        private static void CreateSelectedPath(List<string> addToPath)
+        {
+            switch (addToPath.Count)
+            {
+                case 0:
+                    Console.WriteLine("WARNING: The list AddToPATH in settings is empty but PassSelectedPATH is true");
+                    break;
+                case 1:
+                    insertToPATH(addToPath[0]);
+                    break;
+                default:
+                {
+                    var pathValue = addToPath.Aggregate("", (current, value) => current + (value + ':'));
+
+                    // This should remove the trailing colon “:”, without the hassle to track the last colon
+                    pathValue = pathValue.Substring(0, pathValue.Length - 1);
+                    insertToPATH(pathValue);
+                    break;
+                }
+            }
+        }
+        
+        private static void HandleEnvironments()
         {
             const string filename = "/etc/genie.conf";
             try
@@ -246,40 +284,12 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 {
                     dumpEnvFile.Write(GenerateEnvironmentString("PATH"));
                 }
-
-                if (passSelectedPath)
+                else if (passSelectedPath)
                 {
-                    switch (addToPath.Count)
-                    {
-                        case 0:
-                            Console.WriteLine("WARNING: The list AddToPATH in settings is empty but PassSelectedPATH is true");
-                            break;
-                        case 1:
-                            insertToPATH(addToPath[0]);
-                            break;
-                        default:
-                        {
-                            var toAdd = addToPath.Aggregate("", (current, value) => current + (value + ':'));
-
-                            // This should remove the trailing :, without the hassle to track the last one
-                            toAdd = toAdd.Substring(0, toAdd.Length -1);
-                            insertToPATH(toAdd);
-                            break;
-                        }
-                    }
+                    CreateSelectedPath(addToPath);
                 }
 
-                foreach (var value in environmentToPass)
-                {
-                    if (EnvironmentExist(value))
-                    {
-                        dumpEnvFile.Write(GenerateEnvironmentString(value));
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Environment Value {value} don't exist, skipping");
-                    }
-                }
+                CreateStaticEnv(environmentToPass, dumpEnvFile);
             }
             catch (Exception e)
             {
@@ -287,7 +297,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 throw;
             }
         }
-
+        
         // Do the work of initializing the bottle.
         private static void InitializeBottle (bool verbose)
         {
@@ -298,7 +308,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: dumping WSL environment variables.");
             
-            ReadConfig();
+            HandleEnvironments();
             Chain (GetPrefixedPath ("/lib/genie/dumpwslenv.sh"), "",
                    "initializing bottle failed; dumping WSL envars");
 
