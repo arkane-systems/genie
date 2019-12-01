@@ -8,7 +8,8 @@ PassEnvironment = true
     
     # If enabled genie will pass only some variables that are selected, if enables this
     # overwrite PassAllPATH
-    PassSelectedPATH = true
+    AddCustomPATH = true
+    
     # The value to add to the systemd PATH, this could be the whole PATH to pass or value by value
     # Example:
     # AddToPATH = ["/mnt/c/Program Files/VS Code/bin:/mnt/c/Windows"]

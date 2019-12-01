@@ -17,7 +17,6 @@ basic:
 	chmod u+s systemd-genie/usr/bin/genie
 	chmod a+rx systemd-genie/usr/bin/genie
 
-
 all: basic
 	# Set owner to root
 	sudo chown root:root systemd-genie/usr/bin/*
@@ -54,6 +53,7 @@ arch: clean basic
 	# No need to chown because the package is made in a fakeroot enviroment
 	# Move lib to /usr/lib (location in Arch Linux)
 	cp -r lib systemd-genie/usr/
+	
 
 #
 # install: build for /usr/local and install locally
