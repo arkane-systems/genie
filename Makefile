@@ -9,6 +9,8 @@ basic:
 	make -C genie
 	# Merge in place
 	mkdir -p systemd-genie/usr/bin
+	# Copy config file to etc
+	cp -r etc systemd-genie/
 	cp genie/bin/Release/netcoreapp3.0/linux-x64/publish/genie systemd-genie/usr/bin/
 	cp genie/bin/Release/netcoreapp3.0/linux-x64/publish/*.dll systemd-genie/usr/bin/
 	cp genie/bin/Release/netcoreapp3.0/linux-x64/publish/genie.runtimeconfig.json systemd-genie/usr/bin/
