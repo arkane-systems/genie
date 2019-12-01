@@ -315,6 +315,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 }
                 CreateStaticEnv(environmentToPass, dumpEnvFile);
                 dumpEnvFile.Close();
+                Chain("/bin/chown", $"root:root {GetPrefixedPath("/lib/genie/dumpwslenv.sh")}");
+                Chain("/bin/chmod",$"775 {GetPrefixedPath("/lib/genie/dumpwslenv.sh")}");
             }
             catch (Exception e)
             {
