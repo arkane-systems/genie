@@ -211,6 +211,11 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             return $"echo {env}=${env} >> /run/genie.env\n";
         }
 
+        private static string AddSetEnviroment(string envName, string envValue)
+        {
+            return $"echo {envName}={envValue} >> /run/genie.env\n";
+        }
+
         private static bool EnvironmentExist(string env)
         {
             return Environment.GetEnvironmentVariable(env) != null;
@@ -237,7 +242,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             }
         }
         
-        private static void CreateSelectedPath(List<string> addToPath)
+        // Generate a custom path to pass at the start of Genie
+        private static void CreateCustomPath(List<string> addToPath)
         {
             switch (addToPath.Count)
             {
@@ -258,6 +264,25 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 }
             }
         }
+
+        //Cleans the path, to avoid duplication of directories
+        private static string CleanPath()
+        {
+            string cleanPath = "";
+            var path = Environment.GetEnvironmentVariable("PATH");
+            if (path == null) return cleanPath;
+            var pathVariables = path.Split(':');
+            foreach (var individualPaths in pathVariables)
+            {
+                if (!individualPaths.StartsWith("/mnt"))
+                {
+                    cleanPath += individualPaths + ':';
+                }
+            }
+            cleanPath = cleanPath.Substring(0, cleanPath.Length - 1);
+
+            return cleanPath;
+        }
         
         private static void HandleEnvironments()
         {
@@ -268,10 +293,10 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 var passEnvironment = toml.Get<bool>("PassEnvironment");
                 var tablePath = toml.Get<TomlTable>("PATH");
                 var passAllPath = tablePath.Get<bool>("PassAllPATH");
-                var passSelectedPath = tablePath.Get<bool>("PassSelectedPATH");
+                var addCustomPath = tablePath.Get<bool>("AddCustomPATH");
                 var addToPath = tablePath.Get <List<string>>("AddToPATH");
                 var environmentToPass = toml.Get<TomlTable>("ENVIRONMENT").Get <List<string>>("EnvironmentToPass");
-                if ( passAllPath && passSelectedPath)
+                if ( passAllPath && addCustomPath)
                 {
                     passAllPath = false;
                     Console.WriteLine("WARNING: Both \"PassAllPATH\" and \"PassSelectedPATH\" enabled, using PassSelectedPATH only");
@@ -282,11 +307,11 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 if (!passEnvironment) return;
                 if (passAllPath)
                 {
-                    dumpEnvFile.Write(GenerateEnvironmentString("PATH"));
+                    insertToPATH(CleanPath());
                 }
-                else if (passSelectedPath)
+                else if (addCustomPath)
                 {
-                    CreateSelectedPath(addToPath);
+                    CreateCustomPath(addToPath);
                 }
 
                 CreateStaticEnv(environmentToPass, dumpEnvFile);
