@@ -313,8 +313,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 {
                     CreateCustomPath(addToPath);
                 }
-
                 CreateStaticEnv(environmentToPass, dumpEnvFile);
+                dumpEnvFile.Close();
             }
             catch (Exception e)
             {
