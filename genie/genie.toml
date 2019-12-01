@@ -4,11 +4,11 @@ PassEnvironment = true
 [PATH]
     # If enabled genie pass all the PATH to the systemd enviroment
     # WARNING: Passing all the path could shadow some apps in systemd 
-    PassAllPATH = false
+    UseFullPath = false
     
     # If enabled genie will pass only some variables that are selected, if enables this
     # overwrite PassAllPATH
-    AddCustomPATH = true
+    UseCustomPath = true
     
     # The value to add to the systemd PATH, this could be the whole PATH to pass or value by value
     # Example:

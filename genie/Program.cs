@@ -292,24 +292,24 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 var toml = Toml.ReadFile(filename);
                 var passEnvironment = toml.Get<bool>("PassEnvironment");
                 var tablePath = toml.Get<TomlTable>("PATH");
-                var passAllPath = tablePath.Get<bool>("PassAllPATH");
-                var addCustomPath = tablePath.Get<bool>("AddCustomPATH");
+                var useFullPath = tablePath.Get<bool>("UseFullPath");
+                var useCustomPath = tablePath.Get<bool>("UseCustomPath");
                 var addToPath = tablePath.Get <List<string>>("AddToPATH");
                 var environmentToPass = toml.Get<TomlTable>("ENVIRONMENT").Get <List<string>>("EnvironmentToPass");
-                if ( passAllPath && addCustomPath)
+                if ( useFullPath && useCustomPath)
                 {
-                    passAllPath = false;
+                    useFullPath = false;
                     Console.WriteLine("WARNING: Both \"PassAllPATH\" and \"PassSelectedPATH\" enabled, using PassSelectedPATH only");
                 }
 
                 var dumpEnvFileLocation = GetPrefixedPath("/lib/genie/dumpwslenv.sh");
                 var dumpEnvFile = File.CreateText(dumpEnvFileLocation);
                 if (!passEnvironment) return;
-                if (passAllPath)
+                if (useFullPath)
                 {
                     insertToPATH(CleanPath());
                 }
-                else if (addCustomPath)
+                else if (useCustomPath)
                 {
                     CreateCustomPath(addToPath);
                 }
