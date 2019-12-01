@@ -180,6 +180,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         {
             try
             {
+                command = command.Trim();
                 var p = Process.Start (command, args);
                 p.WaitForExit();
 
