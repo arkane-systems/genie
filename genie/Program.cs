@@ -289,6 +289,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             const string filename = "/etc/genie.conf";
             try
             {
+                // Try to read the config file
                 var toml = Toml.ReadFile(filename);
                 var passEnvironment = toml.Get<bool>("PassEnvironment");
                 var tablePath = toml.Get<TomlTable>("PATH");
@@ -296,17 +297,25 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 var useCustomPath = tablePath.Get<bool>("UseCustomPath");
                 var addToPath = tablePath.Get <List<string>>("AddToPATH");
                 var environmentToPass = toml.Get<TomlTable>("ENVIRONMENT").Get <List<string>>("EnvironmentToPass");
+                // Don't want to enable both path adders
                 if ( useFullPath && useCustomPath)
                 {
+                    // In case of both are active, use the custom path only
                     useFullPath = false;
                     Console.WriteLine("WARNING: Both \"PassAllPATH\" and \"PassSelectedPATH\" enabled, using PassSelectedPATH only");
                 }
 
+                // We want to create the dumpwslenv to be called as before
                 var dumpEnvFileLocation = GetPrefixedPath("/lib/genie/dumpwslenv.sh");
                 var dumpEnvFile = File.CreateText(dumpEnvFileLocation);
                 dumpEnvFile.Write("#! /bin/sh");
                 dumpEnvFile.WriteLine();
-                if (!passEnvironment) return;
+                //If the passEnviroment is disabled we just go back and nothing happens
+                if (!passEnvironment)
+                {
+                    Console.Write("Not passing any environment values to the inside of Genie");
+                    return;
+                }
                 if (useFullPath)
                 {
                     insertToPATH(CleanPath());
@@ -314,6 +323,10 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 else if (useCustomPath)
                 {
                     CreateCustomPath(addToPath);
+                }
+                else
+                {
+                    Console.WriteLine("PATH hasn't been modified by Genie");
                 }
                 CreateStaticEnv(environmentToPass, dumpEnvFile);
                 dumpEnvFile.Close();
