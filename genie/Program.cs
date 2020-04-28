@@ -223,8 +223,36 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: generating new hostname.");
 
-            Chain ("/bin/sh", "-c \"/bin/echo `hostname`-wsl > /run/hostname-wsl\"",
-                   "initializing bottle failed; making new hostname");
+            string externalHost;
+
+            unsafe
+            {
+                int success;
+
+                byte [] bytes = new byte[64] ;
+                fixed (byte * buffer = bytes)
+                {
+                    success = gethostname (buffer, 64);
+                }
+
+                if (success != 0)
+                {
+                    Console.WriteLine ($"genie: error retrieving hostname: {success}.");
+                    Environment.Exit (success);
+                }
+
+                externalHost = Encoding.UTF8.GetString(bytes).TrimEnd('\0');
+            }
+
+            if (verbose)
+                Console.WriteLine ($"genie: external hostname is {externalHost}");
+
+            // Make new hostname.
+            string internalHost = $"{externalHost.Substring(0, (externalHost.Length <= 60 ? externalHost.Length : 60))}-wsl";
+
+            File.WriteAllLines ("/run/hostname-wsl", new string[] {
+                internalHost
+            });
 
             unsafe
             {
@@ -237,10 +265,33 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             // Hosts file: check for old host name; if there, remove it.
             if (verbose)
-                Console.WriteLine ("genie: removing old hostname.");
+                Console.WriteLine ("genie: updating hosts file.");
 
-            Chain ("/bin/sh", String.Concat ("-c \"", GetPrefixedPath ("bin/hostess"), " del `hostname`\""),
-                       "initializing bottle failed; removing old hostname");
+            try
+            {
+                var hosts = File.ReadAllLines ("/etc/hosts");
+                var newHosts = new List<string> (hosts.Length);
+
+                newHosts.Add ($"127.0.0.1 localhost {internalHost}");
+
+                foreach (string s in hosts)
+                {
+                    if (!(
+                        (s.Contains (externalHost) || s.Contains (internalHost))
+                         && (s.Contains("127.0.0.1"))
+                        ))
+                    {
+                        newHosts.Add (s);
+                    }
+                }
+
+                File.WriteAllLines ("/etc/hosts", newHosts.ToArray());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine ($"genie: error updating host file: {ex.Message}");
+                Environment.Exit (130);
+            }
 
             // Set the new hostname.
             if (verbose)
@@ -248,10 +299,6 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             Chain ("/bin/mount", "--bind /run/hostname-wsl /etc/hostname",
                    "initializing bottle failed; bind mounting hostname");
-
-            // Hosts file: check for new host name; if not there, update it.
-            Chain ("/bin/sh", String.Concat ("-c \"", GetPrefixedPath ("bin/hostess"), " add `hostname`-wsl 127.0.0.1\""),
-                       "initializing bottle failed; adding new hostname");
 
             // Run systemd in a container.
             if (verbose)
