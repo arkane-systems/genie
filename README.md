@@ -32,13 +32,13 @@ Thanks to Arley Henostroza for providing these.
 
 ### Debian
 
-Dependent packages on Debian are _daemonize_, _dbus_, _dotnet-runtime-3.0_, _hostess_, _policykit-1_, _systemd_, and _util-linux_ . For the most part, these are either already installed or in the distro and able to be installed automatically.
+Dependent packages on Debian are _daemonize_, _dbus_, _dotnet-runtime-3.0_, _policykit-1_, _systemd_, and _util-linux_ . For the most part, these are either already installed or in the distro and able to be installed automatically.
 
 The chief exceptions are _dotnet-runtime-3.0_ , for which you will need to follow the installation instructions here:
 
 https://dotnet.microsoft.com/download/linux-package-manager/debian9/runtime-3.0.0
 
-And _hostess_ ( https://github.com/cbednarski/hostess ), a package for which has been placed in the wsl-translinux repo for your convenience and which should thus install automatically with genie.
+**NOTE:** The _hostess_ dependency for 1.20 and previous has been eliminated.
 
 To install, add the wsl-translinux repository here: https://packagecloud.io/arkane-systems/wsl-translinux , and install genie using the command:
 
