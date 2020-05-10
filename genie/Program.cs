@@ -216,7 +216,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: dumping WSL environment variables.");
 
-            Chain (GetPrefixedPath ("/lib/genie/dumpwslenv.sh"), "",
+            Chain (GetPrefixedPath ("lib/genie/dumpwslenv.sh"), "",
                    "initializing bottle failed; dumping WSL envars");
 
             // Generate new hostname.
@@ -341,7 +341,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             Chain ("/usr/bin/nsenter",
                    String.Concat ($"-t {systemdPid} --wd=\"{Environment.CurrentDirectory}\" -m -p /sbin/runuser -u {realUserName} -- ",
-                                  GetPrefixedPath ("/lib/genie/runinwsl.sh"),
+                                  GetPrefixedPath ("lib/genie/runinwsl.sh"),
                                   $" {commandLine.Trim()}"),
                    "running command failed; nsenter");
         }
@@ -358,7 +358,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             if (File.Exists ("/run/genie.env"))
             {
-        foreach (string s in File.ReadAllLines ("/run/genie.env"))
+                foreach (string s in File.ReadAllLines ("/run/genie.env"))
                 {
                     var v = s.Split (new char[] {'='});
 
