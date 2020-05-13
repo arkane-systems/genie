@@ -152,7 +152,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 if (deets[1] == "/")
                 {
                     // Root filesystem.
-                    return (deets[2] == "lxfs") ;
+                    return ((deets[2] == "lxfs") || (deets[2] == "wslfs")) ;
                 }
             }
 
