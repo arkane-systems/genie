@@ -304,7 +304,13 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: starting systemd.");
 
-            Chain ("/usr/sbin/daemonize", "/usr/bin/unshare -fp --propagation shared --mount-proc /lib/systemd/systemd",
+            var daemonizePath = "/usr/sbin/daemonize";
+            if (!File.Exists(daemonizePath))
+            {
+                // in ubuntu 20.04 the path changed
+                daemonizePath = "/usr/bin/daemonize";
+            }
+            Chain (daemonizePath, "/usr/bin/unshare -fp --propagation shared --mount-proc /lib/systemd/systemd",
                    "initializing bottle failed; daemonize");
 
             // Wait for systemd to be up. (Polling, sigh.)

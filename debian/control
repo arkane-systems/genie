@@ -5,7 +5,7 @@ Essential: no
 Section: utils
 Priority: optional
 Maintainer: Alistair Young <avatar@arkane-systems.net>
-Depends: util-linux, dbus, policykit-1, daemonize, systemd, dotnet-runtime-3.0
+Depends: util-linux, dbus, policykit-1, daemonize, systemd, dotnet-runtime-3.1
 Installed-Size: 2
 Description: A quick way into a systemd "bottle" for WSL.
  What does that even mean?
