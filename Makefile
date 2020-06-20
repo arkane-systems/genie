@@ -62,6 +62,7 @@ install:
 	sudo install -Dm 755 -o root "systemd-genie/lib/genie/dumpwslenv.sh" -t "/usr/local/lib/genie/"
 	sudo install -Dm 755 -o root "systemd-genie/lib/genie/readwslenv.sh" -t "/usr/local/lib/genie/"
 	sudo install -Dm 755 -o root "systemd-genie/lib/genie/runinwsl.sh" -t "/usr/local/lib/genie/"
+        sudo install -Dm 644 -o root "systemd-genie/lib/genie/deviated-preverts.conf" -t "/usr/local/lib/genie"
 	sudo install -Dm 755 -o root "systemd-genie/lib/systemd/system-environment-generators/10-genie-envar.sh" -t "/usr/local/lib/systemd/system-environment-generators"
 
 #
