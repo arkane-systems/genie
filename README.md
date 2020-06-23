@@ -18,7 +18,23 @@ Note: it is only possible to run _systemd_ (and thus _genie_ ) under WSL 2; WSL 
 
 If there is a package available for your distribution, this is the recommended method of installing genie.
 
-### Arch
+### Debian
+
+Dependent packages on Debian are _daemonize_, _dbus_, _dotnet-runtime-3.1_, _policykit-1_, _systemd_, and _util-linux_ . For the most part, these are either already installed or in the distro and able to be installed automatically.
+
+The chief exception is _dotnet-runtime-3.1_ , for which you will need to follow the installation instructions here:
+
+https://dotnet.microsoft.com/download/
+
+To install, add the wsl-translinux repository here: https://packagecloud.io/arkane-systems/wsl-translinux , and install genie using the command:
+
+_sudo apt install systemd-genie_
+
+### Other Distros
+
+Debian is the "native" distribution for _genie_ , for which read, "what the author uses". Said author, sadly, does not have the time required to track all the possible changes in other distros, or to maintain packages accordingly. Maintainers to manage the deviations files (see below) and provide packaging for other distros are *actively sought*. If, following the instructions below, you make it work on another distro for yourself, please consider stepping up.
+
+#### Arch
 
 For Arch Linux users, there are prebuilt packages available at:
 
@@ -26,37 +42,23 @@ https://aur.archlinux.org/packages/genie-systemd/ and
 
 https://aur.archlinux.org/packages/genie-systemd-git/
 
-The former of which is prebuilt and the latter of which compiles it from source. Both install all needed dependencies, save that for version 1.17 and above, you will have to install .NET Core 3.0 runtime explicitly. A PKGBUILD file for this in Arch is available here for those who wish to use it: https://github.com/arkane-systems/genie/files/3827049/dotnet-PKGBUILD.tar.gz ; you can also make your own, and for security and good practice, please always check what a PKGBUILD does before you use it.
+The former of which is prebuilt and the latter of which compiles it from source. Both install all needed dependencies, save that for version 1.17-1.23, you will have to install .NET Core 3.0 runtime explicitly, and likewise .NET Core 3.1 runtime for 1.24 and above. A PKGBUILD file for this in Arch is available here for those who wish to use it: https://github.com/arkane-systems/genie/files/3827049/dotnet-PKGBUILD.tar.gz ; you can also make your own, and for security and good practice, please always check what a PKGBUILD does before you use it.
 
 Thanks to Arley Henostroza for providing these.
 
-### Debian
+#### Ubuntu
 
-Dependent packages on Debian are _daemonize_, _dbus_, _dotnet-runtime-3.0_, _policykit-1_, _systemd_, and _util-linux_ . For the most part, these are either already installed or in the distro and able to be installed automatically.
+There is a package for Ubuntu in the same repository as the Debian package, which makes use of the deviations file functionality to compensate for a different file location. An Ubuntu maintainer who will track and PR any further changes required and/or take over maintaining the Ubuntu package is sought.
 
-The chief exceptions are _dotnet-runtime-3.0_ , for which you will need to follow the installation instructions here:
+#### Other
 
-https://dotnet.microsoft.com/download/linux-package-manager/debian9/runtime-3.0.0
-
-**NOTE:** The _hostess_ dependency for 1.20 and previous has been eliminated.
-
-To install, add the wsl-translinux repository here: https://packagecloud.io/arkane-systems/wsl-translinux , and install genie using the command:
-
-_sudo apt install systemd-genie_
-
-### Ubuntu (and other Debian derivatives)
-
-Use the Debian package.
-
-### Other
-
-Currently, there are no installation packages available for other distributions/package-management systems. It is possible to download the genie.tar.gz file from the Releases page (essentially, the unwrapped Debian package) and manually place the files within, other than the DEBIAN folder, in the matching places and with the correct provisions. Note that this is a packaged build, rather than a local-install build, and thus expects itself and hostess to both be installed under _/usr/bin_.
+Currently, there are no installation packages available for other distributions/package-management systems. It is possible to download the genie.tar.gz file from the Releases page (essentially, the unwrapped Debian package) and manually place the files within, other than the DEBIAN folder, in the matching places and with the correct provisions, the edit the deviations file as necessary. Note that this is a packaged build, rather than a local-install build, and thus expects itself and hostess to both be installed under _/usr/bin_.
 
 If you are able to build an install package for another distribution/package-management system, please consider adding your build process to the genie makefile in the same manner as the _debian_ target, and submitting a pull request. While not able to maintain packages myself for every distro, keeping the build processes for as many as possible in this repo would be useful to future genie users.
 
 ### ...OR BUILD IT YOURSELF
 
-It is possible to build your own version of genie and install it locally. To do so, you will require _build-essential_ and _dotnet-sdk-3.0_ in addition to the other dependencies, all of which must be installed manually. Note that since hostess is not normally installed from a package but by direct download from https://github.com/cbednarski/hostess , when using a local-install build of genie, hostess must be installed in _/usr/local/bin_ .
+It is possible to build your own version of genie and install it locally. To do so, you will require _build-essential_ and _dotnet-sdk-3.1_ in addition to the other dependencies, all of which must be installed manually.
 
 After cloning the repository, run
 
@@ -65,6 +67,25 @@ make install
 ```
 
 This will build genie and install it under _/usr/local_ .
+
+### Deviations File?
+
+That would be the file _/usr/lib/genie/deviated-preverts.conf_ (or, on a local-install version, _/usr/local/lib/genie/deviated-preverts.conf_). Normally, it is an empty JSON file, to wit:
+
+```
+{
+}
+```
+
+However, if essential binaries required by _genie_ are in different places on your system than the default location under Debian, the deviations file can be used to inform _genie_ of those locations. For example, to support Ubuntu 20.04 "Focal Fossa", which keeps daemonize in _bin_ rather than _sbin_, the following deviations file is used:
+
+```
+{
+  "daemonize": "/usr/bin/daemonize"
+}
+```
+
+Valid keys which can be used in the deviations file are: _daemonize_, _env_, _mount_, _nsenter_, _systemd_, and _unshare_.
 
 ## USAGE
 
