@@ -29,8 +29,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         public const string Prefix = "/usr";
 #endif
 
-        // Location of the deviations file.
-        public const string DeviationsFile = "lib/genie/deviated-preverts.conf";
+        public static Locations Locations;
 
         #region System status
 
@@ -82,6 +81,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 Console.WriteLine ("genie: must execute as root - has the setuid bit gone astray?");
                 return EPERM;
             }
+
+            // Set up locations and deviations.
+            Program.Locations = new Locations();
 
             // *** PARSE COMMAND-LINE
             // Create options.
@@ -168,7 +170,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             return true;
         }
 
-        private static string GetPrefixedPath (string path) => Path.Combine (Prefix, path);
+        internal static string GetPrefixedPath (string path) => Path.Combine (Prefix, path);
 
         // Get the pid of the earliest running root systemd, or 0 if none is running.
         private static int GetSystemdPid ()
@@ -302,20 +304,14 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: setting new hostname.");
 
-            Chain ("/bin/mount", "--bind /run/hostname-wsl /etc/hostname",
+            Chain (Locations.GetLocation("mount"), "--bind /run/hostname-wsl /etc/hostname",
                    "initializing bottle failed; bind mounting hostname");
 
             // Run systemd in a container.
             if (verbose)
                 Console.WriteLine ("genie: starting systemd.");
 
-            var daemonizePath = "/usr/sbin/daemonize";
-            if (!File.Exists(daemonizePath))
-            {
-                // in ubuntu 20.04 the path changed
-                daemonizePath = "/usr/bin/daemonize";
-            }
-            Chain (daemonizePath, "/usr/bin/unshare -fp --propagation shared --mount-proc /lib/systemd/systemd",
+            Chain (Locations.GetLocation("daemonize"), $"{Locations.GetLocation("unshare")} -fp --propagation shared --mount-proc {Locations.GetLocation("systemd")}",
                    "initializing bottle failed; daemonize");
 
             // Wait for systemd to be up. (Polling, sigh.)
@@ -350,7 +346,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ($"genie: running command '{commandLine}'");
 
-            Chain ("/usr/bin/nsenter",
+            Chain (Locations.GetLocation("nsenter"),
                    String.Concat ($"-t {systemdPid} --wd=\"{Environment.CurrentDirectory}\" -m -p /sbin/runuser -u {realUserName} -- ",
                                   GetPrefixedPath ("lib/genie/runinwsl.sh"),
                                   $" {commandLine.Trim()}"),
@@ -385,8 +381,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             else
               Console.WriteLine ("genie: environment file missing; continuing anyway");
 
-            Chain ("/usr/bin/nsenter",
-                   $"-t {systemdPid} -m -p /usr/bin/env {envars.ToString()} /sbin/runuser -l {realUserName} -w {envnames.ToString()}",
+            Chain (Locations.GetLocation("nsenter"),
+                   $"-t {systemdPid} -m -p {Locations.GetLocation("env")} {envars.ToString()} {Locations.GetLocation("runuser")} -l {realUserName} -w {envnames.ToString()}",
                    "starting shell failed; nsenter");
         }
 
