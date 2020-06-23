@@ -13,6 +13,7 @@ all:
 	cp genie/bin/Release/netcoreapp3.0/linux-x64/publish/genie systemd-genie/usr/bin/
 	cp genie/bin/Release/netcoreapp3.0/linux-x64/publish/*.dll systemd-genie/usr/bin/
 	cp genie/bin/Release/netcoreapp3.0/linux-x64/publish/genie.runtimeconfig.json systemd-genie/usr/bin/
+	cp debian/deviated-preverts.conf systemd-genie/usr/lib/genie/deviated-preverts.conf
 	# Set in-package permissions
 	sudo chown root:root systemd-genie/usr/bin/*
 	sudo chmod u+s systemd-genie/usr/bin/genie
@@ -29,7 +30,7 @@ pkg-deb:
 	mkdir -p systemd-genie/DEBIAN
 	# Set in-package permissions
 	sudo chmod -R 0755 systemd-genie/DEBIAN
-  # Copy control file
+	# Copy control and deviations file
 	cp debian/control systemd-genie/DEBIAN/control
 	# Compute md5 sums
 	sudo md5sum systemd-genie/usr/bin/* > systemd-genie/DEBIAN/md5sums
@@ -39,6 +40,15 @@ pkg-deb:
 	sudo dpkg-deb --build systemd-genie
 
 debian: clean all pkg-deb
+
+#
+# ubuntu: build the deb installation package for ubuntu
+#
+pkg-ubuntu:
+	# Put the ubuntu deviations file in place
+	cp debian/deviated-preverts.conf systemd-genie/usr/lib/genie/deviated-preverts.conf
+
+ubuntu:	clean all pkg-ubuntu pkg-deb
 
 #
 # arch: build the arch installation package (files only)
@@ -73,4 +83,5 @@ clean:
 	make -C genie clean
 	rm -rf systemd-genie/DEBIAN
 	rm -rf systemd-genie/usr/bin/*
+	rm -f systemd-genie/usr/lib/deviated-preverts.conf
 	rm -f genie.tar.gz systemd-genie.deb
