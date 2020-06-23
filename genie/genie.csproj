@@ -13,7 +13,8 @@
 
   <ItemGroup>
     <PackageReference Include="Linux.ProcessManager" Version="1.5.3" />
-    <PackageReference Include="System.CommandLine.Experimental" Version="0.2.0-alpha.19174.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20214.1" />
     <PackageReference Include="Tmds.LibC" Version="0.2.0" />
   </ItemGroup>
 

@@ -33,8 +33,8 @@ pkg-deb:
 	cp debian/control systemd-genie/DEBIAN/control
 	# Compute md5 sums
 	sudo md5sum systemd-genie/usr/bin/* > systemd-genie/DEBIAN/md5sums
-	sudo md5sum systemd-genie/lib/genie/* >> systemd-genie/DEBIAN/md5sums
-	sudo md5sum systemd-genie/lib/systemd/system-environment-generators/* >> systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/usr/lib/genie/* >> systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/usr/lib/systemd/system-environment-generators/* >> systemd-genie/DEBIAN/md5sums
 	# Make .deb package
 	sudo dpkg-deb --build systemd-genie
 
@@ -59,11 +59,11 @@ install:
 	sudo install -Dm 744 -o root "genie/bin/ReleaseLocal/netcoreapp3.0/linux-x64/publish/System.CommandLine.dll" -t "/usr/local/bin"
 	sudo install -Dm 744 -o root "genie/bin/ReleaseLocal/netcoreapp3.0/linux-x64/publish/Tmds.LibC.dll" -t "/usr/local/bin"
 	sudo install -Dm 644 -o root "genie/bin/ReleaseLocal/netcoreapp3.0/linux-x64/publish/genie.runtimeconfig.json" -t "/usr/local/bin"
-	sudo install -Dm 755 -o root "systemd-genie/lib/genie/dumpwslenv.sh" -t "/usr/local/lib/genie/"
-	sudo install -Dm 755 -o root "systemd-genie/lib/genie/readwslenv.sh" -t "/usr/local/lib/genie/"
-	sudo install -Dm 755 -o root "systemd-genie/lib/genie/runinwsl.sh" -t "/usr/local/lib/genie/"
-        sudo install -Dm 644 -o root "systemd-genie/lib/genie/deviated-preverts.conf" -t "/usr/local/lib/genie"
-	sudo install -Dm 755 -o root "systemd-genie/lib/systemd/system-environment-generators/10-genie-envar.sh" -t "/usr/local/lib/systemd/system-environment-generators"
+	sudo install -Dm 755 -o root "systemd-genie/usr/lib/genie/dumpwslenv.sh" -t "/usr/local/lib/genie/"
+	sudo install -Dm 755 -o root "systemd-genie/usr/lib/genie/readwslenv.sh" -t "/usr/local/lib/genie/"
+	sudo install -Dm 755 -o root "systemd-genie/usr/lib/genie/runinwsl.sh" -t "/usr/local/lib/genie/"
+	sudo install -Dm 644 -o root "systemd-genie/usr/lib/genie/deviated-preverts.conf" -t "/usr/local/lib/genie"
+	sudo install -Dm 755 -o root "systemd-genie/usr/lib/systemd/system-environment-generators/10-genie-envar.sh" -t "/usr/local/lib/systemd/system-environment-generators"
 
 #
 # clean: delete the package interim files and products

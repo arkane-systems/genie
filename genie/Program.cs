@@ -22,11 +22,15 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 {
     public static class Program
     {
+        // Install location of genie and friends.
 #if LOCAL
         public const string Prefix = "/usr/local";
 #else
         public const string Prefix = "/usr";
 #endif
+
+        // Location of the deviations file.
+        public const string DeviationsFile = "lib/genie/deviated-preverts.conf";
 
         #region System status
 
@@ -82,9 +86,10 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             // *** PARSE COMMAND-LINE
             // Create options.
             Option optVerbose = new Option ("--verbose",
-                                            "Display verbose progress messages",
-                                            new Argument<bool>(defaultValue: false));
+                                            "Display verbose progress messages");
             optVerbose.AddAlias ("-v");
+            optVerbose.Argument = new Argument<bool>();
+            optVerbose.Argument.SetDefaultValue(false);
 
             // Add them to the root command.
             var rootCommand = new RootCommand();
@@ -112,7 +117,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             var cmdExec = new Command ("--command");
             cmdExec.AddAlias ("-c");
-            cmdExec.Argument = argCmdLine;
+            cmdExec.AddArgument(argCmdLine);
             cmdExec.Description = "Initialize the bottle (if necessary), and run the specified command in it.";
             cmdExec.Handler = CommandHandler.Create<bool, List<string>>((Func<bool, List<string>, int>)ExecHandler);
 
