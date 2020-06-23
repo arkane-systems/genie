@@ -10,9 +10,9 @@ all:
 	make -C genie
 	# Merge in place
 	mkdir -p systemd-genie/usr/bin
-	cp genie/bin/Release/netcoreapp3.0/linux-x64/publish/genie systemd-genie/usr/bin/
-	cp genie/bin/Release/netcoreapp3.0/linux-x64/publish/*.dll systemd-genie/usr/bin/
-	cp genie/bin/Release/netcoreapp3.0/linux-x64/publish/genie.runtimeconfig.json systemd-genie/usr/bin/
+	cp genie/bin/Release/netcoreapp3.1/linux-x64/publish/genie systemd-genie/usr/bin/
+	cp genie/bin/Release/netcoreapp3.1/linux-x64/publish/*.dll systemd-genie/usr/bin/
+	cp genie/bin/Release/netcoreapp3.1/linux-x64/publish/genie.runtimeconfig.json systemd-genie/usr/bin/
 	cp debian/deviated-preverts.conf systemd-genie/usr/lib/genie/deviated-preverts.conf
 	# Set in-package permissions
 	sudo chown root:root systemd-genie/usr/bin/*
@@ -63,12 +63,13 @@ arch: clean all
 install:
 	make -C genie local
 	echo "If you have not yet, you must install the dependent packages - daemonize, hostess, and all systemd deps."
-	sudo install -Dm 4755 -o root "genie/bin/ReleaseLocal/netcoreapp3.0/linux-x64/publish/genie" -t "/usr/local/bin"
-	sudo install -Dm 644 -o root "genie/bin/ReleaseLocal/netcoreapp3.0/linux-x64/publish/genie.dll" -t "/usr/local/bin"
-	sudo install -Dm 744 -o root "genie/bin/ReleaseLocal/netcoreapp3.0/linux-x64/publish/Linux.ProcessManager.dll" -t "/usr/local/bin"
-	sudo install -Dm 744 -o root "genie/bin/ReleaseLocal/netcoreapp3.0/linux-x64/publish/System.CommandLine.dll" -t "/usr/local/bin"
-	sudo install -Dm 744 -o root "genie/bin/ReleaseLocal/netcoreapp3.0/linux-x64/publish/Tmds.LibC.dll" -t "/usr/local/bin"
-	sudo install -Dm 644 -o root "genie/bin/ReleaseLocal/netcoreapp3.0/linux-x64/publish/genie.runtimeconfig.json" -t "/usr/local/bin"
+	sudo install -Dm 4755 -o root "genie/bin/ReleaseLocal/netcoreapp3.1/linux-x64/publish/genie" -t "/usr/local/bin"
+	sudo install -Dm 644 -o root "genie/bin/ReleaseLocal/netcoreapp3.1/linux-x64/publish/genie.dll" -t "/usr/local/bin"
+	sudo install -Dm 744 -o root "genie/bin/ReleaseLocal/netcoreapp3.1/linux-x64/publish/Linux.ProcessManager.dll" -t "/usr/local/bin"
+	sudo install -Dm 744 -o root "genie/bin/ReleaseLocal/netcoreapp3.1/linux-x64/publish/System.CommandLine.dll" -t "/usr/local/bin"
+	sudo install -Dm 744 -o root "genie/bin/ReleaseLocal/netcoreapp3.1/linux-x64/publish/Tmds.LibC.dll" -t "/usr/local/bin"
+	sudo install -Dm 744 -o root "genie/bin/ReleaseLocal/netcoreapp3.1/linux-x64/publish/Newtonsoft.Json.dll" -t "/usr/local/bin"
+	sudo install -Dm 644 -o root "genie/bin/ReleaseLocal/netcoreapp3.1/linux-x64/publish/genie.runtimeconfig.json" -t "/usr/local/bin"
 	sudo install -Dm 755 -o root "systemd-genie/usr/lib/genie/dumpwslenv.sh" -t "/usr/local/lib/genie/"
 	sudo install -Dm 755 -o root "systemd-genie/usr/lib/genie/readwslenv.sh" -t "/usr/local/lib/genie/"
 	sudo install -Dm 755 -o root "systemd-genie/usr/lib/genie/runinwsl.sh" -t "/usr/local/lib/genie/"
