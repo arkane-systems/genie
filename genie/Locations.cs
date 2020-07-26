@@ -34,13 +34,13 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         }
 
         public static readonly Dictionary<string, string> DefaultLocations = new Dictionary<string, string> () {
-            {"daemonize", "/usr/sbin/daemonize"},
+            {"daemonize", "/usr/bin/daemonize"},
             {"env", "/usr/bin/env"},
-            {"mount", "/usr/bin/mount"},
+            {"mount", "/bin/mount"},
             {"nsenter", "/usr/bin/nsenter"},
             {"unshare", "/usr/bin/unshare"},
-            {"runuser", "/usr/sbin/runuser"},
-            {"systemd", "/usr/bin/systemd"}
+            {"runuser", "/sbin/runuser"},
+            {"systemd", "/bin/systemd"}
         };
 
         public string GetLocation (string key)
