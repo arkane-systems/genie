@@ -32,7 +32,7 @@ _sudo apt install systemd-genie_
 
 ### Other Distros
 
-Debian is the "native" distribution for _genie_ , for which read, "what the author uses". Said author, sadly, does not have the time required to track all the possible changes in other distros, or to maintain packages accordingly. Maintainers to manage the deviations files (see below) and provide packaging for other distros are *actively sought*. If, following the instructions below, you make it work on another distro for yourself, please consider stepping up.
+Debian is the "native" distribution for _genie_ , for which read, "what the author uses". Specifically, Debian stretch+, with usrmerge installed. If you're using anything else, you may need to tweak the configuration file (see below) accordingly.
 
 #### Arch
 
@@ -46,13 +46,9 @@ The former of which is prebuilt and the latter of which compiles it from source.
 
 Thanks to Arley Henostroza for providing these.
 
-#### Ubuntu
-
-There is a package for Ubuntu in the same repository as the Debian package, which makes use of the deviations file functionality to compensate for a different file location. An Ubuntu maintainer who will track and PR any further changes required and/or take over maintaining the Ubuntu package is sought.
-
 #### Other
 
-Currently, there are no installation packages available for other distributions/package-management systems. It is possible to download the genie.tar.gz file from the Releases page (essentially, the unwrapped Debian package) and manually place the files within, other than the DEBIAN folder, in the matching places and with the correct provisions, the edit the deviations file as necessary. Note that this is a packaged build, rather than a local-install build, and thus expects itself and hostess to both be installed under _/usr/bin_.
+Currently, there are no installation packages available for other distributions/package-management systems. It is possible to download the genie.tar.gz file from the Releases page (essentially, the unwrapped Debian package) and manually place the files within, other than the DEBIAN folder, in the matching places and with the correct permissions, then edit the configuration file if and as necessary. Note that this is a packaged build, rather than a local-install build, and thus expects itself and hostess to both be installed under _/usr/bin_.
 
 If you are able to build an install package for another distribution/package-management system, please consider adding your build process to the genie makefile in the same manner as the _debian_ target, and submitting a pull request. While not able to maintain packages myself for every distro, keeping the build processes for as many as possible in this repo would be useful to future genie users.
 
@@ -68,24 +64,17 @@ make install
 
 This will build genie and install it under _/usr/local_ .
 
-### Deviations File?
+### Configuration File
 
-That would be the file _/usr/lib/genie/deviated-preverts.conf_ (or, on a local-install version, _/usr/local/lib/genie/deviated-preverts.conf_). Normally, it is an empty JSON file, to wit:
-
-```
-{
-}
-```
-
-However, if essential binaries required by _genie_ are in different places on your system than the default location under Debian, the deviations file can be used to inform _genie_ of those locations. For example, to support Ubuntu 20.04 "Focal Fossa", which keeps daemonize in _bin_ rather than _sbin_, the following deviations file is used:
+That would be the file _/etc/genie.ini_. This defines the secure path (i.e., those directories in which genie will look for the utilities it depends on), and also the explicit path to _unshare(1)_, required by _daemonize(1)_. Normally, it looks like this:
 
 ```
-{
-  "daemonize": "/usr/bin/daemonize"
-}
+[genie]
+secure-path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+unshare=/usr/bin/unshare
 ```
 
-Valid keys which can be used in the deviations file are: _daemonize_, _env_, _mount_, _nsenter_, _systemd_, and _unshare_.
+The secure-path setting should be generic enough to cover all but the weirdest Linux filesystem layouts, but on the off-chance that yours stores binaries somewhere particularly idiosyncratic, you can change it here. Meanwhile, the _unshare_ setting is much more likely to be system-dependent; if you are getting errors running genie, please replace this with the output of `which unshare` before trying anything else.
 
 ## USAGE
 
