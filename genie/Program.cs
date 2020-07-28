@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 
 using Linux;
 
+using Microsoft.Extensions.Configuration;
+
 using Tmds.Linux;
 using static Tmds.Linux.LibC;
 
@@ -29,7 +31,10 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         public const string Prefix = "/usr";
 #endif
 
-        public static Locations Locations;
+        public static IConfiguration Configuration { get; } = new ConfigurationBuilder()
+            .SetBasePath ("/etc")
+            .AddIniFile ("genie.ini", optional: false)
+            .Build ();
 
         #region System status
 
@@ -82,8 +87,11 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 return EPERM;
             }
 
-            // Set up locations and deviations.
-            Program.Locations = new Locations();
+            // Set up secure path.
+            var securePath = Configuration["genie:secure-path"];
+            
+            // Console.WriteLine ($"secure path: {securePath}");
+            Environment.SetEnvironmentVariable ("PATH", securePath);
 
             // *** PARSE COMMAND-LINE
             // Create options.
@@ -304,14 +312,14 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: setting new hostname.");
 
-            Chain (Locations.GetLocation("mount"), "--bind /run/hostname-wsl /etc/hostname",
+            Chain ("mount", "--bind /run/hostname-wsl /etc/hostname",
                    "initializing bottle failed; bind mounting hostname");
 
             // Run systemd in a container.
             if (verbose)
                 Console.WriteLine ("genie: starting systemd.");
 
-            Chain (Locations.GetLocation("daemonize"), $"{Locations.GetLocation("unshare")} -fp --propagation shared --mount-proc {Locations.GetLocation("systemd")}",
+            Chain ("daemonize", "unshare -fp --propagation shared --mount-proc systemd",
                    "initializing bottle failed; daemonize");
 
             // Wait for systemd to be up. (Polling, sigh.)
@@ -346,8 +354,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ($"genie: running command '{commandLine}'");
 
-            Chain (Locations.GetLocation("nsenter"),
-                   String.Concat ($"-t {systemdPid} --wd=\"{Environment.CurrentDirectory}\" -m -p /sbin/runuser -u {realUserName} -- ",
+            Chain ("nsenter",
+                   String.Concat ($"-t {systemdPid} --wd=\"{Environment.CurrentDirectory}\" -m -p runuser -u {realUserName} -- ",
                                   GetPrefixedPath ("lib/genie/runinwsl.sh"),
                                   $" {commandLine.Trim()}"),
                    "running command failed; nsenter");
@@ -381,8 +389,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             else
               Console.WriteLine ("genie: environment file missing; continuing anyway");
 
-            Chain (Locations.GetLocation("nsenter"),
-                   $"-t {systemdPid} -m -p {Locations.GetLocation("env")} {envars.ToString()} {Locations.GetLocation("runuser")} -l {realUserName} -w {envnames.ToString()}",
+            Chain ("nsenter",
+                   $"-t {systemdPid} -m -p env {envars.ToString()} runuser -l {realUserName} -w {envnames.ToString()}",
                    "starting shell failed; nsenter");
         }
 

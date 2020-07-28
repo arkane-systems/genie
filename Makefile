@@ -13,8 +13,8 @@ all:
 	cp genie/bin/Release/netcoreapp3.1/linux-x64/publish/genie systemd-genie/usr/bin/
 	cp genie/bin/Release/netcoreapp3.1/linux-x64/publish/*.dll systemd-genie/usr/bin/
 	cp genie/bin/Release/netcoreapp3.1/linux-x64/publish/genie.runtimeconfig.json systemd-genie/usr/bin/
-	cp debian/deviated-preverts.conf systemd-genie/usr/lib/genie/deviated-preverts.conf
 	# Set in-package permissions
+	sudo chown root:root systemd-genie/etc/*
 	sudo chown root:root systemd-genie/usr/bin/*
 	sudo chmod u+s systemd-genie/usr/bin/genie
 	sudo chmod a+rx systemd-genie/usr/bin/genie
@@ -36,19 +36,11 @@ pkg-deb:
 	sudo md5sum systemd-genie/usr/bin/* > systemd-genie/DEBIAN/md5sums
 	sudo md5sum systemd-genie/usr/lib/genie/* >> systemd-genie/DEBIAN/md5sums
 	sudo md5sum systemd-genie/usr/lib/systemd/system-environment-generators/* >> systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/etc/* >> systemd-genie/DEBIAN/md5sums
 	# Make .deb package
 	sudo dpkg-deb --build systemd-genie
 
 debian: clean all pkg-deb
-
-#
-# ubuntu: build the deb installation package for ubuntu
-#
-pkg-ubuntu:
-	# Put the ubuntu deviations file in place
-	cp debian/deviated-preverts.conf systemd-genie/usr/lib/genie/deviated-preverts.conf
-
-ubuntu:	clean all pkg-ubuntu pkg-deb
 
 #
 # arch: build the arch installation package (files only)
@@ -68,12 +60,11 @@ install:
 	sudo install -Dm 744 -o root "genie/bin/ReleaseLocal/netcoreapp3.1/linux-x64/publish/Linux.ProcessManager.dll" -t "/usr/local/bin"
 	sudo install -Dm 744 -o root "genie/bin/ReleaseLocal/netcoreapp3.1/linux-x64/publish/System.CommandLine.dll" -t "/usr/local/bin"
 	sudo install -Dm 744 -o root "genie/bin/ReleaseLocal/netcoreapp3.1/linux-x64/publish/Tmds.LibC.dll" -t "/usr/local/bin"
-	sudo install -Dm 744 -o root "genie/bin/ReleaseLocal/netcoreapp3.1/linux-x64/publish/Newtonsoft.Json.dll" -t "/usr/local/bin"
 	sudo install -Dm 644 -o root "genie/bin/ReleaseLocal/netcoreapp3.1/linux-x64/publish/genie.runtimeconfig.json" -t "/usr/local/bin"
+	sudo install -Dm 644 -o root "systemd-genie/etc/genie.ini" -t "/etc"
 	sudo install -Dm 755 -o root "systemd-genie/usr/lib/genie/dumpwslenv.sh" -t "/usr/local/lib/genie/"
 	sudo install -Dm 755 -o root "systemd-genie/usr/lib/genie/readwslenv.sh" -t "/usr/local/lib/genie/"
 	sudo install -Dm 755 -o root "systemd-genie/usr/lib/genie/runinwsl.sh" -t "/usr/local/lib/genie/"
-	sudo install -Dm 644 -o root "systemd-genie/usr/lib/genie/deviated-preverts.conf" -t "/usr/local/lib/genie"
 	sudo install -Dm 755 -o root "systemd-genie/usr/lib/systemd/system-environment-generators/10-genie-envar.sh" -t "/usr/local/lib/systemd/system-environment-generators"
 
 #
@@ -84,5 +75,4 @@ clean:
 	make -C genie clean
 	rm -rf systemd-genie/DEBIAN
 	rm -rf systemd-genie/usr/bin/*
-	rm -f systemd-genie/usr/lib/deviated-preverts.conf
 	rm -f genie.tar.gz systemd-genie.deb
