@@ -319,7 +319,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: starting systemd.");
 
-            Chain ("daemonize", "unshare -fp --propagation shared --mount-proc systemd",
+            Chain ("daemonize", $"{Configuration["genie:unshare"]} -fp --propagation shared --mount-proc systemd",
                    "initializing bottle failed; daemonize");
 
             // Wait for systemd to be up. (Polling, sigh.)
