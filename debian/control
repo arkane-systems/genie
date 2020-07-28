@@ -1,5 +1,5 @@
 Package: systemd-genie
-Version: 1.24
+Version: 1.25
 Architecture: amd64
 Essential: no
 Section: utils
