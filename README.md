@@ -114,3 +114,7 @@ Further tips on usage from other genie users can be found on the wiki for this r
 1. This breaks _pstree_ and other _/proc_-walking tools that count on everything being a child of pid 1, because entering the namespace with a shell or other process leaves that process with a ppid of 0. To the best of my knowledge, I can't set the ppid of a process, and if I'm wrong about that, please send edification and pull requests to be gratefully accepted.
 
 2. It is considerably clunkier than I'd like it to be, inasmuch as you have to invoke genie every time to get inside the bottle, either manually (replacing, for example, _wsl [command]_ with _wsl genie -c [command]_), or by using your own shortcut in place of the one WSL gives you for the distro, using which will put you _outside_ the bottle. Pull requests, etc.
+
+3. There is a race condition that means that if you start a genie session too quickly after initializing the bottle (very likely if you use _genie -c_ or _genie -s_ without having running _genie -i_ first, meaning that they will auto-initialize the bottle on first run), you may not get a systemd-logind login session or the functionality supplied by that, such as a systemd user instance. Using _genie -i_ is strongly recommended to avoid this issue.
+
+Please see https://github.com/arkane-systems/genie/issues/70 for more details.
