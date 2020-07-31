@@ -104,6 +104,7 @@ Commands:
   -i, --initialize           Initialize the bottle (if necessary) only.
   -s, --shell                Initialize the bottle (if necessary), and run a shell in it.
   -c, --command <COMMAND>    Initialize the bottle (if necessary), and run the specified command in it.
+  --shutdown, -u             Shut down systemd and exit the bottle.
 ```
 
 So, it has three modes, all of which will set up the bottle and run systemd in it if it isn't already running for simplicity of use.
@@ -113,6 +114,10 @@ _genie -i_ will set up the bottle - including changing the WSL hostname by suffi
 _genie -s_ runs your login shell inside the bottle; basically, Windows-side, _wsl genie -s_ is your substitute for just _wsl_ to get started, or for the shortcut you get to start a shell in the distro. It follows login semantics, and as such does not preserve the current working directory.
 
 _genie -c [command]_ runs _command_ inside the bottle, then exits. The return code is the return code of the command. It follows sudo semantics, and so does preserve the cwd.
+
+Meanwhile, _genie -u_ , run from outside the bottle, will shut down systemd cleanly and exit the bottle. This uses the _systemctl poweroff_ command to simulate a normal Linux system shutting down. It is suggested that this be used before shutting down Windows or restarting the Linux distribution to ensure a clean shutdown of systemd services.
+
+While not compulsory, it is recommended that you shut down and restart the WSL distro before using genie again after you have used _genie -u_.
 
 ## RECOMMENDATIONS
 

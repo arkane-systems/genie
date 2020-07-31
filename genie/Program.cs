@@ -133,6 +133,13 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             rootCommand.Add (cmdExec);
 
+            var cmdShutdown = new Command ("--shutdown");
+            cmdShutdown.AddAlias ("-u");
+            cmdShutdown.Description = "Shut down systemd and exit the bottle.";
+            cmdShutdown.Handler = CommandHandler.Create<bool>((Func<bool, int>)ShutdownHandler);
+
+            rootCommand.Add (cmdShutdown);
+
             // Parse the arguments and invoke the handler.
             return rootCommand.InvokeAsync(args).Result;
         }
@@ -474,6 +481,51 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             InitializeBottle(verbose);
 
             // Give up root.
+            Unrootify();
+
+            return 0;
+        }
+
+        public static int ShutdownHandler (bool verbose)
+        {
+            // Update the system status.
+            UpdateStatus(verbose);
+
+            if (startedWithinBottle)
+            {
+                Console.WriteLine ("genie: cannot shut down bottle from inside bottle; exiting.");
+                return EINVAL;
+            }
+
+            Rootify();
+
+            if (verbose)
+                Console.WriteLine ("genie: running systemctl poweroff within bottle");
+
+            var sd = Process.GetProcessById (systemdPid);
+
+            // Call systemctl to trigger shutdown.
+            Chain ("nsenter",
+                   String.Concat ($"-t {systemdPid} -m -p systemctl poweroff"),
+                   "running command failed; nsenter");
+
+            if (verbose)
+                Console.WriteLine ("genie: waiting for systemd to exit");
+
+            // Wait for systemd to exit (maximum 16 s).
+            sd.WaitForExit(16000);
+
+            // Drop the in-bottle hostname.
+            if (verbose)
+                Console.WriteLine ("genie: dropping in-bottle hostname");
+
+            Thread.Sleep (500);
+
+            Chain ("umount", "/etc/hostname");            
+            File.Delete ("/run/hostname-wsl");
+
+            Chain ("hostname", "-F /etc/hostname");
+
             Unrootify();
 
             return 0;
