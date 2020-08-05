@@ -448,7 +448,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 startedWithinBottle = false;
 
                 if (verbose)
-                    Console.WriteLine ($"genie: outside bottle {systemdPid}.");
+                    Console.WriteLine ($"genie: outside bottle, systemd pid: {systemdPid}.");
             }
         }
 
@@ -490,6 +490,12 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         {
             // Update the system status.
             UpdateStatus(verbose);
+
+            if (!bottleExistedAtStart)
+            {
+                Console.WriteLine ("genie: no bottle exists.");
+                return EINVAL;
+            }
 
             if (startedWithinBottle)
             {
