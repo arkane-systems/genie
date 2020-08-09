@@ -30,9 +30,17 @@ The chief exception is _dotnet-runtime-3.1_ , for which you will need to follow 
 
 https://dotnet.microsoft.com/download/
 
-To install, add the wsl-translinux repository here: https://packagecloud.io/arkane-systems/wsl-translinux , and install genie using the command:
+To install, add the wsl-translinux repository here: https://packagecloud.io/arkane-systems/wsl-translinux by issueing the following command:
 
-_sudo apt install systemd-genie_
+```bash
+curl -s https://packagecloud.io/install/repositories/arkane-systems/wsl-translinux/script.deb.sh | sudo bash
+```
+
+then install genie using the command:
+
+```bash
+sudo apt install -y systemd-genie
+```
 
 ### Other Distros
 
