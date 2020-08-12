@@ -24,7 +24,7 @@ If there is a package available for your distribution, this is the recommended m
 
 ### Debian
 
-Dependent packages on Debian are _daemonize_, _dbus_, _dotnet-runtime-3.1_, _policykit-1_, _systemd_, and _util-linux_ . For the most part, these are either already installed or in the distro and able to be installed automatically.
+Dependent packages on Debian are _daemonize_, _dbus_, _dotnet-runtime-3.1_, _policykit-1_, and _systemd_ . For the most part, these are either already installed or in the distro and able to be installed automatically. You need _debhelper_ and _dotnet-sdk-3.1_ to build the Debian package, but not to simply build _genie_ or install locally.
 
 The chief exception is _dotnet-runtime-3.1_ , for which you will need to follow the installation instructions here:
 
@@ -50,7 +50,7 @@ We apologize for the inconvenience. Anyone wishing to be this project's sugar da
 
 ### Other Distros
 
-Debian is the "native" distribution for _genie_ , for which read, "what the author uses". Specifically, Debian stretch+, with usrmerge installed. If you're using anything else, you may need to tweak the configuration file (see below) accordingly.
+Debian is the "native" distribution for _genie_ , for which read, "what the author uses". Specifically, Debian stretch+, with _usrmerge_ installed. If you're using anything else, you may need to tweak the configuration file (see below) accordingly.
 
 #### Arch
 
@@ -66,9 +66,9 @@ Thanks to Arley Henostroza for providing these.
 
 #### Other
 
-Currently, there are no installation packages available for other distributions/package-management systems. It is possible to download the genie.tar.gz file from the Releases page (essentially, the unwrapped Debian package) and manually place the files within, other than the DEBIAN folder, in the matching places and with the correct permissions, then edit the configuration file if and as necessary. Note that this is a packaged build, rather than a local-install build, and thus expects itself and hostess to both be installed under _/usr/bin_.
+Currently, there are no installation packages available for other distributions/package-management systems. Please use the local install process below.
 
-If you are able to build an install package for another distribution/package-management system, please consider adding your build process to the genie makefile in the same manner as the _debian_ target, and submitting a pull request. While not able to maintain packages myself for every distro, keeping the build processes for as many as possible in this repo would be useful to future genie users.
+If you are able to build an install package for another distribution/package-management system, please consider adding your build process to the genie repo and submitting a pull request. While not able to maintain packages myself for every distro, keeping the build processes for as many as possible in this repo would be useful to future genie users.
 
 ### ...OR BUILD IT YOURSELF
 
@@ -77,7 +77,7 @@ It is possible to build your own version of genie and install it locally. To do 
 After cloning the repository, run
 
 ```
-make install
+sudo make local
 ```
 
 This will build genie and install it under _/usr/local_ .
