@@ -1,3 +1,0 @@
-#!/bin/sh
-ln -s /usr/libexec/genie/main/genie /usr/bin/genie
-

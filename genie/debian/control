@@ -1,0 +1,17 @@
+Source: systemd-genie
+Section: contrib/misc
+Priority: optional
+Maintainer: Alistair Young <avatar@arkane-systems.net>
+Build-Depends: debhelper-compat (= 13), dotnet-sdk-3.1
+Standards-Version: 4.5.0
+Homepage: https://github.com/arkane-systems/genie
+Vcs-Git: https://github.com/arkane-systems/genie.git
+Vcs-browser: https://github.com/arkane-systems/genie.git
+
+Package: systemd-genie
+Architecture: amd64
+Depends: ${misc:Depends}, ${shlibs:Depends}, dbus, policykit-1, daemonize, systemd, dotnet-runtime-3.1
+Description: quick way into a systemd "bottle" under Windows Subsystem for Linux
+ Automates the process of starting up, entering into, and shutting down
+ a container within which systemd is pid 1, effectively enabling the use
+ of systemd within a WSL distro.

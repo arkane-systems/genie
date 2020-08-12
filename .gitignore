@@ -1,11 +1,11 @@
 build/
 dist/
-systemd-genie/usr/bin
+systemd-genie_*
 genie.spec
 *.deb
 *.tar.gz
-systemd-genie/DEBIAN
-systemd-genie/usr/share/man
+genie/debian/systemd-genie
+genie/debian/.debhelper
 .Makefile.swp
 
 ### ASPNETCore ###

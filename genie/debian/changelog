@@ -1,0 +1,5 @@
+systemd-genie (1.27) UNRELEASED; urgency=medium
+
+  * Initial release.
+
+ -- Alistair Young <avatar@arkane-systems.net>  Wed, 12 Aug 2020 11:35:51 -0500

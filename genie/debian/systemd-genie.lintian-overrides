@@ -1,0 +1,4 @@
+# Produced by .NET Core; cannot control.
+hardening-no-pie
+# .NET Core dlls.
+executable-not-elf-or-script

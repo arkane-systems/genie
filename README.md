@@ -1,1 +1,1 @@
-systemd-genie/usr/share/doc/genie/readme.md
+genie/docs/readme.md
