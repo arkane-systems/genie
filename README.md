@@ -30,7 +30,7 @@ The chief exception is _dotnet-runtime-3.1_ , for which you will need to follow 
 
 https://dotnet.microsoft.com/download/
 
-To install, add the wsl-translinux repository here: https://packagecloud.io/arkane-systems/wsl-translinux by issueing the following command:
+To install, add the wsl-translinux repository here by issueing the following command, or by following the instructions here (https://packagecloud.io/arkane-systems/wsl-translinux):
 
 ```bash
 curl -s https://packagecloud.io/install/repositories/arkane-systems/wsl-translinux/script.deb.sh | sudo bash
@@ -41,6 +41,12 @@ then install genie using the command:
 ```bash
 sudo apt install -y systemd-genie
 ```
+
+#### PLEASE NOTE
+
+The wsl-translinux repository is hosted by packagecloud.io, whose free plan allows for 250 MB of downloads per month. Due to the unexpected popularity of genie, we are currently skating right at the edge of this level of usage, and my poor indie developer budget does not stretch to the $75/mo. required for a "Small" plan. As such, if it won't download for you, you may need to either download the .deb file from the Releases page and install manually using `dpkg -i`, or wait for the usage counter to reset on the 12th of the month.
+
+We apologize for the inconvenience. Anyone wishing to be this project's sugar daddy is welcome to apply.
 
 ### Other Distros
 
@@ -82,7 +88,7 @@ That would be the file _/etc/genie.ini_. This defines the secure path (i.e., tho
 
 ```
 [genie]
-secure-path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+secure-path=/lib/systemd:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 unshare=/usr/bin/unshare
 ```
 
