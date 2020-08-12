@@ -13,6 +13,9 @@ all:
 	cp genie/bin/Release/netcoreapp3.1/linux-x64/publish/genie systemd-genie/usr/bin/
 	cp genie/bin/Release/netcoreapp3.1/linux-x64/publish/*.dll systemd-genie/usr/bin/
 	cp genie/bin/Release/netcoreapp3.1/linux-x64/publish/genie.runtimeconfig.json systemd-genie/usr/bin/
+	# add the man page
+	cp genie.8 systemd-genie/usr/share/man/man8
+	gzip -9 systemd-genie/usr/share/man/man8/genie.8
 	# Set in-package permissions
 	sudo chown root:root systemd-genie/etc/*
 	sudo chown root:root systemd-genie/usr/bin/*
@@ -37,6 +40,8 @@ pkg-deb:
 	sudo md5sum systemd-genie/usr/lib/genie/* >> systemd-genie/DEBIAN/md5sums
 	sudo md5sum systemd-genie/usr/lib/systemd/system-environment-generators/* >> systemd-genie/DEBIAN/md5sums
 	sudo md5sum systemd-genie/etc/* >> systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/usr/share/doc/genie/* >> systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/usr/share/man/man8/* >> systemd-genie/DEBIAN/md5sums
 	# Make .deb package
 	sudo dpkg-deb --build systemd-genie
 
