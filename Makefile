@@ -36,14 +36,16 @@ pkg-deb:
 	# Copy control files
 	cp debian/* systemd-genie/DEBIAN
 	# Compute md5 sums
-	sudo md5sum systemd-genie/usr/bin/* | sed 's/systemd-genie//' > systemd-genie/DEBIAN/md5sums
-	sudo md5sum systemd-genie/usr/lib/genie/* | sed 's/systemd-genie//' >> systemd-genie/DEBIAN/md5sums
-	sudo md5sum systemd-genie/usr/lib/systemd/system-environment-generators/* | sed 's/systemd-genie//' >> systemd-genie/DEBIAN/md5sums
-	sudo md5sum systemd-genie/etc/* | sed 's/systemd-genie//' >> systemd-genie/DEBIAN/md5sums
-	sudo md5sum systemd-genie/usr/share/doc/genie/* | sed 's/systemd-genie//' >> systemd-genie/DEBIAN/md5sums
-	sudo md5sum systemd-genie/usr/share/man/man8/* | sed 's/systemd-genie//' >> systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/usr/bin/* | sed 's/systemd-genie\///' > systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/usr/lib/genie/* | sed 's/systemd-genie\///' >> systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/usr/lib/systemd/system-environment-generators/* | sed 's/systemd-genie\///' >> systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/etc/* | sed 's/systemd-genie\///' >> systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/usr/share/doc/genie/* | sed 's/systemd-genie\///' >> systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/usr/share/man/man8/* | sed 's/systemd-genie\///' >> systemd-genie/DEBIAN/md5sums
 	# Make .deb package
 	sudo dpkg-deb --build systemd-genie
+	# Lintian it
+	lintian -c systemd-genie.deb
 
 debian: clean all pkg-deb
 
