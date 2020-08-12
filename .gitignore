@@ -6,6 +6,7 @@ genie.spec
 *.tar.gz
 genie/debian/systemd-genie
 genie/debian/.debhelper
+genie/debian/systemd-genie*
 .Makefile.swp
 
 ### ASPNETCore ###
