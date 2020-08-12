@@ -124,7 +124,7 @@ _genie -c [command]_ runs _command_ inside the bottle, then exits. The return co
 
 Meanwhile, _genie -u_ , run from outside the bottle, will shut down systemd cleanly and exit the bottle. This uses the _systemctl poweroff_ command to simulate a normal Linux system shutting down. It is suggested that this be used before shutting down Windows or restarting the Linux distribution to ensure a clean shutdown of systemd services.
 
-While not compulsory, it is recommended that you shut down and restart the WSL distro before using genie again after you have used _genie -u_.
+While not compulsory, it is recommended that you shut down and restart the WSL distro before using genie again after you have used _genie -u_. See BUGS, below, for more details.
 
 ## RECOMMENDATIONS
 
@@ -139,3 +139,5 @@ Further tips on usage from other genie users can be found on the wiki for this r
 2. It is considerably clunkier than I'd like it to be, inasmuch as you have to invoke genie every time to get inside the bottle, either manually (replacing, for example, _wsl [command]_ with _wsl genie -c [command]_), or by using your own shortcut in place of the one WSL gives you for the distro, using which will put you _outside_ the bottle. Pull requests, etc.
 
 3. There is a race condition that means that if you start a genie session too quickly after initializing the bottle (very likely if you use _genie -c_ or _genie -s_ without having running _genie -i_ first, meaning that they will auto-initialize the bottle on first run), you may not get a systemd-logind login session or the functionality supplied by that, such as a systemd user instance. **Using _genie -i_ is strongly recommended to avoid this issue.** Please see https://github.com/arkane-systems/genie/issues/70 for more details.
+
+4. genie is not idempotent; i.e., it is possible that changes made by genie or by systemd inside the bottle will not be perftectly reverted when the genie bottle is shut down with _genie -u_ . As such, it is recommended that you terminate the entire wsl session with _wsl -t <distro>_ or _wsl --shutdown_ in between stopping and restarting the bottle, or errors may occur.
