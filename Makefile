@@ -33,15 +33,15 @@ pkg-deb:
 	mkdir -p systemd-genie/DEBIAN
 	# Set in-package permissions
 	sudo chmod -R 0755 systemd-genie/DEBIAN
-	# Copy control and deviations file
-	cp debian/control systemd-genie/DEBIAN/control
+	# Copy control files
+	cp debian/* systemd-genie/DEBIAN
 	# Compute md5 sums
-	sudo md5sum systemd-genie/usr/bin/* > systemd-genie/DEBIAN/md5sums
-	sudo md5sum systemd-genie/usr/lib/genie/* >> systemd-genie/DEBIAN/md5sums
-	sudo md5sum systemd-genie/usr/lib/systemd/system-environment-generators/* >> systemd-genie/DEBIAN/md5sums
-	sudo md5sum systemd-genie/etc/* >> systemd-genie/DEBIAN/md5sums
-	sudo md5sum systemd-genie/usr/share/doc/genie/* >> systemd-genie/DEBIAN/md5sums
-	sudo md5sum systemd-genie/usr/share/man/man8/* >> systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/usr/bin/* | sed 's/systemd-genie//' > systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/usr/lib/genie/* | sed 's/systemd-genie//' >> systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/usr/lib/systemd/system-environment-generators/* | sed 's/systemd-genie//' >> systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/etc/* | sed 's/systemd-genie//' >> systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/usr/share/doc/genie/* | sed 's/systemd-genie//' >> systemd-genie/DEBIAN/md5sums
+	sudo md5sum systemd-genie/usr/share/man/man8/* | sed 's/systemd-genie//' >> systemd-genie/DEBIAN/md5sums
 	# Make .deb package
 	sudo dpkg-deb --build systemd-genie
 
@@ -71,6 +71,7 @@ install:
 	sudo install -Dm 755 -o root "systemd-genie/usr/lib/genie/readwslenv.sh" -t "/usr/local/lib/genie/"
 	sudo install -Dm 755 -o root "systemd-genie/usr/lib/genie/runinwsl.sh" -t "/usr/local/lib/genie/"
 	sudo install -Dm 755 -o root "systemd-genie/usr/lib/systemd/system-environment-generators/10-genie-envar.sh" -t "/usr/local/lib/systemd/system-environment-generators"
+	# !! UPDATE FOR MAN PAGE AND EXECUTABLE MOTION
 
 #
 # clean: delete the package interim files and products
@@ -80,4 +81,5 @@ clean:
 	make -C genie clean
 	rm -rf systemd-genie/DEBIAN
 	rm -rf systemd-genie/usr/bin/*
+	rm -f systemd-genie/usr/share/man/man8/genie.8.gz
 	rm -f genie.tar.gz systemd-genie.deb
