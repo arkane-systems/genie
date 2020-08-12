@@ -42,7 +42,13 @@ install:
 	install -Dm 0644 -o root "conf/genie.ini" -t "$(ETC)"
 
 #
-# install-local: install a build genie package locally
+# debian-pkg: build debian package
+#
+debian-pkg:
+	debuild
+
+#
+# install-local: install a built genie package locally
 #
 install-local:
 	# Local install of the above
@@ -82,7 +88,8 @@ local: clean build install-local
 #
 # clean: clean up after a build/package
 #
-clean:
+distclean:
 	make -C genie clean
 
-distclean: clean
+clean:
+	debuild -- clean
