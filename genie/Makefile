@@ -18,7 +18,7 @@ build:
 	make -C genie
 
 #
-# install: install the package
+# (INTERNAL) install: install the package
 #
 install:
 	install -Dm 4755 -o root "genie/bin/Release/netcoreapp3.1/linux-x64/publish/genie" -t "$(LIBEXECMAIN)"
@@ -48,7 +48,7 @@ debian-pkg:
 	debuild
 
 #
-# install-local: install a built genie package locally
+# (INTERNAL) install-local: install a built genie package locally
 #
 install-local:
 	# Local install of the above
@@ -83,7 +83,7 @@ install-local:
 #
 # local: build and install locally
 #
-local: clean build install-local
+local: distclean build install-local
 
 #
 # clean: clean up after a build/package
