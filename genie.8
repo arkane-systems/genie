@@ -1,0 +1,96 @@
+.TH GENIE 8 2020-08-12 Linux "WSL Utilities"
+.SH GENIE
+genie \- start up, enter into, or shut down a systemd "bottle" under Windows Subsystem for Linux.
+.SH SYNOPSIS
+.nf
+.B genie -h
+.B genie \fR[\fB-v\fR]\fB -i \fR|\fB -s \fR|\fB -u
+.B genie \fR[\fB-v\fR]\fB -c \fIcommand\fR
+.fi
+.SH DESCRIPTION
+\fBgenie\fR provides a means of running systemd(8) as pid 1, with all the trimmings, within a WSL 2 distribution. It does this by creating a pid namespace, the eponymous poor-man's-container "bottle", starting up systemd(1) within the bottle, and providing helpful shortcuts to start up, enter, run commands within, and shut down the bottle.
+.SH OPTIONS
+.TP
+.BR \-c "\fR, \fB" \-\-command " " \fIcommand\fR
+Sets up the bottle and systemd(1) if they are not already initialized, runs \fIcommand\fR inside the bottle, and then exits. In this case, the return code of \fBgenie\fR is the return code of the command.
+.RS
+.P
+It follows sudo(8) semantics, and so does preserve the current working directory.
+.RE
+.TP
+.BR \-h "\fR, \fB" \-\-help
+Print a short help text and exit.
+.TP
+.BR \-i "\fR, \fB" \-\-initialize
+Sets up the bottle and systemd(1) if they are not already initialized, and then exits. This is intended for use, for example, if you wish to run services without needing a shell, or to preinitialize the bottle to avoid startup delays later. It is intended for use with Task Scheduler, to be run on Windows logon.
+.TP
+.BR \-s "\fR, \fB" \-\-shell
+Sets up the bottle and systemd(1) if they are not already initialized, and then runs your login shell inside the bottle. It is intended as the standard way to start a shell within a distribution configured with \fBgenie\fR.
+.RS
+.P
+It follows login semantics, and as such does not preserve the current working directory.
+.RE
+.TP
+.BR \-u "\fR, \fB" \-\-shutdown
+Shuts down systemd(1) cleanly and exits the bottle. This uses the \fBsystemctl poweroff\fR command to simulate a normal Linux system shutting down. It is suggested that this be used before shutting down the Windows machine or restarting the Linux distribution to ensure a clean shutdown of systemd services.
+.RS
+.P
+While not compulsory, it is recommended that you shut down and restart the WSL distribution before using \fBgenie\fR again after you have used \fBgenie -u\fR. See BUGS, below, for more details.
+.RE
+.TP
+.BR \-v "\fR, \fB" \-\-verbose
+When used in conjunction with a \fBgenie\fR command, prints verbose progress messages illustrating \fBgenie\fR's progress through the various stages of executing that command.
+.TP
+.BR \-\-version
+Print a short version string and exit.
+.SH EXIT STATUS
+\fBgenie\fR has the following exit status values:
+.TP
+0
+success
+.TP
+EBADF
+not executing under WSL, or on Linux
+.TP
+EINVAL
+there was no bottle when one was expected, or a command was run inside the bottle
+.TP
+EPERM
+\fBgenie\fR was invoked under WSL 1, or not invoked as root
+.TP
+127
+error executing a command used internally; check the secure-path setting in \fB/etc/genie.ini\fR
+.TP
+130
+error updating \fB/etc/hosts\fR with new hostname
+.SH FILES
+.TP
+\fI/etc/genie.ini\fR
+Configuration file for \fBgenie\fR. This contains two configuration settings: the secure path which \fBgenie\fR uses when searching for executables used internally; and the specific path to the unshare(1) binary. In a typical Linux installation, there should be no need to modify either of these.
+.TP
+\fI/run/genie.env\fR
+Contains certain environment variables required for proper functioning copied from outside the bottle, used internally by \fBgenie\fR to restore them within the bottle.
+.TP
+\fI/run/hostname-wsl\fR
+Contains the modified hostname used by the WSL distribution (see NOTES). This file is bind mounted over /etc/hostname when the bottle is started up, and unbound at shutdown.
+.SH NOTES
+\fBgenie\fR can only be used within a WSL 2 distribution, since systemd can only be run within a WSL 2 distribution. WSL 1 does not implement the system calls required to support it.
+.P
+\fBgenie\fR serves no purpose on Linux running outside of the WSL environment, or within other containers. Its behavior if run in such environments is undefined.
+.P
+When setting up the bottle:
+.IP \(bu
+The hostname of the WSL session is changed from the default (the hostname of the Windows machine) by suffixing -wsl, to distinguish it from the Windows host. The hosts file is updated accordingly.
+.IP \(bu
+The bottle uses pid and mount namespaces. Other namespaces remain shared with the parent (outside bottle). The mount propagation flag is set to shared.
+.SH BUGS
+.IP \(bu
+\fBgenie\fR breaks pstree(1) and other /proc-walking tools that count on everything being a child of pid 1, because entering the namespace with a shell or other process leaves that process with a ppid of 0.
+.IP \(bu
+There is a race condition (since \fBgenie\fR cannot prevent you from attempting to enter the bottle before systemd-logind(8) has finished starting) that means that if you start a \fBgenie\fR session too quickly after initializing the bottle (most likely if you use \fBgenie -c\fR or \fBgenie -s\fR without having running \fBgenie -i\fR first, meaning that they will auto-initialize the bottle on first run), you may not get a systemd-logind(8) login session or the functionality supplied by that, such as a systemd(1) user instance. Using \fBgenie -i\fR is strongly recommended to avoid this issue.
+.IP \(bu
+\fBgenie\fR is not idempotent; i.e., it is possible that changes made by \fBgenie\fR or by systemd(1) inside the bottle will not be perfectly reverted when the genie bottle is shut down with \fBgenie -u\fR. As such, it is recommended that you terminate the entire wsl session with \fBwsl -t\fR or \fBwsl --shutdown\fR in between stopping and restarting the bottle, or errors may occur.
+.P
+If you feel you have found a bug in \fBgenie\fR, please submit a bug report at \fIhttp://github.com/arkane-systems/genie/issues\fR.
+.SH SEE ALSO
+systemctl(1), systemd(1)

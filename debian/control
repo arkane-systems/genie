@@ -2,13 +2,18 @@ Package: systemd-genie
 Version: 1.27
 Architecture: amd64
 Essential: no
-Section: utils
+Section: contrib/misc
 Priority: optional
 Maintainer: Alistair Young <avatar@arkane-systems.net>
-Depends: util-linux, dbus, policykit-1, daemonize, systemd, dotnet-runtime-3.1
+Depends: dbus, policykit-1, daemonize, systemd, dotnet-runtime-3.1
 Installed-Size: 2
 Description: A quick way into a systemd "bottle" for WSL.
+ A quick way into a systemd "bottle" for WSL.
+ .
  What does that even mean?
+ .
  Well, this gives you a way to run systemd as pid 1, with all the trimmings, inside WSL 2. It does this by creating a pid namespace, the eponymous poor-man's-container "bottle", starting up systemd in there, and entering it, and providing some helpful shortcuts to do so.
  Please see instructions on the homepage for more details.
 Homepage: https://github.com/arkane-systems/genie
+Standards-Version: 4.5.0.2
+
