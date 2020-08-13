@@ -1,4 +1,24 @@
-# Produced by .NET Core; cannot control.
-hardening-no-pie
-# .NET Core dlls.
-executable-not-elf-or-script
+# .NET Core wants these to be executable.
+executable-not-elf-or-script usr/libexec/genie/main/Linux.ProcessManager.dll
+executable-not-elf-or-script usr/libexec/genie/main/Microsoft.Extensions.Configuration.Abstractions.dll
+executable-not-elf-or-script usr/libexec/genie/main/Microsoft.Extensions.Configuration.FileExtensions.dll
+executable-not-elf-or-script usr/libexec/genie/main/Microsoft.Extensions.Configuration.Ini.dll
+executable-not-elf-or-script usr/libexec/genie/main/Microsoft.Extensions.Configuration.dll
+executable-not-elf-or-script usr/libexec/genie/main/Microsoft.Extensions.FileProviders.Abstractions.dll
+executable-not-elf-or-script usr/libexec/genie/main/Microsoft.Extensions.FileProviders.Physical.dll
+executable-not-elf-or-script usr/libexec/genie/main/Microsoft.Extensions.Primitives.dll
+executable-not-elf-or-script usr/libexec/genie/main/System.CommandLine.dll
+executable-not-elf-or-script usr/libexec/genie/main/System.Runtime.CompilerServices.Unsafe.dll
+executable-not-elf-or-script usr/libexec/genie/main/Tmds.LibC.dll
+executable-not-elf-or-script usr/libexec/genie/main/genie.dll
+
+# Microsoft dictates the shim, I can't control it.
+hardening-no-pie usr/libexec/genie/main/genie
+hardening-no-bindnow usr/libexec/genie/main/genie
+hardening-no-fortify-functions usr/libexec/genie/main/genie
+
+# Needs to be setuid to function.
+setuid-binary usr/libexec/genie/main/genie 4755 root/root
+
+# This is where systemd wants it.
+executable-in-usr-lib usr/lib/systemd/system-environment-generators/10-genie-envar.sh
