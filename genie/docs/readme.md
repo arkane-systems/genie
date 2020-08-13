@@ -68,7 +68,7 @@ Thanks to Arley Henostroza for providing these.
 
 Currently, there are no installation packages available for other distributions/package-management systems. Please use the local install process below.
 
-If you are able to build an install package for another distribution/package-management system, please consider adding your build process to the genie repo and submitting a pull request. While not able to maintain packages myself for every distro, keeping the build processes for as many as possible in this repo would be useful to future genie users.
+If you are able to build an install package for another distribution/package-management system and/or are willing to be a maintainer for that distribution, please consider adding your build process to the genie repo and submitting a pull request. While not able to maintain packages myself for every distro, keeping the build processes for as many as possible in this repo would be useful to future genie users. The CONTENTS file in the root of this repo lists all the files installed by a standard genie installation, which may be of help to you in constructing your package.
 
 ### ...OR BUILD IT YOURSELF
 
