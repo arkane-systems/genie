@@ -68,7 +68,7 @@ Thanks to Arley Henostroza for providing these.
 
 Here's where we want guinea-pigs.
 
-We now have _fpm_-created installation packages; rpm, apk, pacman (although if you want an easy life on Arch, use the tested packages above), and plain .tar.gz, downloadable from the releases page. All of these are UNTESTED. USE AT OWN RISK.
+We now have _fpm_-created installation packages; rpm, apk (unsigned, requires `--allow-untrusted`), pacman (although if you want an easy life on Arch, use the tested packages above), and plain .tar.gz, downloadable from the releases page. All of these are UNTESTED. USE AT OWN RISK.
 
 And please report back your results so that we can move them into the tested and working category.
 
