@@ -7,13 +7,15 @@
 #
 package:
 	make -C genie debian-pkg
-	sudo alien --to-rpm `ls *.deb`
-	sudo alien --to-lsb `ls *.deb`
-	sudo alien --to-tgz `ls *.deb`
+	fpm -s deb -t rpm `ls *.deb`
+	fpm -s deb -t apk `ls *.deb`
+	fpm -s deb -t pacman `ls *.deb`
+	fpm -s deb -t tar `ls *.deb`
+	gzip `ls *.tar`
 
 #
 # clean: clean up after a build/package
 #
 clean:
 	make -C genie clean
-	sudo rm *.deb *.rpm *.build *.buildinfo *.changes *.dsc *.tar.xz *.tgz
+	sudo rm *.deb *.build *.buildinfo *.changes *.dsc *.tar.xz *.apk *.rpm *.tar.gz

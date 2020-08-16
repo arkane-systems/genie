@@ -66,9 +66,11 @@ Thanks to Arley Henostroza for providing these.
 
 #### Other
 
-Currently, there are no installation packages available for other distributions/package-management systems. Please use the local install process below.
+Here's where we want guinea-pigs.
 
-If you are able to build an install package for another distribution/package-management system and/or are willing to be a maintainer for that distribution, please consider adding your build process to the genie repo and submitting a pull request. While not able to maintain packages myself for every distro, keeping the build processes for as many as possible in this repo would be useful to future genie users. The CONTENTS file in the root of this repo lists all the files installed by a standard genie installation, which may be of help to you in constructing your package.
+We now have _fpm_-created installation packages; rpm, apk, pacman (although if you want an easy life on Arch, use the tested packages above), and plain .tar.gz, downloadable from the releases page. All of these are UNTESTED. USE AT OWN RISK.
+
+And please report back your results so that we can move them into the tested and working category.
 
 ### ...OR BUILD IT YOURSELF
 
