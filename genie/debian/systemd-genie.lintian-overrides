@@ -12,9 +12,13 @@ executable-not-elf-or-script usr/libexec/genie/main/System.Runtime.CompilerServi
 executable-not-elf-or-script usr/libexec/genie/main/Tmds.LibC.dll
 executable-not-elf-or-script usr/libexec/genie/main/genie.dll
 
-# Microsoft dictates the shim, I can't control it.
+# Microsoft dictates the shim executable, I can't control it.
 hardening-no-pie usr/libexec/genie/main/genie
+
+# Microsoft dictates the shim executable, I can't control it.
 hardening-no-bindnow usr/libexec/genie/main/genie
+
+# Microsoft dictates the shim executable, I can't control it.
 hardening-no-fortify-functions usr/libexec/genie/main/genie
 
 # Needs to be setuid to function.

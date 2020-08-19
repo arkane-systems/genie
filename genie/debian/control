@@ -6,7 +6,7 @@ Build-Depends: debhelper-compat (= 13), dotnet-sdk-3.1
 Standards-Version: 4.5.0
 Homepage: https://github.com/arkane-systems/genie
 Vcs-Git: https://github.com/arkane-systems/genie.git
-Vcs-browser: https://github.com/arkane-systems/genie.git
+Vcs-Browser: https://github.com/arkane-systems/genie.git
 
 Package: systemd-genie
 Architecture: amd64

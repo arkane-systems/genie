@@ -1,5 +1,8 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Source: https://github.com/arkane-systems.genie
+Upstream-Contact: Alistair Young <avatar@arkane-systems.net>
+Upstream-Name: genie
+Comment: This package is not part of the Debian distribution because it is developed using .NET Core, thus depending on a package which is itself not part of the Debian distribution.
 
 Files: *
 Copyright: 2018-2020 Alistair Young <avatar@arkane-systems.net>
