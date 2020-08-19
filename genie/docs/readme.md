@@ -24,7 +24,7 @@ If there is a package available for your distribution, this is the recommended m
 
 ### Debian
 
-Dependent packages on Debian are _daemonize_, _dbus_, _dotnet-runtime-3.1_, _policykit-1_, and _systemd_ . For the most part, these are either already installed or in the distro and able to be installed automatically. You need _debhelper_ and _dotnet-sdk-3.1_ to build the Debian package, but not to simply build _genie_ or install locally.
+Dependent packages on Debian are _daemonize_, _dbus_, _dotnet-runtime-3.1_, _policykit-1_, and _systemd_ . For the most part, these are either already installed or in the distro and able to be installed automatically. You need _debhelper_ and _dotnet-sdk-3.1_ (and optionally _pbuilder_) to build the Debian package, but not to simply build _genie_ or install locally.
 
 The chief exception is _dotnet-runtime-3.1_ , for which you will need to follow the installation instructions here:
 
