@@ -1,5 +1,5 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Source: https://github.com/arkane-systems.genie
+Source: https://github.com/arkane-systems/genie
 Upstream-Contact: Alistair Young <avatar@arkane-systems.net>
 Upstream-Name: genie
 Comment: This package is not part of the Debian distribution because it is developed using .NET Core, thus depending on a package which is itself not part of the Debian distribution.
@@ -32,4 +32,4 @@ License: Unlicense
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  OTHER DEALINGS IN THE SOFTWARE.
  .
- For more information, please refer to <http://unlicense.org>
+ For more information, please refer to <https://unlicense.org>
