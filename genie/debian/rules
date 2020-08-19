@@ -14,37 +14,3 @@ export DH_OPTIONS=-v
 override_dh_fixperms:
 	dh_fixperms -Xgenie
 
-# Skip unused dh_helpers
-override_dh_autoreconf:
-override_dh_autoreconf_clean:
-override_dh_autotools_config:
-override_dh_installexamples:
-override_dh_installcatalogs:
-override_dh_installcron:
-override_dh_installemacsen:
-override_dh_installifupdown:
-override_dh_installinfo:
-override_dh_installinit:
-override_dh_installtmpfiles:
-override_dh_installsystemd:
-override_dh_installsystemduser:
-override_dh_installmenu:
-override_dh_installmime:
-override_dh_installmodules:
-override_dh_installlogcheck:
-override_dh_installlogrotate:
-override_dh_installpam:
-override_dh_installppp:
-override_dh_installudev:
-override_dh_installgsettings:
-override_dh_installinitramfs:
-override_dh_installalternatives:
-override_dh_bugfiles:
-override_dh_ucf:
-override_dh_gconf:
-override_dh_icons:
-override_dh_perl:
-override_dh_usrlocal:
-override_dh_installwm:
-override_dh_installxfonts:
-override_dh_strip_nondeterminism:
