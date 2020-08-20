@@ -7,20 +7,20 @@
 #
 
 all:
-	dotnet publish -c Release -r linux-x64 --self-contained false
+	pyinstaller -F genie.py
 
 #
 # local: build for /usr/local
 #
 
-local:
-	dotnet publish -c ReleaseLocal -r linux-x64 --self-contained false
+#local:
+#	dotnet publish -c ReleaseLocal -r linux-x64 --self-contained false
 
 #
 # clean: delete the package interim files
 #
 
 clean:
-	rm -rf bin
-	rm -rf obj
+#	rm -rf bin
+#	rm -rf obj
 

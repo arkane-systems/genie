@@ -1,0 +1,410 @@
+#!/usr/bin/env python3
+
+import argparse
+import configparser
+import os
+import pwd
+import subprocess
+import sys
+import time
+
+
+# Version constant
+version = "1.28"
+
+
+# Globals
+previous_uid = 0
+previous_gid = 0
+
+
+# Utility functions ---------------------------------------------------
+def get_prefixed_path(path):
+    """Get the path prefix depending on whether genie is installed locally or via package."""
+    if local:
+        return os.path.join("/usr/local", path)
+    else:
+        return os.path.join("/usr", path)
+
+
+def get_systemd_pid():
+    """Get the pid of the earliest running root systemd, or 0 if none is running."""
+    procs = [int(x) for x in filter(lambda item: item.isdigit(), os.listdir('/proc'))]
+    procs.sort()
+
+    for pid in procs:
+        # Eliminate non-root processes
+        st = os.stat('/proc/' + str(pid))
+        if st.st_uid != 0:
+            continue
+
+        pf = open('/proc/' + str(pid) + '/stat')
+        pst = pf.readline().split()
+        pf.close()
+
+        if pst[1].find('systemd') > -1:
+            return pid
+
+    return 0
+
+
+def initialize_bottle():
+    """Do the work of initializing the bottle."""
+    if verbose:
+        print("genie: initializing bottle")
+
+    # Dump the environmental variables.
+    if verbose:
+        print("genie: dumping WSL environmental variables")
+
+    run_and_wait([get_prefixed_path("libexec/genie/dumpwslenv.sh")])
+
+    # Generate new hostname
+    if verbose:
+        print("genie: generating new hostname")
+
+    external_host = os.uname().nodename
+
+    if verbose:
+        print("genie: external hostname is", external_host)
+
+    internal_host = external_host[0:60] + "-wsl"
+
+    hf = open("/run/hostname-wsl", "wt")
+    hf.write(internal_host)
+    hf.close()
+
+    os.chmod("/run/hostname-wsl", 644)
+
+    # Rewrite hosts file to remove outside-bottle hostname, if present.
+    # Needed to allow use of said hostname to communicate with the Windows host.
+    if verbose:
+        print("genie: updating hosts file")
+
+    rh = open("/etc/hosts", "rt")
+    hostlines = rh.readlines()
+    rh.close()
+
+    new_hostlines = []
+    new_hostlines.append("127.0.0.1 localhost " + internal_host)
+
+    for l in hostlines:
+        if not (l.find(external_host) > -1 or l.find(internal_host) > -1) and (l.find("127.0.0.1") > -1):
+            new_hostlines.append(l)
+
+    rh = open("/etc/hosts", "wt", os.O_TRUNC)
+    rh.writelines(hostlines)
+    rh.close()
+
+    # Set the new hostname by mounting over.
+    if verbose:
+        print("genie: mounting new hostname")
+
+    run_and_wait(['mount', '--bind', '/run/hostname-wsl', '/etc/hostname'])
+
+    # Run systemd in the container.
+    if verbose:
+        print ("genie: starting systemd")
+
+    run_and_wait(['daemonize', 'unshare', '-fp', '--propagation', 'shared', '--mount-proc', 'systemd'])
+
+    # Wait for systemd to be up. (Polling, sigh.)
+    global systemd_pid
+
+    while True:
+        time.sleep(0.5)
+        systemd_pid = get_systemd_pid()
+        if systemd_pid != 0:
+            break;
+
+
+def is_installed_locally():
+    """Determine if we are installed under /usr/local or not."""
+    fpath = os.path.abspath(__file__)
+    return fpath.find("local") > -1
+
+
+def is_wsl_1():
+    """Check to see if we're running under WSL 1"""
+
+    # Definitionally, root file system will always be first mounted.
+    mf = open('/proc/self/mounts')
+    line = mf.readline()
+    mf.close()
+
+    line = line.expandtabs()
+    elements = line.split()
+
+    if not elements[1] == '/':
+        raise RuntimeError("genie: where did the root partition go?")
+
+    # If the root filesystem is of type lxfs or wslfs, we're running under WSL 1. If
+    # not, and assuming we have established that we are running under WSL, we assume
+    # WSL 2.
+    if elements[2] == 'lxfs' or elements[2] == 'wslfs':
+        return True
+
+    return False
+
+
+def load_configuration():
+    """Load and parse the configuration file."""
+    configp = configparser.ConfigParser()
+    configp.read('/etc/genie.ini')
+    return configp['genie']
+
+
+def parse_command_line():
+    """Parse the command line and return the parsed arguments."""
+    parser = argparse.ArgumentParser(
+        description="Handles transitions to the \"bottle\" namespace for systemd under WSL.")
+
+    parser.add_argument("-v", "--verbose", help="display verbose progress messages", action="store_true")
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-V", "--version", help="display current genie(8) version", action="store_true")
+    group.add_argument("-i", "--initialize", help="initialize the bottle (if necessary) only", action="store_true")
+    group.add_argument("-s", "--shell", help="initialize the bottle (if necessary), and start a login shell in it",
+                       action="store_true")
+    group.add_argument("-c", "--command",
+                       help="initialize the bottle (if necessary), and run the specified command in it",
+                       type=str, nargs='*')
+    group.add_argument("-u", "--shutdown", help="shut down systemd and exit the bottle", action="store_true")
+
+    return parser.parse_args()
+
+
+def rootify():
+    """Become root."""
+    global previous_uid
+    global previous_gid
+
+    if previous_uid != 0:
+        raise RuntimeError("genie: cannot rootify root")
+
+    previous_uid = os.getuid()
+    previous_gid = os.getgid()
+    os.setreuid(0, 0);
+    os.setregid(0, 0);
+
+
+def unrootify():
+    """Revert from root."""
+    global previous_uid
+    global previous_gid
+
+    os.setreuid(previous_uid, previous_uid)
+    os.setregid(previous_uid, previous_gid)
+
+    previous_uid = 0
+    previous_gid = 0
+
+
+def run_and_wait(cmdline):
+    """Run a subprocess and wait for it to complete."""
+    result = subprocess.run(cmdline)
+
+    if result.returncode != 0 and verbose:
+        print("genie: command execution failed, when", str(cmdline), "returned", result.returncode)
+
+    result.check_returncode()
+
+
+def shell_out(cmdline):
+    """Run a subprocess and return the return code."""
+    result = subprocess.run(cmdline)
+
+    return result.returncode
+
+
+def run_command(command):
+    if verbose:
+        print ("genie: running command:", command)
+
+        status = shell_out(['nsenter', '-t', str(systemd_pid), '--wd=\"' + os.getcwd + "\"", '-m', '-p',
+                            'runuser', '-u', real_user_name, '--', get_prefixed_path('libexec/genie/runinwsl.sh')
+                            ].extend(command))
+        return status
+
+def run_shell():
+    if verbose:
+        print("genie: starting login shell")
+
+        # Read environmental variables.
+        ef = open("/run/genie.env", "rt")
+        envlines = ef.readlines()
+        ef.close()
+
+        envars = []
+        envnames = []
+
+        for l in envlines:
+            spl = l.split('=')
+            envars.append(l + ' ')
+            envnames.append(spl[0] + ',')
+
+        run_and_wait(['nsenter', '-t', str(systemd_pid), '-m', '-p',
+                      'env']
+                     .extend(envars)
+                     .extend(['runuser', '-l', real_user_name, '-w'])
+                     .extend(envnames))
+
+
+# Operation handlers --------------------------------------------------
+def do_initialize_bottle():
+    """Initialize the bottle (if necessary) only"""
+    # If a bottle exists, we have succeeded already; exit and report success.
+    if bottle_existed_at_start:
+        if verbose:
+            print("genie: bottle already exists (no need to initialize)")
+            return
+
+    # Become root - daemonize expects real uid root as well as effective uid root
+    rootify()
+
+    # Init the bottle
+    initialize_bottle()
+
+    # Give up root.
+    unrootify()
+
+    return
+
+def do_shutdown_bottle():
+    """Shut down the bottle by terminating systemd"""
+    if not bottle_existed_at_start:
+        sys.exit("genie: no bottle exists")
+
+    if started_within_bottle:
+        sys.exit("genie: cannot shut down bottle from inside bottle")
+
+    rootify()
+
+    if verbose:
+        print("genie: running systemctl poweroff within bottle")
+
+    run_and_wait(['nsenter', '-t', str(systemd_pid), '-m', '-p', 'systemctl', 'poweroff'])
+
+    # Wait for systemd to exit.
+    if verbose:
+        print("genie: waiting for systemd to exit")
+
+    os.waitpid(systemd_pid)
+
+    # Drop the in-bottle hostname.
+    if verbose:
+        print("genie: unmounting in-bottle hostname")
+
+    time.sleep(0.5)
+    run_and_wait(['umount', '/etc/hostname'])
+    os.unlink('/run/hostname-wsl')
+
+    run_and_wait(['hostname', '-F', '/etc/hostname'])
+
+    unrootify()
+
+
+def do_run_shell():
+    """Start a login shell within the bottle"""
+    if started_within_bottle:
+        sys.exit("genie: already inside the bottle, cannot start login shell")
+
+    rootify()
+
+    if not bottle_existed_at_start:
+        initialize_bottle()
+
+    # At this point, we should be outside an existing bottle, one way or another.
+    # It shouldn't matter whether we have setuid here, since we start the shell with runuser, which expects
+    # root and reassigns uid accordingly.
+    run_shell()
+
+    unrootify()
+
+
+def do_run_command(command):
+    """Run a command within the bottle, and exit"""
+    # If within the bottle, just use runuser to drop privileges again.
+    if started_within_bottle:
+        status = shell_out(['runuser', '-u', real_user_name, '--'].extend(command))
+        sys.exit(status)
+
+    rootify()
+
+    if not bottle_existed_at_start:
+        initialize_bottle()
+
+    # At this point, we should be outside an existing bottle, one way or another.
+    status = run_command(command)
+
+    unrootify()
+
+    return status
+
+
+# Main body -----------------------------------------------------------
+# Perform prelaunch checks
+if not sys.platform.startswith("linux"):
+    sys.exit("genie: not executing on the Linux platform - how did we get here?")
+
+if not (os.uname().release.find("microsoft") > -1):
+    sys.exit("genie: not executing under WSL - how did we get here?")
+
+if is_wsl_1():
+    sys.exit("genie: systemd is not supported under WSL 1")
+
+if os.geteuid != 0:
+    sys.exit ("genie: must execute as root - has the setuid bit gone astray?")
+
+config = load_configuration()
+local = is_installed_locally()
+
+# Set up the secure path.
+os.environ['PATH'] = config['secure-path']
+
+# Parse the arguments and set the verbose flag.
+args = parse_command_line()
+verbose = args.verbose
+
+# Update the system status for the operation handlers' use.
+# Store the UID and name of the real user.
+real_user_id = os.getuid()
+real_user_name = pwd.getpwuid(real_user_id)[0]
+real_group_id = os.getgid()
+
+# Get systemd pid
+systemd_pid = get_systemd_pid()
+
+# Set startup flags
+if systemd_pid == 0:
+    bottle_existed_at_start = False
+    started_within_bottle = False
+    if verbose:
+        print("genie: no bottle present")
+elif systemd_pid == 1:
+    bottle_existed_at_start = True
+    started_within_bottle = True
+    if verbose:
+        print("genie: inside bottle")
+else:
+    bottle_existed_at_start = True
+    started_within_bottle = False
+    if verbose:
+        print("genie: outside bottle, systemd pid:", systemd_pid)
+
+# Invoke the appropriate handler.
+if args.version:
+    print(version)
+elif args.initialize:
+    do_initialize_bottle()
+elif args.shutdown:
+    do_shutdown_bottle()
+elif args.shell:
+    do_run_shell()
+elif args.command is not None:
+    sys.exit(do_run_command (args.command))
+else:
+    sys.exit ("genie: one of the commands -i, -s, -c, or -u must be specified")
+
+# Exit successfully.
+sys.exit(0)
