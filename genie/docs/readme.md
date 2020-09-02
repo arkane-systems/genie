@@ -10,10 +10,6 @@ Well, this gives you a way to run systemd as pid 1, with all the trimmings, insi
 
 If you want to try it, please read this entire document first, _especially_ the BUGS section.
 
-arkane-systems/genie is being sponsored by the following tool; please help to support us by taking a look and signing up to a free trial:
-
-<a href="https://tracking.gitads.io/?repo=arkane-systems/genie"> <img src="https://images.gitads.io/arkane-systems/genie" alt="GitAds"/> </a>
-
 ## NOTE: WSL 2 ONLY
 
 Note: it is only possible to run _systemd_ (and thus _genie_ ) under WSL 2; WSL 1 does not support the system calls required to do so. If you are running inside a distro configured as WSL 1, even if your system supports WSL 2, genie will fail to operate properly.
