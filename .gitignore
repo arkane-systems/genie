@@ -5,9 +5,6 @@ genie.spec
 *.deb
 *.tar
 *.tar.gz
-*.rpm
-*.tgz
-*.pkg.tar.xz
 genie/debian/systemd-genie
 genie/debian/.debhelper
 genie/debian/systemd-genie*

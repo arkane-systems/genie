@@ -14,3 +14,5 @@ export DH_OPTIONS=-v
 override_dh_fixperms:
 	dh_fixperms -Xgenie
 
+override_dh_shlibdeps:
+	dh_shlibdeps -- -xlibgcc-s1
