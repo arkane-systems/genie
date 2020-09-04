@@ -1,3 +1,11 @@
+systemd-genie (1.28) unstable; urgency=medium
+
+        * Fixed bug preventing installation on pre-buster Debian releases.
+        * Added "update-hostname" configuration setting to disable this behavior.
+        * Improved WSL version detection.
+
+ -- Alistair Young <avatar@arkane-systems.net>  Fri, 04 Sep 2020 18:48:00 -0500
+
 systemd-genie (1.27) unstable; urgency=medium
 
         * Initial release (closes: Bug#968331).

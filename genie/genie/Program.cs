@@ -56,6 +56,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         // Was genie started within the bottle?
         public static bool startedWithinBottle {get; set;}
 
+        // Are we configured to update the hostname for WSL or not?
+        public static bool updateHostname {get; set;}
+
         #endregion System status
 
         // Entrypoint.
@@ -69,16 +72,16 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 return EBADF;
             }
 
-            if (!IsWsl())
-            {
-                Console.WriteLine ("genie: not executing under WSL - how did we get here?");
-                return EBADF;
-            }
-
             if (IsWsl1())
             {
                 Console.WriteLine ("genie: systemd is not supported under WSL 1.");
                 return EPERM;
+            }
+
+            if (!IsWsl2())
+            {
+                Console.WriteLine ("genie: not executing under WSL 2 - how did we get here?");
+                return EBADF;
             }
 
             if (geteuid() != 0)
@@ -89,9 +92,15 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             // Set up secure path.
             var securePath = Configuration["genie:secure-path"];
-            
+
             // Console.WriteLine ($"secure path: {securePath}");
             Environment.SetEnvironmentVariable ("PATH", securePath);
+
+            // Determine whether or not we will be hostname-updating.
+            if (String.Compare(Configuration["genie:update-hostname"], "true", true) == 0)
+                updateHostname = true ;
+            else
+                updateHostname = false ;
 
             // *** PARSE COMMAND-LINE
             // Create options.
@@ -144,21 +153,14 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             return rootCommand.InvokeAsync(args).Result;
         }
 
-        // Check if we are being run under WSL.
-        private static bool IsWsl()
-        {
-            var osrelease = File.ReadAllText("/proc/sys/kernel/osrelease");
-
-            return osrelease.Contains ("microsoft", StringComparison.OrdinalIgnoreCase);
-        }
+        // Check if we are being run under WSL 2.
+        private static bool IsWsl2() => Directory.Exists("/run/WSL");
 
         // Check if we are being run under WSL 1.
         private static bool IsWsl1()
         {
             // We check for WSL 1 by examining the type of the root filesystem. If the
-            // root filesystem is lxfs, then we're running under WSL 1. If not,
-            // and having already established that we're running under WSL, we
-            // assume 2.
+            // root filesystem is lxfs, then we're running under WSL 1.
 
             var mounts = File.ReadAllLines("/proc/self/mounts");
 
@@ -241,86 +243,92 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             Chain (GetPrefixedPath ("libexec/genie/dumpwslenv.sh"), "",
                    "initializing bottle failed; dumping WSL envars");
 
-            // Generate new hostname.
-            if (verbose)
-                Console.WriteLine ("genie: generating new hostname.");
-
-            string externalHost;
-
-            unsafe
+            // Now that the WSL hostname can be set via .wslconfig, we're going to make changing
+            // it automatically in genie an option, enable/disable in genie.ini. Defaults to on
+            // for backwards compatibility.
+            if (updateHostname)
             {
-                int success;
+                // Generate new hostname.
+                if (verbose)
+                    Console.WriteLine ("genie: generating new hostname.");
 
-                byte [] bytes = new byte[64] ;
-                fixed (byte * buffer = bytes)
+                string externalHost;
+
+                unsafe
                 {
-                    success = gethostname (buffer, 64);
-                }
+                    int success;
 
-                if (success != 0)
-                {
-                    Console.WriteLine ($"genie: error retrieving hostname: {success}.");
-                    Environment.Exit (success);
-                }
-
-                externalHost = Encoding.UTF8.GetString(bytes).TrimEnd('\0');
-            }
-
-            if (verbose)
-                Console.WriteLine ($"genie: external hostname is {externalHost}");
-
-            // Make new hostname.
-            string internalHost = $"{externalHost.Substring(0, (externalHost.Length <= 60 ? externalHost.Length : 60))}-wsl";
-
-            File.WriteAllLines ("/run/hostname-wsl", new string[] {
-                internalHost
-            });
-
-            unsafe
-            {
-                var bytes = Encoding.UTF8.GetBytes("/run/hostname-wsl");
-                fixed (byte* buffer = bytes)
-                {
-                    chmod (buffer, Convert.ToUInt16 ("644", 8));
-                }
-            }
-
-            // Hosts file: check for old host name; if there, remove it.
-            if (verbose)
-                Console.WriteLine ("genie: updating hosts file.");
-
-            try
-            {
-                var hosts = File.ReadAllLines ("/etc/hosts");
-                var newHosts = new List<string> (hosts.Length);
-
-                newHosts.Add ($"127.0.0.1 localhost {internalHost}");
-
-                foreach (string s in hosts)
-                {
-                    if (!(
-                        (s.Contains (externalHost) || s.Contains (internalHost))
-                         && (s.Contains("127.0.0.1"))
-                        ))
+                    byte [] bytes = new byte[64] ;
+                    fixed (byte * buffer = bytes)
                     {
-                        newHosts.Add (s);
+                        success = gethostname (buffer, 64);
+                    }
+
+                    if (success != 0)
+                    {
+                        Console.WriteLine ($"genie: error retrieving hostname: {success}.");
+                        Environment.Exit (success);
+                    }
+
+                    externalHost = Encoding.UTF8.GetString(bytes).TrimEnd('\0');
+                }
+
+                if (verbose)
+                    Console.WriteLine ($"genie: external hostname is {externalHost}");
+
+                // Make new hostname.
+                string internalHost = $"{externalHost.Substring(0, (externalHost.Length <= 60 ? externalHost.Length : 60))}-wsl";
+
+                File.WriteAllLines ("/run/hostname-wsl", new string[] {
+                    internalHost
+                });
+
+                unsafe
+                {
+                    var bytes = Encoding.UTF8.GetBytes("/run/hostname-wsl");
+                    fixed (byte* buffer = bytes)
+                    {
+                        chmod (buffer, Convert.ToUInt16 ("644", 8));
                     }
                 }
 
-                File.WriteAllLines ("/etc/hosts", newHosts.ToArray());
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine ($"genie: error updating host file: {ex.Message}");
-                Environment.Exit (130);
-            }
+                // Hosts file: check for old host name; if there, remove it.
+                if (verbose)
+                    Console.WriteLine ("genie: updating hosts file.");
 
-            // Set the new hostname.
-            if (verbose)
-                Console.WriteLine ("genie: setting new hostname.");
+                try
+                {
+                    var hosts = File.ReadAllLines ("/etc/hosts");
+                    var newHosts = new List<string> (hosts.Length);
 
-            Chain ("mount", "--bind /run/hostname-wsl /etc/hostname",
-                   "initializing bottle failed; bind mounting hostname");
+                    newHosts.Add ($"127.0.0.1 localhost {internalHost}");
+
+                    foreach (string s in hosts)
+                    {
+                        if (!(
+                            (s.Contains (externalHost) || s.Contains (internalHost))
+                             && (s.Contains("127.0.0.1"))
+                            ))
+                        {
+                            newHosts.Add (s);
+                        }
+                    }
+
+                    File.WriteAllLines ("/etc/hosts", newHosts.ToArray());
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine ($"genie: error updating host file: {ex.Message}");
+                    Environment.Exit (130);
+                }
+
+                // Set the new hostname.
+                if (verbose)
+                    Console.WriteLine ("genie: setting new hostname.");
+
+                Chain ("mount", "--bind /run/hostname-wsl /etc/hostname",
+                       "initializing bottle failed; bind mounting hostname");
+            }
 
             // Run systemd in a container.
             if (verbose)
@@ -521,16 +529,19 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             // Wait for systemd to exit (maximum 16 s).
             sd.WaitForExit(16000);
 
-            // Drop the in-bottle hostname.
-            if (verbose)
-                Console.WriteLine ("genie: dropping in-bottle hostname");
+            if (updateHostname)
+            {
+                // Drop the in-bottle hostname.
+                if (verbose)
+                    Console.WriteLine ("genie: dropping in-bottle hostname");
 
-            Thread.Sleep (500);
+                Thread.Sleep (500);
 
-            Chain ("umount", "/etc/hostname");            
-            File.Delete ("/run/hostname-wsl");
+                Chain ("umount", "/etc/hostname");
+                File.Delete ("/run/hostname-wsl");
 
-            Chain ("hostname", "-F /etc/hostname");
+                Chain ("hostname", "-F /etc/hostname");
+            }
 
             Unrootify();
 

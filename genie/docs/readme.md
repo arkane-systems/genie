@@ -62,11 +62,9 @@ Thanks to Arley Henostroza for providing these.
 
 #### Other
 
-Here's where we want guinea-pigs.
+We're actively looking for maintainers for everything else. If you can use .deb packages (especially if your distro is a Debian derivative), the Debian package may work for you. Otherwise, manually installing from the .tar.gz is probably the best I can suggest.
 
-We now have _fpm_-created installation packages; rpm, apk (unsigned, requires `--allow-untrusted`), pacman (although if you want an easy life on Arch, use the tested packages above), and plain .tar.gz, downloadable from the releases page. All of these are UNTESTED. USE AT OWN RISK.
-
-And please report back your results so that we can move them into the tested and working category.
+_I am unable to support distributions which there are not prebuilt packages for. I am actively seeking maintainers for these packages._
 
 ### ...OR BUILD IT YOURSELF
 
@@ -80,7 +78,7 @@ sudo make local
 
 This will build genie and install it under _/usr/local_ .
 
-### Configuration File
+## CONFIGURATION FILE
 
 That would be the file _/etc/genie.ini_. This defines the secure path (i.e., those directories in which genie will look for the utilities it depends on), and also the explicit path to _unshare(1)_, required by _daemonize(1)_. Normally, it looks like this:
 
@@ -88,9 +86,12 @@ That would be the file _/etc/genie.ini_. This defines the secure path (i.e., tho
 [genie]
 secure-path=/lib/systemd:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 unshare=/usr/bin/unshare
+update-hostname=true
 ```
 
 The secure-path setting should be generic enough to cover all but the weirdest Linux filesystem layouts, but on the off-chance that yours stores binaries somewhere particularly idiosyncratic, you can change it here. Meanwhile, the _unshare_ setting is much more likely to be system-dependent; if you are getting errors running genie, please replace this with the output of `which unshare` before trying anything else.
+
+The update-hostname setting controls whether or not genie updates the WSL hostname when creating the bottle. By default, genie updates a hostname _foo_ to _foo-wsl_, to prevent hostname clashes between the host Windows machine and the WSL distribution, especially when communicating back and forth between the two. However, as recent Insider builds allow the hostname of the WSL distributions to be set in __.wslconfig_, this option has been provided to disable genie's intervention and keep the original hostname.
 
 ## USAGE
 

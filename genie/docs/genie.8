@@ -70,7 +70,7 @@ error updating \fB/etc/hosts\fR with new hostname
 .SH FILES
 .TP
 \fI/etc/genie.ini\fR
-Configuration file for \fBgenie\fR. This contains two configuration settings: the secure path which \fBgenie\fR uses when searching for executables used internally; and the specific path to the unshare(1) binary. In a typical Linux installation, there should be no need to modify either of these.
+Configuration file for \fBgenie\fR. This contains two configuration paths: the secure path which \fBgenie\fR uses when searching for executables used internally; and the specific path to the unshare(1) binary. In a typical Linux installation, there should be no need to modify either of these. A third setting, \fBupdate-hostname\fR, controls whether \fBgenie\fR updates the hostname within the bottle, or not.
 .TP
 \fI/run/genie.env\fR
 Contains certain environment variables required for proper functioning copied from outside the bottle, used internally by \fBgenie\fR to restore them within the bottle.
