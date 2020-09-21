@@ -48,18 +48,6 @@ We apologize for the inconvenience. Anyone wishing to be this project's sugar da
 
 Debian is the "native" distribution for _genie_ , for which read, "what the author uses". Specifically, Debian stretch+, with _usrmerge_ installed. If you're using anything else, you may need to tweak the configuration file (see below) accordingly.
 
-#### Arch
-
-For Arch Linux users, there are prebuilt packages available at:
-
-https://aur.archlinux.org/packages/genie-systemd/ and
-
-https://aur.archlinux.org/packages/genie-systemd-git/
-
-The former of which is prebuilt and the latter of which compiles it from source. Both install all needed dependencies, save that for version 1.17-1.23, you will have to install .NET Core 3.0 runtime explicitly, and likewise .NET Core 3.1 runtime for 1.24 and above. A PKGBUILD file for this in Arch is available here for those who wish to use it: https://github.com/arkane-systems/genie/files/3827049/dotnet-PKGBUILD.tar.gz ; you can also make your own, and for security and good practice, please always check what a PKGBUILD does before you use it.
-
-Thanks to Arley Henostroza for providing these.
-
 #### Other
 
 We're actively looking for maintainers for everything else. If you can use .deb packages (especially if your distro is a Debian derivative), the Debian package may work for you. Otherwise, manually installing from the .tar.gz is probably the best I can suggest.
