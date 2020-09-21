@@ -16,3 +16,13 @@ package:
 clean:
 	make -C genie clean
 	sudo rm *.deb *.build *.buildinfo *.changes *.dsc *.tar.gz
+
+#
+# Package and clean up the Arch Linux package
+#
+arch:
+	make -C arch arch-pkg
+
+arch-clean:
+	make -C arch clean
+

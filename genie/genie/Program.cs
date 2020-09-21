@@ -154,7 +154,17 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         }
 
         // Check if we are being run under WSL 2.
-        private static bool IsWsl2() => Directory.Exists("/run/WSL");
+        private static bool IsWsl2()
+        {
+            if (Directory.Exists("/run/WSL"))
+                return true;
+            else
+            {
+                var osrelease = File.ReadAllText("/proc/sys/kernel/osrelease");
+
+                return osrelease.Contains ("microsoft", StringComparison.OrdinalIgnoreCase);
+            }
+        }
 
         // Check if we are being run under WSL 1.
         private static bool IsWsl1()
