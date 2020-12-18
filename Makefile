@@ -3,12 +3,14 @@
 #
 
 #
-# default target: build the whole thing, but do not package
+# default target: build the whole thing, and package for debian
 #
 package:
 	make -C genie debian-pkg
 	fpm -s deb -t tar `ls *.deb`
 	gzip `ls *.tar`
+
+debian: package
 
 #
 # clean: clean up after a build/package
@@ -25,4 +27,3 @@ arch:
 
 arch-clean:
 	make -C arch clean
-
