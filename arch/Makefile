@@ -16,7 +16,7 @@ arch-pkg:
 	lxc file push -r ../genie/scripts genie-packer/home/bob
 	lxc file push archmake.sh genie-packer/home/bob/genie/archmake.sh
 	lxc exec genie-packer --user 1000 --cwd /home/bob/genie -- ./archmake.sh
-#lxc file push PKGBUILD genie-packer/home/bob
+	lxc file push PKGBUILD genie-packer/home/bob
 
 # clean: clean up after a build/package
 
