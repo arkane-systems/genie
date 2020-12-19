@@ -26,11 +26,9 @@ The chief exception is _dotnet-runtime-5.0_ , for which you will need to follow 
 
 https://dotnet.microsoft.com/download/
 
-To install, add the wsl-translinux repository here by creating a file in your `/etc/apt/sources.list.d` folder named `wsl-translinux.list`, with the following contents:
+To install, add the wsl-translinux repository here by following the instructions here:
 
-```
-deb [trusted=yes] https://wsl-translinux.arkane-systems.net/apt/ /
-```
+https://packagecloud.io/arkane-systems/wsl-translinux
 
 then install genie using the commands:
 
@@ -41,7 +39,9 @@ sudo apt install -y systemd-genie
 
 #### PLEASE NOTE
 
-This repository is hosted at gemfly.com, a replacement for the previous repository at packagecloud.io which ran repeatedly over quota. Hopefully, this one will work better for us. The packagecloud.io repository has now been discontinued .
+If you were using the gemfly.com repository (wsl-translinux.arkane-systems.net), that has now been discontinued since the whole bloody company seems to have disappeared from the internet.
+
+If you cannot install from the packagecloud.io repository, especially near the end of the month, it's probably because we're over our bandwidth quota. Please download the package from the releases page and install it manually using _dpkg -i_ . Alternatively, wait a few days and try again.
 
 ### Other Distros
 
