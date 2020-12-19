@@ -2,8 +2,10 @@ systemd-genie (1.29) unstable; urgency=medium
 
         * Updated to use .NET 5.0 framework.
         * Changed to single-file executable (framework-dependent).
+        * Modified the bottle entry to use systemd-machined.
+        * Misc. cleanup.
 
- -- Alistair Young <avatar@arkane-systems.net>  Fri, 18 Dec 2020 07:40:00 -0500
+ -- Alistair Young <avatar@arkane-systems.net>  Fri, 19 Dec 2020 07:40:00 -0500
 
 systemd-genie (1.28) unstable; urgency=medium
 

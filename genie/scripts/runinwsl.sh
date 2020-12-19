@@ -5,6 +5,9 @@ then
   export $(cat /run/genie.env | xargs)
 fi
 
+# Change to correct working directory.
+cd $1
+shift
+
 # Run specified command.
 exec $*
-

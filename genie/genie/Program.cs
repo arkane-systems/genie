@@ -130,7 +130,14 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             rootCommand.Add (cmdShell);
 
-            var argCmdLine = new Argument<string> ();
+            var cmdLogin = new Command ("--login");
+            cmdLogin.AddAlias ("-l");
+            cmdLogin.Description = "Initialize the bottle (if necessary), and open a logon prompt in it.";
+            cmdLogin.Handler = CommandHandler.Create<bool>((Func<bool, int>)LoginHandler);
+
+            rootCommand.Add (cmdLogin);
+
+            var argCmdLine = new Argument<IEnumerable<string>> ("command");
             argCmdLine.Description = "The command to execute within the bottle.";
             argCmdLine.Arity = ArgumentArity.OneOrMore;
 
@@ -138,7 +145,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             cmdExec.AddAlias ("-c");
             cmdExec.AddArgument(argCmdLine);
             cmdExec.Description = "Initialize the bottle (if necessary), and run the specified command in it.";
-            cmdExec.Handler = CommandHandler.Create<bool, List<string>>((Func<bool, List<string>, int>)ExecHandler);
+            cmdExec.Handler = CommandHandler.Create<bool, IEnumerable<string>>((Func<bool, IEnumerable<string>, int>)ExecHandler);
 
             rootCommand.Add (cmdExec);
 
@@ -232,6 +239,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         private static void Chain (string command, string args, string onError = "command execution failed;")
         {
             int r = RunAndWait (command, args);
+
+            // Console.WriteLine ($"{command} {args}");
 
             if (r != 0)
             {
@@ -379,11 +388,11 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ($"genie: running command '{commandLine}'");
 
-            Chain ("nsenter",
-                   String.Concat ($"-t {systemdPid} --wd=\"{Environment.CurrentDirectory}\" -m -p runuser -u {realUserName} -- ",
+            Chain ("machinectl",
+                   String.Concat ($"shell -q {realUserName}@.host ",
                                   GetPrefixedPath ("libexec/genie/runinwsl.sh"),
-                                  $" {commandLine.Trim()}"),
-                   "running command failed; nsenter");
+                                  $" \"{Environment.CurrentDirectory}\" {commandLine.Trim()}"),
+                   "running command failed; machinectl shell");
         }
 
         // Do the work of starting a shell inside the bottle.
@@ -392,31 +401,20 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: starting shell");
 
-            // Read environment variables
-            var envars = new StringBuilder (256);
-            var envnames = new StringBuilder (128);
+            Chain ("machinectl",
+                   $"shell -q {realUserName}@.host",
+                   "starting shell failed; machinectl shell");
+        }
 
-            if (File.Exists ("/run/genie.env"))
-            {
-                foreach (string s in File.ReadAllLines ("/run/genie.env"))
-                {
-                    var v = s.Split (new char[] {'='});
+        // Start a user session with a login prompt inside the bottle.
+        private static void StartLogin (bool verbose)
+        {
+            if (verbose)
+                Console.WriteLine ("genie: starting login");
 
-                    envars.Append ($"{s} ");
-                    envnames.Append ($"{v[0]},");
-
-                    if (verbose)
-                        Console.WriteLine ($"envar: {v[0]}={v[1]}");
-                }
-                if (envars.Length > 0) envars.Length--;
-                if (envnames.Length > 0) envnames.Length--;
-            }
-            else
-              Console.WriteLine ("genie: environment file missing; continuing anyway");
-
-            Chain ("nsenter",
-                   $"-t {systemdPid} -m -p env {envars.ToString()} runuser -l {realUserName} -w {envnames.ToString()}",
-                   "starting shell failed; nsenter");
+            Chain ("machinectl",
+                   $"login .host",
+                   "starting login failed; machinectl login");
         }
 
         // Revert from root.
@@ -586,8 +584,36 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             return 0;
         }
 
+        // Initialize the bottle, if necessary, then start a login prompt in it.
+        public static int LoginHandler (bool verbose)
+        {
+            // Update the system status.
+            UpdateStatus(verbose);
+
+            if (startedWithinBottle)
+            {
+                Console.WriteLine ("genie: already inside the bottle; cannot start login prompt!");
+                return EINVAL;
+            }
+
+            Rootify();
+
+            if (!bottleExistedAtStart)
+                InitializeBottle(verbose);
+
+            // At this point, we should be outside an existing bottle, one way or another.
+
+            // It shouldn't matter whether we have setuid here, since we start the shell with
+            // runuser, which expects root and reassigns uid appropriately.
+            StartLogin(verbose);
+
+            Unrootify();
+
+            return 0;
+        }
+
         // Initialize the bottle, if necessary, then run a command in it.
-        public static int ExecHandler (bool verbose, List<string> command)
+        public static int ExecHandler (bool verbose, IEnumerable<string> command)
         {
             // Update the system status.
             UpdateStatus(verbose);
@@ -619,6 +645,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             // At this point, we should be inside an existing bottle, one way or another.
 
             RunCommand (verbose, $"{command.First()} {cmdLine.ToString()}");
+
+            Unrootify();
 
             return 0;
         }

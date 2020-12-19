@@ -31,6 +31,13 @@ Sets up the bottle and systemd(1) if they are not already initialized, and then 
 It follows login semantics, and as such does not preserve the current working directory.
 .RE
 .TP
+.BR \-l "\fR, \fB" \-\-login
+Sets up the bottle and systemd(1) if they are not already initialized, and then opens a login session within the bottle. This permits you to log in to the WSL distribution as any user. The login prompt will return when you log out; to terminate the session, press ^] three times within one second.
+.RS
+.P
+It follows login semantics, and as such does not preserve the current working directory.
+.RE
+.TP
 .BR \-u "\fR, \fB" \-\-shutdown
 Shuts down systemd(1) cleanly and exits the bottle. This uses the \fBsystemctl poweroff\fR command to simulate a normal Linux system shutting down. It is suggested that this be used before shutting down the Windows machine or restarting the Linux distribution to ensure a clean shutdown of systemd services.
 .RS
@@ -88,10 +95,6 @@ The hostname of the WSL session is changed from the default (the hostname of the
 .IP \(bu
 The bottle uses pid and mount namespaces. Other namespaces remain shared with the parent (outside bottle). The mount propagation flag is set to shared.
 .SH BUGS
-.IP \(bu
-\fBgenie\fR breaks pstree(1) and other /proc-walking tools that count on everything being a child of pid 1, because entering the namespace with a shell or other process leaves that process with a ppid of 0.
-.IP \(bu
-There is a race condition (since \fBgenie\fR cannot prevent you from attempting to enter the bottle before systemd-logind(8) has finished starting) that means that if you start a \fBgenie\fR session too quickly after initializing the bottle (most likely if you use \fBgenie -c\fR or \fBgenie -s\fR without having running \fBgenie -i\fR first, meaning that they will auto-initialize the bottle on first run), you may not get a systemd-logind(8) login session or the functionality supplied by that, such as a systemd(1) user instance. Using \fBgenie -i\fR is strongly recommended to avoid this issue.
 .IP \(bu
 \fBgenie\fR is not idempotent; i.e., it is possible that changes made by \fBgenie\fR or by systemd(1) inside the bottle will not be perfectly reverted when the genie bottle is shut down with \fBgenie -u\fR. As such, it is recommended that you terminate the entire wsl session with \fBwsl -t\fR or \fBwsl --shutdown\fR in between stopping and restarting the bottle, or errors may occur.
 .P

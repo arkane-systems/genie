@@ -17,7 +17,7 @@ debian: package
 #
 clean:
 	make -C genie clean
-	sudo rm *.deb *.build *.buildinfo *.changes *.dsc *.tar.xz
+	sudo rm *.deb *.build *.buildinfo *.changes *.dsc *.tar.xz *.tar.gz
 
 #
 # Package and clean up the Arch Linux package
