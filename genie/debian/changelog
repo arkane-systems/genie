@@ -1,6 +1,7 @@
 systemd-genie (1.29) unstable; urgency=medium
 
         * Updated to use .NET 5.0 framework.
+        * Changed to single-file executable (framework-dependent).
 
  -- Alistair Young <avatar@arkane-systems.net>  Fri, 18 Dec 2020 07:40:00 -0500
 

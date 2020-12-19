@@ -33,5 +33,5 @@ package() {
   	make install
 	mkdir -p ${pkgdir}/usr/bin
 	chmod +x ${pkgdir}/usr/libexec/genie
-	ln -s /usr/libexec/genie/main/genie ${pkgdir}/usr/bin/genie
+	ln -s /usr/libexec/genie/genie ${pkgdir}/usr/bin/genie
 }
