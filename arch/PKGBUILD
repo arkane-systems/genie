@@ -1,5 +1,5 @@
-# Maintainer: Arley Henostroza <arllk10[at]gmail[dot]com>
-# Contributor: facekapow
+# Maintainer: Rayfalling <Rayfalling@outlook.com>
+# Contributor: facekapow, rayfalling, Ducksoft
 
 pkgname=genie-systemd
 _pkgname=genie
@@ -14,6 +14,7 @@ conflicts=('genie-systemd')
 provides=('genie-systemd')
 source=('git+https://github.com/arkane-systems/genie.git')
 sha256sums=('SKIP')
+options=(!strip)
 
 prepare() {
   	cd "${srcdir}/$_pkgname"
@@ -34,4 +35,8 @@ package() {
 	mkdir -p ${pkgdir}/usr/bin
 	chmod +x ${pkgdir}/usr/libexec/genie
 	ln -s /usr/libexec/genie/genie ${pkgdir}/usr/bin/genie
+	cp "$srcdir/$_pkgname/$_pkgname/docs/genie.8" /tmp/genie.8
+	gzip -9 /tmp/genie.8
+	install -Dm 0644 -o root /tmp/genie.8.gz -t "${pkgdir}/usr/share/man/man8"
+	rm /tmp/genie.8.gz
 }
