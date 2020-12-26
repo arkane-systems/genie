@@ -1,3 +1,11 @@
+systemd-genie (1.30) unstable; urgency=medium
+
+        * Changed to precompile .NET code.
+        * Added appending of outside-bottle path to inside-bottle path
+          (with dedupe).
+
+ -- Alistair Young <avatar@arkane-systems.net>  Sat, 26 Dec 2020 13:47:00 -0500
+
 systemd-genie (1.29) unstable; urgency=medium
 
         * Updated to use .NET 5.0 framework.

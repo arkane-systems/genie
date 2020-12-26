@@ -59,6 +59,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         // Are we configured to update the hostname for WSL or not?
         public static bool updateHostname {get; set;}
 
+        // Original path before we enforce secure path.
+        public static string originalPath {get; set;}
+
         #endregion System status
 
         // Entrypoint.
@@ -90,10 +93,10 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 return EPERM;
             }
 
-            // Set up secure path.
+            // Set up secure path, saving original.
             var securePath = Configuration["genie:secure-path"];
 
-            // Console.WriteLine ($"secure path: {securePath}");
+            originalPath = Environment.GetEnvironmentVariable("PATH");
             Environment.SetEnvironmentVariable ("PATH", securePath);
 
             // Determine whether or not we will be hostname-updating.
@@ -261,6 +264,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             Chain (GetPrefixedPath ("libexec/genie/dumpwslenv.sh"), "",
                    "initializing bottle failed; dumping WSL envars");
+
+            // Create the path file.
+            File.WriteAllText("/run/genie.path", originalPath);
 
             // Now that the WSL hostname can be set via .wslconfig, we're going to make changing
             // it automatically in genie an option, enable/disable in genie.ini. Defaults to on
