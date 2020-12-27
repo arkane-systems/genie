@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -36,6 +37,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             .AddIniFile ("genie.ini", optional: false)
             .Build ();
 
+        // Default environment variables to be added to every genie bottle.
+        public static string[] defaultVariables = { "INSIDE_GENIE=true" } ;
+
         #region System status
 
         // User ID of the real user running genie.
@@ -61,6 +65,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
         // Original path before we enforce secure path.
         public static string originalPath {get; set;}
+
+        // Selection of original environment variables.
+        public static string[] clonedVariables {get; set;}
 
         #endregion System status
 
@@ -103,6 +110,16 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 originalPath = @"/mnt/c/Windows/System32";
 
             Environment.SetEnvironmentVariable ("PATH", securePath);
+
+            // Stash original environment (specified variables only).
+            string[] specifiedVariables = (Configuration["genie:clone-env"] ?? "")
+                .Split (',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            clonedVariables = defaultVariables
+                .Union (from DictionaryEntry de in Environment.GetEnvironmentVariables()
+                        where specifiedVariables.Contains (de.Key)
+                        select $"{de.Key}={de.Value}")
+                .ToArray();
 
             // Determine whether or not we will be hostname-updating.
             if (String.Compare(Configuration["genie:update-hostname"], "true", true) == 0)
@@ -263,15 +280,11 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: initializing bottle.");
 
-            // Dump the envars
-            if (verbose)
-                Console.WriteLine ("genie: dumping WSL environment variables.");
-
-            Chain (GetPrefixedPath ("libexec/genie/dumpwslenv.sh"), "",
-                   "initializing bottle failed; dumping WSL envars");
-
             // Create the path file.
             File.WriteAllText("/run/genie.path", originalPath);
+
+            // Create the env file.
+            File.WriteAllLines("/run/genie.env", clonedVariables);
 
             // Now that the WSL hostname can be set via .wslconfig, we're going to make changing
             // it automatically in genie an option, enable/disable in genie.ini. Defaults to on
