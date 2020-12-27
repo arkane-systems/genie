@@ -20,7 +20,7 @@ If there is a package available for your distribution, this is the recommended m
 
 ### Debian
 
-Dependent packages on Debian are _daemonize_, _dbus_, _dotnet-runtime-5.0_, _policykit-1_, _systemd_ and _systemd-container_ . For the most part, these are either already installed or in the distro and able to be installed automatically. You need _debhelper_ and _dotnet-sdk-5.0_ (and optionally _pbuilder_) to build the Debian package, but not to simply build _genie_ or install locally.
+Dependent packages on Debian are _daemonize_, _dbus_, _dotnet-runtime-5.0_, _gawk_, _libc6_, _libstdc++6_, _policykit-1_, _systemd_, and _systemd-container_. For the most part, these are either already installed or in the distro and able to be installed automatically. You need _debhelper_ and _dotnet-sdk-5.0_ (and optionally _pbuilder_) to build the Debian package, but not to simply build _genie_ or install locally.
 
 The chief exception is _dotnet-runtime-5.0_ , for which you will need to follow the installation instructions here:
 
@@ -67,18 +67,27 @@ This will build genie and install it under _/usr/local_ .
 
 ## CONFIGURATION FILE
 
-That would be the file _/etc/genie.ini_. This defines the secure path (i.e., those directories in which genie will look for the utilities it depends on), and also the explicit path to _unshare(1)_, required by _daemonize(1)_. Normally, it looks like this:
+That would be the file _/etc/genie.ini_. This defines the secure path (i.e., those directories in which genie will look for the utilities it depends on), and the explicit path to _unshare(1)_, required by _daemonize(1)_, and three settings controlling genie behavior. Normally, it looks like this:
 
 ```
 [genie]
 secure-path=/lib/systemd:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 unshare=/usr/bin/unshare
 update-hostname=true
+clone-path=false
+clone-env=WSL_DISTRO_NAME,WSL_INTEROP,WSLENV
 ```
 
 The secure-path setting should be generic enough to cover all but the weirdest Linux filesystem layouts, but on the off-chance that yours stores binaries somewhere particularly idiosyncratic, you can change it here. Meanwhile, the _unshare_ setting is much more likely to be system-dependent; if you are getting errors running genie, please replace this with the output of `which unshare` before trying anything else.
 
 The update-hostname setting controls whether or not genie updates the WSL hostname when creating the bottle. By default, genie updates a hostname _foo_ to _foo-wsl_, to prevent hostname clashes between the host Windows machine and the WSL distribution, especially when communicating back and forth between the two. However, as recent Insider builds allow the hostname of the WSL distributions to be set in __.wslconfig_, this option has been provided to disable genie's intervention and keep the original hostname.
+
+The clone-path setting controls whether the PATH outside the bottle should be cloned inside the bottle. This can be useful since
+the outside-bottle path may include system-specific directories not mentioned in secure-path, and since the outside-bottle path includes a transformed version of the host machine's Windows path.
+
+If this is set to true, the inside-bottle path will be set to the secure-path combined with the outside-bottle path, with duplicate entries removed. It is set to false by default, for backwards compatibility.
+
+The clone-env setting lists the environment variables which are copied from outside the bottle to inside the bottle. It defaults to only WSL_DISTRO_NAME, WSL_INTEROP, and WSLENV, needed for correct WSL operation, but any other environment variables which should be cloned can be added to this list. This replaces the former ability to copy additional environment variables by editing _/usr/libexec/dumpwslenv.sh_.
 
 ## USAGE
 
@@ -101,7 +110,7 @@ Commands:
   --shutdown, -u             Shut down systemd and exit the bottle.
 ```
 
-So, it has three modes, all of which will set up the bottle and run systemd in it if it isn't already running for simplicity of use.
+So, it has four modes, all of which will set up the bottle and run systemd in it if it isn't already running for simplicity of use.
 
 _genie -i_ will set up the bottle - including changing the WSL hostname by suffixing -wsl, to distinguish it from the Windows host -  run systemd, and then exit. This is intended for use if you want services running all the time in the background, or to preinitialize things so you needn't worry about startup time later on, and for this purpose is ideally run from Task Scheduler on logon.
 
