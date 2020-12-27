@@ -93,10 +93,15 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 return EPERM;
             }
 
-            // Set up secure path, saving original.
+            // Set up secure path, saving original if specified.
             var securePath = Configuration["genie:secure-path"];
 
-            originalPath = Environment.GetEnvironmentVariable("PATH");
+            if (String.Compare(Configuration["genie:clone-path"], "true", true) == 0)
+                originalPath = Environment.GetEnvironmentVariable("PATH");
+            else
+                // TODO: Should reference system drive by letter
+                originalPath = @"/mnt/c/Windows/System32";
+
             Environment.SetEnvironmentVariable ("PATH", securePath);
 
             // Determine whether or not we will be hostname-updating.
