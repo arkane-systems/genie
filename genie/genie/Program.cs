@@ -381,11 +381,38 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                    "initializing bottle failed; daemonize");
 
             // Wait for systemd to be up. (Polling, sigh.)
+            Console.Write ("Waiting for systemd...");
+
             do
             {
                 Thread.Sleep (500);
                 systemdPid = GetSystemdPid();
-            } while (systemdPid == 0);
+
+                Console.Write (".");
+
+            } while ( systemdPid == 0);
+
+            // Wait for systemd to be in running state.\
+            int runningYet = 255;
+            int timeout = Int32.Parse(Configuration["genie:systemd-timeout"]);
+
+            do
+            {
+                Thread.Sleep (1000);
+                runningYet = RunAndWait ("sh", $"-c \"nsenter -t {systemdPid} -m -p systemctl is-system-running -q 2> /dev/null\"");
+
+                Console.Write ("!");
+
+                timeout--;
+                if (timeout < 0)
+                {
+                    Console.WriteLine("\n\nTimed out waiting for systemd to enter running state.\nThis may indicate a systemd configuration error.\nAttempting to continue.");
+                    break;
+                }
+
+            } while ( runningYet != 0);
+
+            Console.WriteLine();
         }
 
         // Previous UID while rootified.

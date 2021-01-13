@@ -77,7 +77,7 @@ error updating \fB/etc/hosts\fR with new hostname
 .SH FILES
 .TP
 \fI/etc/genie.ini\fR
-Configuration file for \fBgenie\fR. This contains two configuration paths: the secure path which \fBgenie\fR uses when searching for executables used internally; and the specific path to the unshare(1) binary. In a typical Linux installation, there should be no need to modify either of these. A third setting, \fBupdate-hostname\fR, controls whether \fBgenie\fR updates the hostname within the bottle, or not.
+Configuration file for \fBgenie\fR. This contains two configuration paths: the secure path which \fBgenie\fR uses when searching for executables used internally; and the specific path to the unshare(1) binary. In a typical Linux installation, there should be no need to modify either of these. Other settings affecting \fBgenie\fR's behavior include \fBupdate-hostname\fR, which controls whether \fBgenie\fR updates the hostname within the bottle, or not (defaults on); \fBclone-path\fR, which controls whether \fBgenie\fR clones the outside-bottle PATH to inside the bottle (defaults off); \fBclone-env\fR, which lists the environment variables to be copied from inside to outside the bottle; and \fBsystemd-timeout\fR, which sets the length of time in seconds \fBgenie\fR will wait for systemd(1) to reach the running state.
 .TP
 \fI/run/genie.env\fR
 Contains certain environment variables required for proper functioning copied from outside the bottle, used internally by \fBgenie\fR to restore them within the bottle.
@@ -91,7 +91,7 @@ Contains the modified hostname used by the WSL distribution (see NOTES). This fi
 .P
 When setting up the bottle:
 .IP \(bu
-The hostname of the WSL session is changed from the default (the hostname of the Windows machine) by suffixing -wsl, to distinguish it from the Windows host. The hosts file is updated accordingly.
+If configured, the hostname of the WSL session is changed from the default (the hostname of the Windows machine) by suffixing -wsl, to distinguish it from the Windows host. The hosts file is updated accordingly.
 .IP \(bu
 The bottle uses pid and mount namespaces. Other namespaces remain shared with the parent (outside bottle). The mount propagation flag is set to shared.
 .SH BUGS
@@ -100,4 +100,4 @@ The bottle uses pid and mount namespaces. Other namespaces remain shared with th
 .P
 If you feel you have found a bug in \fBgenie\fR, please submit a bug report at \fIhttp://github.com/arkane-systems/genie/issues\fR.
 .SH SEE ALSO
-systemctl(1), systemd(1)
+systemctl(1), systemd(1), bootup(7)

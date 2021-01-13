@@ -1,3 +1,11 @@
+systemd-genie (1.31) unstable; urgency=medium
+
+        * Fixed bug in path cloning.
+        * Added wait on initialize for systemd to be fully running.
+        * Updated documentation accordingly.
+
+ -- Alistair Young <avatar@arkane-systems.net>  Wed, 13 Jan 2021 11:26:00 -0500
+
 systemd-genie (1.30) unstable; urgency=medium
 
         * Changed to precompile .NET code.

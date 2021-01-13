@@ -76,18 +76,21 @@ unshare=/usr/bin/unshare
 update-hostname=true
 clone-path=false
 clone-env=WSL_DISTRO_NAME,WSL_INTEROP,WSLENV
+systemd-timeout=180
 ```
 
-The secure-path setting should be generic enough to cover all but the weirdest Linux filesystem layouts, but on the off-chance that yours stores binaries somewhere particularly idiosyncratic, you can change it here. Meanwhile, the _unshare_ setting is much more likely to be system-dependent; if you are getting errors running genie, please replace this with the output of `which unshare` before trying anything else.
+The __secure-path_ setting should be generic enough to cover all but the weirdest Linux filesystem layouts, but on the off-chance that yours stores binaries somewhere particularly idiosyncratic, you can change it here. Meanwhile, the _unshare_ setting is much more likely to be system-dependent; if you are getting errors running genie, please replace this with the output of `which unshare` before trying anything else.
 
-The update-hostname setting controls whether or not genie updates the WSL hostname when creating the bottle. By default, genie updates a hostname _foo_ to _foo-wsl_, to prevent hostname clashes between the host Windows machine and the WSL distribution, especially when communicating back and forth between the two. However, as recent Insider builds allow the hostname of the WSL distributions to be set in __.wslconfig_, this option has been provided to disable genie's intervention and keep the original hostname.
+The __update-hostname_ setting controls whether or not genie updates the WSL hostname when creating the bottle. By default, genie updates a hostname _foo_ to _foo-wsl_, to prevent hostname clashes between the host Windows machine and the WSL distribution, especially when communicating back and forth between the two. However, as recent Insider builds allow the hostname of the WSL distributions to be set in __.wslconfig_, this option has been provided to disable genie's intervention and keep the original hostname.
 
-The clone-path setting controls whether the PATH outside the bottle should be cloned inside the bottle. This can be useful since
+The __clone-path_ setting controls whether the PATH outside the bottle should be cloned inside the bottle. This can be useful since
 the outside-bottle path may include system-specific directories not mentioned in secure-path, and since the outside-bottle path includes a transformed version of the host machine's Windows path.
 
 If this is set to true, the inside-bottle path will be set to the secure-path combined with the outside-bottle path, with duplicate entries removed. It is set to false by default, for backwards compatibility.
 
-The clone-env setting lists the environment variables which are copied from outside the bottle to inside the bottle. It defaults to only WSL_DISTRO_NAME, WSL_INTEROP, and WSLENV, needed for correct WSL operation, but any other environment variables which should be cloned can be added to this list. This replaces the former ability to copy additional environment variables by editing _/usr/libexec/dumpwslenv.sh_.
+The __clone-env_ setting lists the environment variables which are copied from outside the bottle to inside the bottle. It defaults to only WSL_DISTRO_NAME, WSL_INTEROP, and WSLENV, needed for correct WSL operation, but any other environment variables which should be cloned can be added to this list. This replaces the former ability to copy additional environment variables by editing _/usr/libexec/dumpwslenv.sh_.
+
+The __systemd-timeout_ setting controls how long (the number of seconds) genie will wait when initializing the bottle for __systemd_ to reach its "running" - i.e. fully operational, with all units required by the default target active - state. This defaults to 180 seconds.
 
 ## USAGE
 
