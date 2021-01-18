@@ -24,7 +24,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         {
             try
             {
-                var p = Process.Start(command, args);
+                var escapedArgs = args.Select(a => a.Contains(' ') ? $"'{a}'" : a);
+
+                var p = Process.Start(command, escapedArgs);
                 p.WaitForExit();
 
                 return p.ExitCode;

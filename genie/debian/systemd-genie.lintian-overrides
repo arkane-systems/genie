@@ -1,14 +1,3 @@
-# Microsoft dictates the shim executable, I can't control it.
-hardening-no-pie usr/libexec/genie/genie
-
-# Microsoft dictates the shim executable, I can't control it.
-hardening-no-bindnow usr/libexec/genie/genie
-
-# Microsoft dictates the shim executable, I can't control it.
-hardening-no-fortify-functions usr/libexec/genie/genie
-
 # Needs to be setuid to function.
 setuid-binary usr/libexec/genie/genie 4755 root/root
 
-# This is where systemd wants it.
-executable-in-usr-lib usr/lib/systemd/system-environment-generators/10-genie-envar.sh

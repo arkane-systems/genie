@@ -22,7 +22,7 @@ build:
 #
 install:
 	install -Dm 4755 -o root "genie/bin/Release/net5.0/linux-x64/publish/genie" -t "$(LIBEXEC)"
-	install -Dm 0755 -o root "scripts/runinwsl.sh" -t "$(LIBEXEC)"
+	install -Dm 0755 -o root "scripts/runinwsl" -t "$(LIBEXEC)"
 	install -Dm 0755 -o root "scripts/10-genie-envar.sh" -t "$(LIBEXEC)"
 	mkdir -p "$(BIN)"
 	install -Dm 0644 -o root "conf/genie.ini" -t "$(ETC)"
@@ -42,7 +42,7 @@ build-local:
 install-local:
 	# Local install of the above
 	install -Dm 4755 -o root "genie/bin/Release/net5.0/linux-x64/publish/genie" -t "/usr/local/libexec/genie"
-	install -Dm 0755 -o root "scripts/runinwsl.sh" -t "/usr/local/libexec/genie"
+	install -Dm 0755 -o root "scripts/runinwsl" -t "/usr/local/libexec/genie"
 	# Environment generator has to go in the same place
 	install -Dm 0755 -o root "scripts/10-genie-envar.sh" -t "/usr/local/libexec/genie"
 	mkdir -p "$(BIN)"

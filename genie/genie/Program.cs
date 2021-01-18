@@ -306,14 +306,14 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         private static void RunCommand (bool verbose, string[] commandLine)
         {
             if (verbose)
-                Console.WriteLine ($"genie: running command '{commandLine}'");
+                Console.WriteLine ($"genie: running command '{string.Join(' ', commandLine)}'");
 
             // Chain ("machinectl",
             //        String.Concat ($"shell -q {realUserName}@.host ",
             //                       Config.GetPrefixedPath ("libexec/genie/runinwsl.sh"),
             //                       $" \"{Environment.CurrentDirectory}\" {commandLine.Trim()}"),
             //        "running command failed; machinectl shell");
-            var commandPrefix = new string[] {"shell", "-q", $"{realUserName}@.host", Config.GetPrefixedPath ("libexec/genie/runinwsl.sh"),
+            var commandPrefix = new string[] {"shell", "-q", $"{realUserName}@.host", Config.GetPrefixedPath ("libexec/genie/runinwsl"),
                     Environment.CurrentDirectory };
 
             var command = commandPrefix.Concat(commandLine);
