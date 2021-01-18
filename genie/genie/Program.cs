@@ -5,7 +5,6 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 
 using Tmds.Linux;
@@ -40,13 +39,13 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         // Was genie started within the bottle?
         public static bool startedWithinBottle {get; set;}
 
+        #endregion System status
+
         // Original path before we enforce secure path.
         public static string originalPath {get; set;}
 
         // Selection of original environment variables.
         public static string[] clonedVariables {get; set;}
-
-        #endregion System status
 
         // Entrypoint.
         public static int Main (string[] args)
@@ -168,91 +167,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             // it automatically in genie an option, enable/disable in genie.ini. Defaults to on
             // for backwards compatibility.
             if (Config.UpdateHostname)
-            {
-                // Generate new hostname.
-                if (verbose)
-                    Console.WriteLine ("genie: generating new hostname.");
-
-                string externalHost;
-
-                unsafe
-                {
-                    int success;
-
-                    byte [] bytes = new byte[64] ;
-                    fixed (byte * buffer = bytes)
-                    {
-                        success = gethostname (buffer, 64);
-                    }
-
-                    if (success != 0)
-                    {
-                        Console.WriteLine ($"genie: error retrieving hostname: {success}.");
-                        Environment.Exit (success);
-                    }
-
-                    externalHost = Encoding.UTF8.GetString(bytes).TrimEnd('\0');
-                }
-
-                if (verbose)
-                    Console.WriteLine ($"genie: external hostname is {externalHost}");
-
-                // Make new hostname.
-                string internalHost = $"{externalHost.Substring(0, (externalHost.Length <= 60 ? externalHost.Length : 60))}-wsl";
-
-                File.WriteAllLines ("/run/hostname-wsl", new string[] {
-                    internalHost
-                });
-
-                unsafe
-                {
-                    var bytes = Encoding.UTF8.GetBytes("/run/hostname-wsl");
-                    fixed (byte* buffer = bytes)
-                    {
-                        chmod (buffer, Convert.ToUInt16 ("644", 8));
-                    }
-                }
-
-                // Hosts file: check for old host name; if there, remove it.
-                if (verbose)
-                    Console.WriteLine ("genie: updating hosts file.");
-
-                try
-                {
-                    var hosts = File.ReadAllLines ("/etc/hosts");
-                    var newHosts = new List<string> (hosts.Length);
-
-                    newHosts.Add ($"127.0.0.1 localhost {internalHost}");
-
-                    foreach (string s in hosts)
-                    {
-                        if (!(
-                            (s.Contains (externalHost) || s.Contains (internalHost))
-                             && (s.Contains("127.0.0.1"))
-                            ))
-                        {
-                            newHosts.Add (s);
-                        }
-                    }
-
-                    File.WriteAllLines ("/etc/hosts", newHosts.ToArray());
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine ($"genie: error updating host file: {ex.Message}");
-                    Environment.Exit (130);
-                }
-
-                // Set the new hostname.
-                if (verbose)
-                    Console.WriteLine ("genie: setting new hostname.");
-
-                // Chain ("mount", "--bind /run/hostname-wsl /etc/hostname",
-                //        "initializing bottle failed; bind mounting hostname");
-                Helpers.Chain ("mount",
-                    new string[] {"--bind", "/run/hostname-wsl", "/etc/hostname"},
-                    "initializing bottle failed; bind mounting hostname");
-            }
+                Helpers.UpdateHostname (verbose);
 
             // Run systemd in a container.
             if (verbose)
