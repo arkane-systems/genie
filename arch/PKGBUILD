@@ -2,8 +2,7 @@
 # Contributor: facekapow, rayfalling, Ducksoft
 
 pkgname=genie-systemd
-_pkgname=genie
-pkgver=1.29
+pkgver=1.32
 pkgrel=1
 pkgdesc="A quick way into a systemd \"bottle\" for WSL"
 arch=('x86_64')
@@ -12,31 +11,37 @@ depends=('daemonize' 'dotnet-runtime>=5.0' 'dotnet-host>=5.0' 'inetutils')
 makedepends=('dotnet-sdk>=5.0')
 conflicts=('genie-systemd')
 provides=('genie-systemd')
-source=('git+https://github.com/arkane-systems/genie.git')
-sha256sums=('SKIP')
 options=(!strip)
 
-prepare() {
-  	cd "${srcdir}/$_pkgname"
+pkgver() {
+  cd ../../genie
+  grep VersionPrefix genie/genie.csproj | sed 's/.*<VersionPrefix>\(.*\)<\/VersionPrefix>/\1/' | tr -d '\r\n'
 }
 
 build() {
-  	export DOTNET_CLI_TELEMETRY_OPTOUT=1
-  	export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=true
-  	cd "$srcdir/$_pkgname/$_pkgname"
-  	export DESTDIR=$pkgdir
-  	ls -alh
-  	make build
+  cd ../../genie/
+  export DOTNET_CLI_TELEMETRY_OPTOUT=1
+  export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=true
+  make build
 }
 
 package() {
-  	cd "$srcdir/$_pkgname/$_pkgname"
-  	make install
-	mkdir -p ${pkgdir}/usr/bin
-	chmod +x ${pkgdir}/usr/libexec/genie
-	ln -s /usr/libexec/genie/genie ${pkgdir}/usr/bin/genie
-	cp "$srcdir/$_pkgname/$_pkgname/docs/genie.8" /tmp/genie.8
-	gzip -9 /tmp/genie.8
-	install -Dm 0644 -o root /tmp/genie.8.gz -t "${pkgdir}/usr/share/man/man8"
-	rm /tmp/genie.8.gz
+  cd ../../genie/
+  make DESTDIR="$pkgdir/" install
+
+  # genie symlink
+  mkdir -p ${pkgdir}/usr/bin
+  ln -s /usr/libexec/genie/genie ${pkgdir}/usr/bin/genie
+
+  # 10-genie-envar.sh symlinks
+  mkdir -p ${pkgdir}/usr/lib/systemd/user-environment-generators
+  mkdir -p ${pkgdir}/usr/lib/systemd/system-environment-generators
+  ln -s /usr/libexec/genie/10-genie-envar.sh ${pkgdir}/usr/lib/systemd/user-environment-generators/10-genie-envar.sh
+  ln -s /usr/libexec/genie/10-genie-envar.sh ${pkgdir}/usr/lib/systemd/system-environment-generators/10-genie-envar.sh
+
+  # man page
+  cp docs/genie.8 /tmp/genie.8
+  gzip -9 /tmp/genie.8
+  install -Dm 0644 -o root /tmp/genie.8.gz -t "${pkgdir}/usr/share/man/man8"
+  rm /tmp/genie.8.gz
 }
