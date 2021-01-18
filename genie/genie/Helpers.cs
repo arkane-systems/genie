@@ -142,5 +142,18 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 new string[] {"--bind", "/run/hostname-wsl", "/etc/hostname"},
                 "initializing bottle failed; bind mounting hostname");
         }
+
+        // Drop the in-bottle hostname.
+        internal static void DropHostname (bool verbose)
+        {
+            // Drop the in-bottle hostname.
+            if (verbose)
+                Console.WriteLine ("genie: dropping in-bottle hostname");
+
+            Helpers.Chain ("umount", new string[] {"/etc/hostname"});
+            File.Delete ("/run/hostname-wsl");
+
+            Helpers.Chain ("hostname", new string[] {"-F", "/etc/hostname"} );
+        }
     }
 }
