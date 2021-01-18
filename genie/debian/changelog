@@ -3,6 +3,7 @@ systemd-genie (1.32) unstable; urgency=medium
         * Added error-checking to configuration variables.
         * Preserved args containing spaces.
         * Refactored code into multiple classes.
+        * Replaced runinwsl with executable to enable space-preservation.
 
  -- Alistair Young <avatar@arkane-systems.net>  Mon, 18 Jan 2021 16:15:00 -0500
 

@@ -16,13 +16,14 @@ DOCS = $(DESTDIR)/usr/share/doc/genie
 #
 build:
 	make -C genie
+	make -C runinwsl
 
 #
 # (INTERNAL) install: install the package
 #
 install:
 	install -Dm 4755 -o root "genie/bin/Release/net5.0/linux-x64/publish/genie" -t "$(LIBEXEC)"
-	install -Dm 0755 -o root "scripts/runinwsl" -t "$(LIBEXEC)"
+	install -Dm 0755 -o root "runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl" -t "$(LIBEXEC)"
 	install -Dm 0755 -o root "scripts/10-genie-envar.sh" -t "$(LIBEXEC)"
 	mkdir -p "$(BIN)"
 	install -Dm 0644 -o root "conf/genie.ini" -t "$(ETC)"
@@ -38,11 +39,12 @@ debian-pkg:
 #
 build-local:
 	make -C genie local
+	make -C runinwsl
 
 install-local:
 	# Local install of the above
 	install -Dm 4755 -o root "genie/bin/Release/net5.0/linux-x64/publish/genie" -t "/usr/local/libexec/genie"
-	install -Dm 0755 -o root "scripts/runinwsl" -t "/usr/local/libexec/genie"
+	install -Dm 0755 -o root "runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl" -t "/usr/local/libexec/genie"
 	# Environment generator has to go in the same place
 	install -Dm 0755 -o root "scripts/10-genie-envar.sh" -t "/usr/local/libexec/genie"
 	mkdir -p "$(BIN)"
@@ -67,6 +69,7 @@ local: distclean build-local install-local
 #
 distclean:
 	make -C genie clean
+	make -C runinwsl clean
 
 clean:
 	debuild -- clean
