@@ -3,18 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-
-using Linux;
-
-using Microsoft.Extensions.Configuration;
 
 using Tmds.Linux;
 using static Tmds.Linux.LibC;
@@ -25,20 +17,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 {
     public static class Program
     {
-        // Install location of genie and friends.
-#if LOCAL
-        public const string Prefix = "/usr/local";
-#else
-        public const string Prefix = "/usr";
-#endif
-
-        public static IConfiguration Configuration { get; } = new ConfigurationBuilder()
-            .SetBasePath ("/etc")
-            .AddIniFile ("genie.ini", optional: false)
-            .Build ();
-
-        // Default environment variables to be added to every genie bottle.
-        public static string[] defaultVariables = { "INSIDE_GENIE=true" } ;
+        // Configuration for genie.
+        internal static GenieConfig Config { get; } = new GenieConfig();
 
         #region System status
 
@@ -60,9 +40,6 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         // Was genie started within the bottle?
         public static bool startedWithinBottle {get; set;}
 
-        // Are we configured to update the hostname for WSL or not?
-        public static bool updateHostname {get; set;}
-
         // Original path before we enforce secure path.
         public static string originalPath {get; set;}
 
@@ -76,56 +53,46 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         {
             // *** PRELAUNCH CHECKS
             // Check that we are, in fact, running on Linux/WSL.
-            if (!RuntimeInformation.IsOSPlatform (OSPlatform.Linux))
+            if (!Checks.IsLinux)
             {
                 Console.WriteLine ("genie: not executing on the Linux platform - how did we get here?");
                 return EBADF;
             }
 
-            if (IsWsl1())
+            if (Checks.IsWsl1)
             {
                 Console.WriteLine ("genie: systemd is not supported under WSL 1.");
                 return EPERM;
             }
 
-            if (!IsWsl2())
+            if (!Checks.IsWsl2)
             {
                 Console.WriteLine ("genie: not executing under WSL 2 - how did we get here?");
                 return EBADF;
             }
 
-            if (geteuid() != 0)
+            if (!Checks.IsSetuidRoot)
             {
                 Console.WriteLine ("genie: must execute as root - has the setuid bit gone astray?");
                 return EPERM;
             }
 
             // Set up secure path, saving original if specified.
-            var securePath = Configuration["genie:secure-path"];
 
-            if (String.Compare(Configuration["genie:clone-path"], "true", true) == 0)
+            if (Config.ClonePath)
                 originalPath = Environment.GetEnvironmentVariable("PATH");
             else
                 // TODO: Should reference system drive by letter
                 originalPath = @"/mnt/c/Windows/System32";
 
-            Environment.SetEnvironmentVariable ("PATH", securePath);
+            Environment.SetEnvironmentVariable ("PATH", Config.SecurePath);
 
             // Stash original environment (specified variables only).
-            string[] specifiedVariables = (Configuration["genie:clone-env"] ?? "")
-                .Split (',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-            clonedVariables = defaultVariables
+            clonedVariables = GenieConfig.DefaultVariables
                 .Union (from DictionaryEntry de in Environment.GetEnvironmentVariables()
-                        where specifiedVariables.Contains (de.Key)
+                        where Config.CloneEnv.Contains (de.Key)
                         select $"{de.Key}={de.Value}")
                 .ToArray();
-
-            // Determine whether or not we will be hostname-updating.
-            if (String.Compare(Configuration["genie:update-hostname"], "true", true) == 0)
-                updateHostname = true ;
-            else
-                updateHostname = false ;
 
             // *** PARSE COMMAND-LINE
             // Create options.
@@ -185,95 +152,6 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             return rootCommand.InvokeAsync(args).Result;
         }
 
-        // Check if we are being run under WSL 2.
-        private static bool IsWsl2()
-        {
-            if (Directory.Exists("/run/WSL"))
-                return true;
-            else
-            {
-                var osrelease = File.ReadAllText("/proc/sys/kernel/osrelease");
-
-                return osrelease.Contains ("microsoft", StringComparison.OrdinalIgnoreCase);
-            }
-        }
-
-        // Check if we are being run under WSL 1.
-        private static bool IsWsl1()
-        {
-            // We check for WSL 1 by examining the type of the root filesystem. If the
-            // root filesystem is lxfs, then we're running under WSL 1.
-
-            var mounts = File.ReadAllLines("/proc/self/mounts");
-
-            foreach (var mnt in mounts)
-            {
-                var deets = mnt.Split(' ');
-                if (deets.Length < 6)
-                {
-                    Console.WriteLine ("genie: mounts format error; terminating.");
-                    Environment.Exit (EBADF);
-                }
-
-                if (deets[1] == "/")
-                {
-                    // Root filesystem.
-                    return ((deets[2] == "lxfs") || (deets[2] == "wslfs")) ;
-                }
-            }
-
-            Console.WriteLine ("genie: cannot find root filesystem mount; terminating.");
-            Environment.Exit (EPERM);
-
-            // should never get here
-            return true;
-        }
-
-        internal static string GetPrefixedPath (string path) => Path.Combine (Prefix, path);
-
-        // Get the pid of the earliest running root systemd, or 0 if none is running.
-        private static int GetSystemdPid ()
-        {
-            var processInfo = ProcessManager.GetProcessInfos (_ => _.ProcessName == "systemd")
-                .Where (_ => _.Ruid == 0)
-                .OrderBy (_ => _.StartTime)
-                .FirstOrDefault();
-
-            return processInfo != null ? processInfo.ProcessId : 0;
-        }
-
-        private static int RunAndWait (string command, string args)
-        {
-            try
-            {
-                var p = Process.Start (command, args);
-                p.WaitForExit();
-
-                return p.ExitCode;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine ($"genie: error executing command '{command} {args}':\r\n{ex.Message}");
-                Environment.Exit (127);
-
-                // never reached
-                return 127;
-            }
-        }
-
-        private static void Chain (string command, string args, string onError = "command execution failed;")
-        {
-            int r = RunAndWait (command, args);
-
-            // Console.WriteLine ($"{command} {args}");
-
-            if (r != 0)
-            {
-                Console.WriteLine ($"genie: {onError} returned {r}.");
-                Environment.Exit (r);
-            }
-        }
-
         // Do the work of initializing the bottle.
         private static void InitializeBottle (bool verbose)
         {
@@ -289,7 +167,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             // Now that the WSL hostname can be set via .wslconfig, we're going to make changing
             // it automatically in genie an option, enable/disable in genie.ini. Defaults to on
             // for backwards compatibility.
-            if (updateHostname)
+            if (Config.UpdateHostname)
             {
                 // Generate new hostname.
                 if (verbose)
@@ -369,16 +247,22 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 if (verbose)
                     Console.WriteLine ("genie: setting new hostname.");
 
-                Chain ("mount", "--bind /run/hostname-wsl /etc/hostname",
-                       "initializing bottle failed; bind mounting hostname");
+                // Chain ("mount", "--bind /run/hostname-wsl /etc/hostname",
+                //        "initializing bottle failed; bind mounting hostname");
+                Helpers.Chain ("mount",
+                    new string[] {"--bind", "/run/hostname-wsl", "/etc/hostname"},
+                    "initializing bottle failed; bind mounting hostname");
             }
 
             // Run systemd in a container.
             if (verbose)
                 Console.WriteLine ("genie: starting systemd.");
 
-            Chain ("daemonize", $"{Configuration["genie:unshare"]} -fp --propagation shared --mount-proc systemd",
-                   "initializing bottle failed; daemonize");
+            // Chain ("daemonize", $"{Config.PathToUnshare} -fp --propagation shared --mount-proc systemd",
+            //        "initializing bottle failed; daemonize");
+            Helpers.Chain ("daemonize",
+                new string[] {Config.PathToUnshare, "-fp", "--propagation", "shared", "--mount-proc", "systemd"},
+                "initializing bottle failed; daemonize");
 
             // Wait for systemd to be up. (Polling, sigh.)
             Console.Write ("Waiting for systemd...");
@@ -386,7 +270,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             do
             {
                 Thread.Sleep (500);
-                systemdPid = GetSystemdPid();
+                systemdPid = Helpers.GetSystemdPid();
 
                 Console.Write (".");
 
@@ -394,12 +278,15 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             // Wait for systemd to be in running state.\
             int runningYet = 255;
-            int timeout = Int32.Parse(Configuration["genie:systemd-timeout"]);
+            int timeout = Config.SystemdStartupTimeout;
+
+            var ryArgs = new string[] {"-c", $"nsenter -t {systemdPid} -m -p systemctl is-system-running -q 2> /dev/null"};
 
             do
             {
                 Thread.Sleep (1000);
-                runningYet = RunAndWait ("sh", $"-c \"nsenter -t {systemdPid} -m -p systemctl is-system-running -q 2> /dev/null\"");
+                // runningYet = RunAndWait ("sh", $"-c \"nsenter -t {systemdPid} -m -p systemctl is-system-running -q 2> /dev/null\"");
+                runningYet = Helpers.RunAndWait ("sh", ryArgs);
 
                 Console.Write ("!");
 
@@ -415,35 +302,25 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             Console.WriteLine();
         }
 
-        // Previous UID while rootified.
-        private static uid_t previousUid = 0;
-        private static gid_t previousGid = 0;
-
-        // Become root.
-        private static void Rootify ()
-        {
-            if (previousUid != 0)
-                throw new InvalidOperationException("Cannot rootify root.");
-
-            previousUid = getuid();
-            previousGid = getgid();
-            setreuid(0, 0);
-            setregid(0, 0);
-
-        // Console.WriteLine ($"uid={getuid()} gid={getgid()} euid={geteuid()} egid={getegid()}");
-        }
-
         // Do the work of running a command inside the bottle.
-        private static void RunCommand (bool verbose, string commandLine)
+        private static void RunCommand (bool verbose, string[] commandLine)
         {
             if (verbose)
                 Console.WriteLine ($"genie: running command '{commandLine}'");
 
-            Chain ("machinectl",
-                   String.Concat ($"shell -q {realUserName}@.host ",
-                                  GetPrefixedPath ("libexec/genie/runinwsl.sh"),
-                                  $" \"{Environment.CurrentDirectory}\" {commandLine.Trim()}"),
-                   "running command failed; machinectl shell");
+            // Chain ("machinectl",
+            //        String.Concat ($"shell -q {realUserName}@.host ",
+            //                       Config.GetPrefixedPath ("libexec/genie/runinwsl.sh"),
+            //                       $" \"{Environment.CurrentDirectory}\" {commandLine.Trim()}"),
+            //        "running command failed; machinectl shell");
+            var commandPrefix = new string[] {"shell", "-q", $"{realUserName}@.host", Config.GetPrefixedPath ("libexec/genie/runinwsl.sh"),
+                    Environment.CurrentDirectory };
+
+            var command = commandPrefix.Concat(commandLine);
+
+            Helpers.Chain ("machinectl",
+                command.ToArray(),
+                "running command failed; machinectl shell");
         }
 
         // Do the work of starting a shell inside the bottle.
@@ -452,9 +329,12 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: starting shell");
 
-            Chain ("machinectl",
-                   $"shell -q {realUserName}@.host",
-                   "starting shell failed; machinectl shell");
+            // Chain ("machinectl",
+            //        $"shell -q {realUserName}@.host",
+            //        "starting shell failed; machinectl shell");
+            Helpers.Chain ("machinectl",
+                new string[] {"shell", "-q", $"{realUserName}@.host"},
+                "starting shell failed; machinectl shell");
         }
 
         // Start a user session with a login prompt inside the bottle.
@@ -463,21 +343,12 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: starting login");
 
-            Chain ("machinectl",
-                   $"login .host",
-                   "starting login failed; machinectl login");
-        }
-
-        // Revert from root.
-        private static void Unrootify ()
-        {
-            // if (previousUid == 0)
-            //    throw new InvalidOperationException("Cannot unrootify unroot.");
-
-            setreuid(previousUid, previousUid);
-            setregid(previousGid, previousGid);
-            previousUid = 0;
-            previousGid = 0;
+            // Chain ("machinectl",
+            //        $"login .host",
+            //        "starting login failed; machinectl login");
+            Helpers.Chain ("machinectl",
+                new string[] {"login", ".host"},
+                "starting login failed; machinectl login");
         }
 
         // Update the status of the system for use by the command handlers.
@@ -490,7 +361,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             realGroupId = getgid();
 
             // Get systemd PID.
-            systemdPid = GetSystemdPid();
+            systemdPid = Helpers.GetSystemdPid();
 
             // Set startup state flags.
             if (systemdPid == 0)
@@ -541,14 +412,12 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 return 0;
             }
 
-            // Become root - daemonize expects real uid root as well as effective uid root.
-            Rootify();
-
-            // Init the bottle.
-            InitializeBottle(verbose);
-
-            // Give up root.
-            Unrootify();
+            // Daemonize expects real uid root as well as effective uid root.
+            using (var r = new RootPrivilege())
+            {            
+                // Init the bottle.
+                InitializeBottle(verbose);
+            }
 
             return 0;
         }
@@ -570,39 +439,41 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 return EINVAL;
             }
 
-            Rootify();
-
-            if (verbose)
-                Console.WriteLine ("genie: running systemctl poweroff within bottle");
-
-            var sd = Process.GetProcessById (systemdPid);
-
-            // Call systemctl to trigger shutdown.
-            Chain ("nsenter",
-                   String.Concat ($"-t {systemdPid} -m -p systemctl poweroff"),
-                   "running command failed; nsenter");
-
-            if (verbose)
-                Console.WriteLine ("genie: waiting for systemd to exit");
-
-            // Wait for systemd to exit (maximum 16 s).
-            sd.WaitForExit(16000);
-
-            if (updateHostname)
+            using (var r = new RootPrivilege())
             {
-                // Drop the in-bottle hostname.
                 if (verbose)
-                    Console.WriteLine ("genie: dropping in-bottle hostname");
+                    Console.WriteLine ("genie: running systemctl poweroff within bottle");
 
-                Thread.Sleep (500);
+                var sd = Process.GetProcessById (systemdPid);
 
-                Chain ("umount", "/etc/hostname");
-                File.Delete ("/run/hostname-wsl");
+                // Call systemctl to trigger shutdown.
+                // Chain ("nsenter",
+                //        String.Concat ($"-t {systemdPid} -m -p systemctl poweroff"),
+                //        "running command failed; nsenter");
+                Helpers.Chain ("nsenter",
+                    new string[] {"-t", systemdPid.ToString(), "-m", "-p", "systemctl", "poweroff"},
+                    "running command failed; nsenter");
 
-                Chain ("hostname", "-F /etc/hostname");
+                if (verbose)
+                    Console.WriteLine ("genie: waiting for systemd to exit");
+
+                // Wait for systemd to exit (maximum 16 s).
+                sd.WaitForExit(16000);
+
+                if (Config.UpdateHostname)
+                {
+                    // Drop the in-bottle hostname.
+                    if (verbose)
+                        Console.WriteLine ("genie: dropping in-bottle hostname");
+
+                    Thread.Sleep (500);
+
+                    Helpers.Chain ("umount", new string[] {"/etc/hostname"});
+                    File.Delete ("/run/hostname-wsl");
+
+                    Helpers.Chain ("hostname", new string[] {"-F", "/etc/hostname"} );
+                }
             }
-
-            Unrootify();
 
             return 0;
         }
@@ -619,18 +490,17 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 return EINVAL;
             }
 
-            Rootify();
+            using (var r = new RootPrivilege())
+            {
+                if (!bottleExistedAtStart)
+                    InitializeBottle(verbose);
 
-            if (!bottleExistedAtStart)
-                InitializeBottle(verbose);
+                // At this point, we should be outside an existing bottle, one way or another.
 
-            // At this point, we should be outside an existing bottle, one way or another.
-
-            // It shouldn't matter whether we have setuid here, since we start the shell with
-            // runuser, which expects root and reassigns uid appropriately.
-            StartShell(verbose);
-
-            Unrootify();
+                // It shouldn't matter whether we have setuid here, since we start the shell with
+                // runuser, which expects root and reassigns uid appropriately.
+                StartShell(verbose);
+            }
 
             return 0;
         }
@@ -647,18 +517,17 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 return EINVAL;
             }
 
-            Rootify();
+            using (var r = new RootPrivilege())
+            {
+                if (!bottleExistedAtStart)
+                    InitializeBottle(verbose);
 
-            if (!bottleExistedAtStart)
-                InitializeBottle(verbose);
+                // At this point, we should be outside an existing bottle, one way or another.
 
-            // At this point, we should be outside an existing bottle, one way or another.
-
-            // It shouldn't matter whether we have setuid here, since we start the shell with
-            // runuser, which expects root and reassigns uid appropriately.
-            StartLogin(verbose);
-
-            Unrootify();
+                // It shouldn't matter whether we have setuid here, since we start the shell with
+                // runuser, which expects root and reassigns uid appropriately.
+                StartLogin(verbose);
+            }
 
             return 0;
         }
@@ -670,34 +539,34 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             UpdateStatus(verbose);
 
             // Recombine command argument.
-            StringBuilder cmdLine = new StringBuilder (2048);
-            foreach (var s in command.Skip (1))
-            {
-                cmdLine.Append (s);
-                cmdLine.Append (' ');
-            }
+            // StringBuilder cmdLine = new StringBuilder (2048);
+            // foreach (var s in command.Skip (1))
+            // {
+            //     cmdLine.Append (s);
+            //     cmdLine.Append (' ');
+            // }
 
-            if (cmdLine.Length > 0)
-                cmdLine.Remove (cmdLine.Length - 1, 1);
+            // if (cmdLine.Length > 0)
+            //     cmdLine.Remove (cmdLine.Length - 1, 1);
 
             // If already inside, just execute it.
             if (startedWithinBottle)
             {
-                var p = Process.Start (command.First(), cmdLine.ToString());
+                var p = Process.Start (command.First(), command.Skip(1));
                 p.WaitForExit();
                 return p.ExitCode;
             }
 
-            Rootify();
+            using (var r = new RootPrivilege())
+            {
 
-            if (!bottleExistedAtStart)
-                InitializeBottle(verbose);
+                if (!bottleExistedAtStart)
+                    InitializeBottle(verbose);
 
-            // At this point, we should be inside an existing bottle, one way or another.
+                // At this point, we should be inside an existing bottle, one way or another.
 
-            RunCommand (verbose, $"{command.First()} {cmdLine.ToString()}");
-
-            Unrootify();
+                RunCommand (verbose, command.ToArray());
+            }
 
             return 0;
         }
