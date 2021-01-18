@@ -39,9 +39,13 @@ sudo apt install -y systemd-genie
 
 #### PLEASE NOTE
 
-If you were using the gemfly.com repository (wsl-translinux.arkane-systems.net), that has now been discontinued since the whole bloody company seems to have disappeared from the internet.
-
 If you cannot install from the packagecloud.io repository, especially near the end of the month, it's probably because we're over our bandwidth quota. Please download the package from the releases page and install it manually using _dpkg -i_ . Alternatively, wait a few days and try again.
+
+### Arch
+
+We now have a working PKGBUILD as of 1.32, thanks to @MartinodF in [PR #95](https://github.com/arkane-systems/genie/pull/95)!
+
+I don't currently have anywhere to build or host an Arch package, so you'll need to roll your own using this PKGBUILD. You'll also currently need to install the .NET Core runtime and sdk AUR packages manually first.
 
 ### Other Distros
 
