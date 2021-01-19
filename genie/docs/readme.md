@@ -1,7 +1,5 @@
 # genie
 
-[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/I3I1VA18)
-
 ## A quick way into a systemd "bottle" for WSL
 
 What does that even mean?
@@ -28,6 +26,10 @@ https://dotnet.microsoft.com/download/
 
 To install, add the wsl-translinux repository here by following the instructions here:
 
+https://arkane-systems.github.io/wsl-transdebian/
+
+Or here by following the instructions here:
+
 https://packagecloud.io/arkane-systems/wsl-translinux
 
 then install genie using the commands:
@@ -39,7 +41,7 @@ sudo apt install -y systemd-genie
 
 #### PLEASE NOTE
 
-If you cannot install from the packagecloud.io repository, especially near the end of the month, it's probably because we're over our bandwidth quota. Please download the package from the releases page and install it manually using _dpkg -i_ . Alternatively, wait a few days and try again.
+If you cannot install from the packagecloud.io repository, especially near the end of the month, it's probably because we're over our bandwidth quota. Please use the other repository, or download the package from the releases page and install it manually using _dpkg -i_ . Alternatively, wait a few days and try again.
 
 ### Arch
 
@@ -83,18 +85,18 @@ clone-env=WSL_DISTRO_NAME,WSL_INTEROP,WSLENV
 systemd-timeout=180
 ```
 
-The __secure-path_ setting should be generic enough to cover all but the weirdest Linux filesystem layouts, but on the off-chance that yours stores binaries somewhere particularly idiosyncratic, you can change it here. Meanwhile, the _unshare_ setting is much more likely to be system-dependent; if you are getting errors running genie, please replace this with the output of `which unshare` before trying anything else.
+The _secure-path_ setting should be generic enough to cover all but the weirdest Linux filesystem layouts, but on the off-chance that yours stores binaries somewhere particularly idiosyncratic, you can change it here. Meanwhile, the _unshare_ setting is much more likely to be system-dependent; if you are getting errors running genie, please replace this with the output of `which unshare` before trying anything else.
 
-The __update-hostname_ setting controls whether or not genie updates the WSL hostname when creating the bottle. By default, genie updates a hostname _foo_ to _foo-wsl_, to prevent hostname clashes between the host Windows machine and the WSL distribution, especially when communicating back and forth between the two. However, as recent Insider builds allow the hostname of the WSL distributions to be set in __.wslconfig_, this option has been provided to disable genie's intervention and keep the original hostname.
+The _update-hostname_ setting controls whether or not genie updates the WSL hostname when creating the bottle. By default, genie updates a hostname _foo_ to _foo-wsl_, to prevent hostname clashes between the host Windows machine and the WSL distribution, especially when communicating back and forth between the two. However, as recent Insider builds allow the hostname of the WSL distributions to be set in _.wslconfig_, this option has been provided to disable genie's intervention and keep the original hostname.
 
-The __clone-path_ setting controls whether the PATH outside the bottle should be cloned inside the bottle. This can be useful since
+The _clone-path_ setting controls whether the PATH outside the bottle should be cloned inside the bottle. This can be useful since
 the outside-bottle path may include system-specific directories not mentioned in secure-path, and since the outside-bottle path includes a transformed version of the host machine's Windows path.
 
 If this is set to true, the inside-bottle path will be set to the secure-path combined with the outside-bottle path, with duplicate entries removed. It is set to false by default, for backwards compatibility.
 
-The __clone-env_ setting lists the environment variables which are copied from outside the bottle to inside the bottle. It defaults to only WSL_DISTRO_NAME, WSL_INTEROP, and WSLENV, needed for correct WSL operation, but any other environment variables which should be cloned can be added to this list. This replaces the former ability to copy additional environment variables by editing _/usr/libexec/dumpwslenv.sh_.
+The _clone-env_ setting lists the environment variables which are copied from outside the bottle to inside the bottle. It defaults to only WSL_DISTRO_NAME, WSL_INTEROP, and WSLENV, needed for correct WSL operation, but any other environment variables which should be cloned can be added to this list. This replaces the former ability to copy additional environment variables by editing _/usr/libexec/dumpwslenv.sh_.
 
-The __systemd-timeout_ setting controls how long (the number of seconds) genie will wait when initializing the bottle for __systemd_ to reach its "running" - i.e. fully operational, with all units required by the default target active - state. This defaults to 180 seconds.
+The _systemd-timeout_ setting controls how long (the number of seconds) genie will wait when initializing the bottle for _systemd_ to reach its "running" - i.e. fully operational, with all units required by the default target active - state. This defaults to 180 seconds.
 
 ## USAGE
 
@@ -131,6 +133,16 @@ Meanwhile, _genie -u_ , run from outside the bottle, will shut down systemd clea
 
 While not compulsory, it is recommended that you shut down and restart the WSL distro before using genie again after you have used _genie -u_. See BUGS, below, for more details.
 
+### WARNING: TIMING OUT
+
+If _genie_ (1.31+) seems to be blocked at the
+
+`"Waiting for systemd...!!!!!"`
+
+stage, this is because of the new feature in 1.31 that waits for all _systemd_ services/units to have started up before continuing, to ensure that they have started before you try and do anything that might require them. (I.e., it waits for the point at which a normal Linux system would have given you a login prompt.) It does this by waiting for _systemd_ to reach the "running" state.
+
+If it appears to have blocked, wait until the timeout (by default, 180 seconds) and run `systemctl status`. The usual cause of this problem is that one or more _systemd_ units are not starting properly, in which case the _systemd_ state shown will be "degraded", or another state other than "running". If this is the case, fixing or disabling those units such that _systemd_ can start properly will also allow _genie_ to start properly.
+
 ## RECOMMENDATIONS
 
 Once you have this up and running, I suggest disabling via systemctl the _getty@tty1_ service (since logging on and using WSL is done via ptsen, not ttys).
@@ -140,5 +152,7 @@ Further tips on usage from other genie users can be found on the wiki for this r
 ## BUGS
 
 1. It is considerably clunkier than I'd like it to be, inasmuch as you have to invoke genie every time to get inside the bottle, either manually (replacing, for example, _wsl [command]_ with _wsl genie -c [command]_), or by using your own shortcut in place of the one WSL gives you for the distro, using which will put you _outside_ the bottle. Pull requests, etc.
+
+But see also [RunInGenie](https://github.com/arkane-systems/RunInGenie)!
 
 2. genie is not idempotent; i.e., it is possible that changes made by genie or by systemd inside the bottle will not be perfectly reverted when the genie bottle is shut down with _genie -u_ . As such, it is recommended that you terminate the entire wsl session with _wsl -t <distro>_ or _wsl --shutdown_ in between stopping and restarting the bottle, or errors may occur.
