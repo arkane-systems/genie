@@ -23,7 +23,18 @@ clean:
 # Package and clean up the Arch Linux package
 #
 arch:
-	make -C arch arch-pkg
+	make -C arch
 
 arch-clean:
 	make -C arch clean
+
+#
+# Build and install locally
+#
+
+local:
+	make -C genie local
+
+local-clean:
+	make -C genie distclean
+
