@@ -1,5 +1,5 @@
 #
-# This Makefile package and alienizes the genie program.
+# This Makefile builds and packages genie by invoking relevant sub-makefiles.
 #
 
 #
