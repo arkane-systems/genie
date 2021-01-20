@@ -10,13 +10,6 @@ all:
 	dotnet publish -c Release -r linux-x64
 
 #
-# local: build for /usr/local
-#
-
-local:
-	dotnet publish -c ReleaseLocal -r linux-x64
-
-#
 # clean: delete the package interim files
 #
 
