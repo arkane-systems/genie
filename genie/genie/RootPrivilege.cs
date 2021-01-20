@@ -25,6 +25,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             setreuid(0, 0);
             setregid(0, 0);
+
+            this.IsRoot = true;
         }
 
         // On disposal, cease to be root.
@@ -35,6 +37,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             this.previousUid = 0;
             this.previousGid = 0;
+
+            this.IsRoot = false;
         }
 
         ~RootPrivilege()
@@ -43,6 +47,6 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 this.Dispose();
         }
 
-        internal bool IsRoot => this.previousUid != 0;
+        internal bool IsRoot { get; private set; } = false;
     }
 }
