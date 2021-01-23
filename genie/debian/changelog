@@ -1,3 +1,9 @@
+systemd-genie (1.33) unstable; urgency=medium
+
+        * Removed faulty root check.
+
+ -- Alistair Young <avatar@arkane-systems.net>  Sat, 23 Jan 2021 11:38:00 -0500
+
 systemd-genie (1.32) unstable; urgency=medium
 
         * Added error-checking to configuration variables.

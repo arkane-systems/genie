@@ -17,9 +17,6 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         // Become root.
         internal RootPrivilege()
         {
-            if (geteuid() == 0 && getuid() != 0)
-                throw new InvalidOperationException("Cannot rootify root unless REALLY root.");
-
             this.previousUid = getuid();
             this.previousGid = getgid();
 
