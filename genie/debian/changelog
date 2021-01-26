@@ -1,3 +1,9 @@
+systemd-genie (1.34) unstable; urgency=medium
+
+        * Fixed regression: restored gawk dependency.
+
+ -- Alistair Young <avatar@arkane-systems.net>  Tue, 26 Jan 2021 08:48:00 -0500
+
 systemd-genie (1.33) unstable; urgency=medium
 
         * Removed faulty root check.
