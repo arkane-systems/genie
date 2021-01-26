@@ -32,7 +32,7 @@ install:
 # debian-pkg: build debian package
 #
 debian-pkg:
-	debuild
+	debuild -d
 
 #
 # (INTERNAL) install-local: install a built genie package locally
