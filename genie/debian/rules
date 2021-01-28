@@ -11,6 +11,9 @@ export DEB_BUILD_OPTIONS=nostrip
 %:
 	dh $@
 
+override_dh_auto_build:
+	make
+
 # Allow our setuid executable to pass unfixed.
 override_dh_fixperms:
 	dh_fixperms -Xgenie
