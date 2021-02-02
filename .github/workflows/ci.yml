@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
+        
     - name: Install dependencies
       run: sudo apt install devscripts debhelper
 
@@ -18,5 +19,8 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Build Debian
-      run: make debian
+    - name: Make CI build
+      env:
+        KEY: ${{ secrets.TRANSDEBIAN_REPO_SIGNING_KEY }}
+        PP: ${{ secrets.TRANSDEBIAN_REPO_PASSPHRASE }}
+      run: make package-ci
