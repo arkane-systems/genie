@@ -39,7 +39,7 @@ debian-pkg:
 #
 
 debian-pkg-ci:
-	debuild -d --no-sign
+	debuild --no-sign
 
 #
 # (INTERNAL) install-local: install a built genie package locally
