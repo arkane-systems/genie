@@ -13,6 +13,13 @@ package:
 debian: package
 
 #
+# package-ci: CI builds
+#
+
+package-ci:
+	make -C genie debian-pkg-ci
+
+#
 # clean: clean up after a build/package
 #
 clean:
