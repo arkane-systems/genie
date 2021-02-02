@@ -39,10 +39,10 @@ debian-pkg:
 #
 
 debian-pkg-ci:
-	echo $KEY
-	echo $PP
-	echo $KEY | gpg --import --yes
-	echo "force key unlock" | gpg -s -a --passphrase "$PP" --yes
+	echo $KEY > keyfile
+	echo $PP > ppfile
+	gpg --yes --import keyfile
+	echo "force key unlock" | gpg -s -a --yes --passphrase-file ppfile
 	debuild -d -k0x428ad1a0ba078abb
 
 #
