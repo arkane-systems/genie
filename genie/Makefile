@@ -32,7 +32,16 @@ install:
 # debian-pkg: build debian package
 #
 debian-pkg:
-	debuild
+	debuild -d
+	
+#
+# debian-pkg-ci: build debian package (continuous integration)
+#
+
+debian-pkg-ci:
+	echo $INPUT_KEY | gpg --import --yes
+	echo "force key unlock" | gpg -s -a --passphrase "$INPUT_PP" --yes
+	debuild -d -k0x428ad1a0ba078abb
 
 #
 # (INTERNAL) install-local: install a built genie package locally

@@ -1,0 +1,26 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+        
+    - name: Install dependencies
+      run: sudo apt install devscripts debhelper
+
+    - run: apt-cache show debhelper
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Make CI build
+      env:
+        KEY: ${{ secrets.TRANSDEBIAN_REPO_SIGNING_KEY }}
+        PP: ${{ secrets.TRANSDEBIAN_REPO_PASSPHRASE }}
+      run: make package-ci
