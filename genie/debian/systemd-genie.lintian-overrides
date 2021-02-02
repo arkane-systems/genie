@@ -4,3 +4,6 @@ setuid-binary usr/libexec/genie/genie 4755 root/root
 # Systemd requires that this be here.
 breakout-link usr/lib/systemd/system-environment-generators/10-genie-envar.sh -> usr/libexec/genie/10-genie-envar.sh
 breakout-link usr/lib/systemd/user-environment-generators/10-genie-envar.sh -> usr/libexec/genie/10-genie-envar.sh
+
+# Cannot set this in alternate location
+debian-rules-sets-DEB_BUILD_OPTIONS
