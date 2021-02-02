@@ -2,7 +2,7 @@ Source: systemd-genie
 Section: contrib/misc
 Priority: optional
 Maintainer: Alistair Young <avatar@arkane-systems.net>
-Build-Depends: debhelper-compat (= 12), dotnet-sdk-5.0
+Build-Depends: debhelper-compat (= 13), dotnet-sdk-5.0
 Standards-Version: 4.5.0
 Homepage: https://github.com/arkane-systems/genie
 Vcs-Git: https://github.com/arkane-systems/genie.git
