@@ -1,7 +1,6 @@
 build/
 dist/
 systemd-genie_*
-genie.spec
 *.deb
 *.tar
 *.tar.gz
