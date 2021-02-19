@@ -3,11 +3,14 @@
 #
 
 #
-# Default target: build all, package all.
+# Default target: clean, build all, package all.
 #
 
-default: make-output-directory
-	echo "Not yet implemented."
+default: clean make-output-directory build-binaries
+	make -C package/tar package
+	make -C package/debian package
+	make -C package/arch package
+	make -C package/fedora package
 
 #
 # Targets: individual end-product build.
@@ -15,7 +18,27 @@ default: make-output-directory
 
 clean:
 	make -C binsrc clean
+	make -C package/local clean
+	make -C package/debian clean
+	make -C package/arch clean
+	make -C package/fedora clean
+	make -C package/tar clean
 	rm -rf out
+
+package-local: build-local-binaries
+	make -C package/local package
+
+package-tar: make-output-directory build-binaries
+	make -C package/tar package
+
+package-debian: make-output-directory build-binaries
+	make -C package/debian package
+
+package-arch: make-output-directory build-binaries
+	make -C package/arch package
+
+package-fedora: make-output-directory build-binaries
+	make -C package/fedora package
 
 #
 # Helpers: intermediate build stages.
