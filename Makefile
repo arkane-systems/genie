@@ -3,6 +3,34 @@
 #
 
 #
+# Default target: build all, package all.
+#
+
+default: make-output-directory
+	echo "Not yet implemented."
+
+#
+# Targets: individual end-product build.
+#
+
+clean:
+	make -C binsrc clean
+	rm -rf out
+
+#
+# Helpers: intermediate build stages.
+#
+
+build-binaries:
+	make -C binsrc build
+
+build-local-binaries:
+	make -C binsrc build-local
+
+make-output-directory:
+	mkdir out
+
+#
 # default target: build the whole thing, and package for debian
 #
 #package:

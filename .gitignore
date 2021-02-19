@@ -1,18 +1,6 @@
 build/
 dist/
-systemd-genie_*
-genie.spec
-*.deb
-*.tar
-*.tar.gz
-arch/pkg
-genie/debian/systemd-genie
-genie/debian/debhelper*
-genie/debian/systemd-genie.debhelper.log
-genie/debian/systemd-genie.substvars
-genie/debian/.debhelper
-genie/debian/files
-.Makefile.swp
+out/
 
 ### ASPNETCore ###
 ## Ignore Visual Studio temporary files, build results, and
