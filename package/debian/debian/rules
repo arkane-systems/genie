@@ -6,13 +6,18 @@ export DH_OPTIONS=-v
 
 # see FEATURE AREAS in dpkg-buildflags(1)
 #export DEB_BUILD_MAINT_OPTIONS = hardening=+all
-export DEB_BUILD_OPTIONS=nostrip
+export DEB_BUILD_OPTIONS = nostrip
 
 %:
 	dh $@
 
 override_dh_auto_build:
-	make
+
+override_dh_auto_install:
+	make package-inner
+
+override_dh_auto_clean:
+	make clean-inner
 
 # Allow our setuid executable to pass unfixed.
 override_dh_fixperms:
