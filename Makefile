@@ -79,13 +79,3 @@ make-output-directory:
 #arch-clean:
 #	make -C arch clean
 
-#
-# Build and install locally
-#
-
-#local:
-#	make -C genie local
-#
-#local-clean:
-#	make -C genie distclean
-
