@@ -47,9 +47,11 @@ If you cannot install from the packagecloud.io repository, especially near the e
 
 ### Arch
 
-We now have a working PKGBUILD as of 1.32, thanks to @MartinodF in [PR #95](https://github.com/arkane-systems/genie/pull/95)!
+An Arch package (currently experimental) is on its way.
 
-I don't currently have anywhere to build or host an Arch package, so you'll need to roll your own using this PKGBUILD. You'll also currently need to install the .NET Core runtime and sdk AUR packages manually first.
+### Fedora
+
+A Fedora package (currently experimental) is on its way.
 
 ### Other Distros
 
@@ -68,7 +70,7 @@ It is possible to build your own version of genie and install it locally. To do 
 After cloning the repository, run
 
 ```
-sudo make local
+sudo make install-local
 ```
 
 This will build genie and install it under _/usr/local_ .
