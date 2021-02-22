@@ -12,12 +12,14 @@ jobs:
 
     steps:
         
-    - name: Install dependencies
-      run: sudo apt install devscripts debhelper
+#    - name: Install dependencies
+#      run: sudo apt install devscripts debhelper
 
-    - run: apt-cache show debhelper
+#    - run: apt-cache show debhelper
+    
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Make CI build
-      run: make package-ci
+    - name: Make Binaries
+      run: make build-binaries
+
