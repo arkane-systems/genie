@@ -9,6 +9,9 @@
 package:
 	# Packaging for Arch.
 	makepkg
+	mkdir -p ../../out/arch
+	mv genie* ../../out/arch
 
 clean:
-	makepkg -c
+	rm -rf src
+
