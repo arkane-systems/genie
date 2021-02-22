@@ -1,8 +1,9 @@
 systemd-genie (1.35) unstable; urgency=medium
 
         * Added dependency on systemd 232.
+        * Revised build procedure.
 
- -- Alistair Young <avatar@arkane-systems.net>  Tue, 27 Jan 2012 13:40:00 -0500
+ -- Alistair Young <avatar@arkane-systems.net>  Sun, 21 Feb 2021 13:40:00 -0500
 
 systemd-genie (1.34) unstable; urgency=medium
 

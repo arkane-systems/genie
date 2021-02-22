@@ -2,7 +2,7 @@
 # Contributor: facekapow, rayfalling, Ducksoft
 
 pkgname=genie-systemd
-pkgver=1.32
+pkgver=1.35
 pkgrel=1
 pkgdesc="A quick way into a systemd \"bottle\" for WSL"
 arch=('x86_64')
@@ -15,19 +15,21 @@ options=(!strip)
 
 pkgver() {
   cd ../../genie
-  grep VersionPrefix genie/genie.csproj | sed 's/.*<VersionPrefix>\(.*\)<\/VersionPrefix>/\1/' | tr -d '\r\n'
+  grep VersionPrefix ../../binsrc/genie/genie.csproj | sed 's/.*<VersionPrefix>\(.*\)<\/VersionPrefix>/\1/' | tr -d '\r\n'
 }
 
-build() {
-  cd ../../genie/
-  export DOTNET_CLI_TELEMETRY_OPTOUT=1
-  export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=true
-  make build
-}
+# Building is done in a previous make step.
 
 package() {
-  cd ../../genie/
-  make DESTDIR="$pkgdir/" install
+  # Binaries
+  install -Dm 4755 -o root "../../binsrc/genie/bin/Release/net5.0/linux-x64/publish/genie" -t ${pkgdir}/usr/libexec/genie"
+  install -Dm 0755 -o root "../../binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl" -t "${pkgdir}/usr/libexec/genie"
+
+  # Environment generator.
+  install -Dm 0755 -o root "../../othersrc/scripts/10-genie-envar.sh" -t "${pkgdir}/usr/libexec/genie"
+
+  # Configuration file.
+  install -Dm 0644 -o root "../../othersrc/etc/genie.ini" -t "${pkgdir}/etc"
 
   # genie symlink
   mkdir -p ${pkgdir}/usr/bin
@@ -40,7 +42,7 @@ package() {
   ln -s /usr/libexec/genie/10-genie-envar.sh ${pkgdir}/usr/lib/systemd/system-environment-generators/10-genie-envar.sh
 
   # man page
-  cp docs/genie.8 /tmp/genie.8
+  cp ../../othersrc/docs/genie.8 /tmp/genie.8
   gzip -9 /tmp/genie.8
   install -Dm 0644 -o root /tmp/genie.8.gz -t "${pkgdir}/usr/share/man/man8"
   rm /tmp/genie.8.gz

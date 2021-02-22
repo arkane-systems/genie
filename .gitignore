@@ -1,18 +1,16 @@
 build/
 dist/
-systemd-genie_*
-genie.spec
-*.deb
-*.tar
-*.tar.gz
-arch/pkg
-genie/debian/systemd-genie
-genie/debian/debhelper*
-genie/debian/systemd-genie.debhelper.log
-genie/debian/systemd-genie.substvars
-genie/debian/.debhelper
-genie/debian/files
-.Makefile.swp
+out/
+
+# Debian build intermediates
+package/debian/debian/systemd-genie
+package/debian/debian/.debhelper/
+package/debian/debian/debhelper-build-stamp
+package/debian/debian/files
+package/debian/debian/systemd-genie.*
+package/systemd-genie*
+
+# Fedora build intermediates
 
 ### ASPNETCore ###
 ## Ignore Visual Studio temporary files, build results, and
@@ -38,7 +36,6 @@ bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
-
 
 # NuGet Packages
 *.nupkg

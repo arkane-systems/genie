@@ -3,45 +3,61 @@
 #
 
 #
-# default target: build the whole thing, and package for debian
-#
-package:
-	make -C genie debian-pkg
-	fpm -s deb -t tar `ls *.deb`
-	gzip `ls *.tar`
-
-debian: package
-
-#
-# package-ci: CI builds
+# Default target: list options
 #
 
-package-ci:
-	make -C genie debian-pkg-ci
+default:
+	# Build options include:
+	#
+	# make build-binaries
+	# make install-local
+	#
+	# Run "make build-binaries" before any of the package commands.
+	#
+	# make package-tar (NOT YET IMPLEMENTED)
+	# make package-debian (requires Debian build environment)
+	# make package-arch (requires Arch build environment; NOT YET TESTED)
+	# make package-fedora (requires Fedora build environment; NOT YET TESTED)
+	#
+	# make clean
 
 #
-# clean: clean up after a build/package
+# Targets: individual end-product build.
 #
+
 clean:
-	make -C genie clean
-	sudo rm *.deb *.build *.buildinfo *.changes *.dsc *.tar.xz *.tar.gz
+	make -C binsrc clean
+	make -C package/local clean
+	make -C package/debian clean
+	make -C package/arch clean
+	make -C package/fedora clean
+	make -C package/tar clean
+	rm -rf out
+
+install-local: build-local-binaries
+	make -C package/local package
+
+#package-tar: make-output-directory # build-binaries
+#	make -C package/tar package
+
+package-debian: make-output-directory # build-binaries
+	make -C package/debian package
+
+package-arch: make-output-directory # build-binaries
+	make -C package/arch package
+
+package-fedora: make-output-directory # build-binaries
+	make -C package/fedora package
 
 #
-# Package and clean up the Arch Linux package
-#
-arch:
-	make -C arch
-
-arch-clean:
-	make -C arch clean
-
-#
-# Build and install locally
+# Helpers: intermediate build stages.
 #
 
-local:
-	make -C genie local
+build-binaries:
+	make -C binsrc build
 
-local-clean:
-	make -C genie distclean
+build-local-binaries:
+	make -C binsrc build-local
 
+make-output-directory:
+	mkdir -p out

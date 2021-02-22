@@ -1,1 +1,1 @@
-genie/docs/readme.md
+othersrc/docs/readme.md
