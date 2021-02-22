@@ -8,7 +8,7 @@
 
 package:
 	# Packaging for Arch.
-	echo "Not yet implemented."
+	makepkg
 
 clean:
-	echo "Not yet implemented."
+	makepkg -c
