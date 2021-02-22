@@ -13,7 +13,7 @@ Summary:       A quick way into systemd "bottle" for WSL
 
 License:       Unlicense
 URL:           %{project}
-Source0:       %{project}archive/%{version}.tar.gz
+Source0:       %{project}archive/genie-%{version}.tar.gz
 Requires:      systemd-container
 Requires:      daemonize
 Requires:      dotnet-runtme-5.0
@@ -28,17 +28,14 @@ A quick way into systemd "bottle" for WSL
 %prep
 %setup -q -n %{name}-%{version}
 
-%build
-cd genie
-make
-
 %install
+pwd
 install -d -p %{buildroot}%{_libexecdir}/%{name}
 install -d -p %{buildroot}%{_sysconfdir}
-install -m 4755 -vp ../../binsrc/genie/bin/Release/net5.0/linux-x64/publish/genie %{buildroot}%{_libexecdir}/%{name}
-install -m 0755 -vp ../../binsrc/genie/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl %{buildroot}%{_libexecdir}/%{name}
-install -m 0755 -vp ../../othersrc/scripts/10-genie-envar.sh %{buildroot}%{_libexecdir}/%{name}
-install -m 0755 -vp ../../othersrc/etc/genie.ini %{buildroot}%{_sysconfdir}/
+install -m 4755 -vp binsrc/genie/bin/Release/net5.0/linux-x64/publish/genie %{buildroot}%{_libexecdir}/%{name}
+install -m 0755 -vp binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl %{buildroot}%{_libexecdir}/%{name}
+install -m 0755 -vp othersrc/scripts/10-genie-envar.sh %{buildroot}%{_libexecdir}/%{name}
+install -m 0755 -vp othersrc/etc/genie.ini %{buildroot}%{_sysconfdir}/
 
 %post
 ln -s %{_libexecdir}/%{name}/%{name} %{_bindir}/%{name}

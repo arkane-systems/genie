@@ -3,14 +3,23 @@
 #
 
 #
-# Default target: clean, build all, package all.
+# Default target: list options
 #
 
-default: clean make-output-directory build-binaries
-	make -C package/tar package
-	make -C package/debian package
-	make -C package/arch package
-	make -C package/fedora package
+default:
+	# Build options include:
+	#
+	# make build-binaries
+	# make install-local
+	#
+	# Run "make build-binaries" before any of the package commands.
+	#
+	# make package-tar (NOT YET IMPLEMENTED)
+	# make package-debian (requires Debian build environment)
+	# make package-arch (requires Arch build environment; NOT YET TESTED)
+	# make package-fedora (requires Fedora build environment; NOT YET TESTED)
+	#
+	# make clean
 
 #
 # Targets: individual end-product build.
@@ -25,19 +34,19 @@ clean:
 	make -C package/tar clean
 	rm -rf out
 
-package-local: build-local-binaries
+install-local: build-local-binaries
 	make -C package/local package
 
-package-tar: make-output-directory build-binaries
-	make -C package/tar package
+#package-tar: make-output-directory # build-binaries
+#	make -C package/tar package
 
-package-debian: make-output-directory build-binaries
+package-debian: make-output-directory # build-binaries
 	make -C package/debian package
 
-package-arch: make-output-directory build-binaries
+package-arch: make-output-directory # build-binaries
 	make -C package/arch package
 
-package-fedora: make-output-directory build-binaries
+package-fedora: make-output-directory # build-binaries
 	make -C package/fedora package
 
 #
@@ -51,4 +60,4 @@ build-local-binaries:
 	make -C binsrc build-local
 
 make-output-directory:
-	mkdir out
+	mkdir -p out
