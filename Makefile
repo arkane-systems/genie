@@ -71,5 +71,5 @@ make-output-directory:
 	mkdir -p out
 
 build-binaries:
-	mkdir -C binsrc
+	make -C binsrc
 
