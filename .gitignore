@@ -15,6 +15,7 @@ package/systemd-genie*
 # Arch build intermediates
 
 package/arch/src/
+package/arch/pkg/
 
 ### ASPNETCore ###
 ## Ignore Visual Studio temporary files, build results, and
