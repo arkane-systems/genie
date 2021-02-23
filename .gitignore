@@ -10,11 +10,13 @@ package/debian/debian/files
 package/debian/debian/systemd-genie.*
 package/systemd-genie*
 
-# Fedora build intermediates
-
 # Arch build intermediates
 
 package/arch/src/
+package/arch/pkg/
+
+# Tar build intermediates
+package/tar/tarball
 
 ### ASPNETCore ###
 ## Ignore Visual Studio temporary files, build results, and

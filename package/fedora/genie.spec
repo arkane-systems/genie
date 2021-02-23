@@ -28,6 +28,9 @@ A quick way into systemd "bottle" for WSL
 %prep
 %setup -q -n %{name}-%{version}
 
+%build
+make -C binsrc
+
 %install
 pwd
 install -d -p %{buildroot}%{_libexecdir}/%{name}

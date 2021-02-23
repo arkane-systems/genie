@@ -14,4 +14,4 @@ package:
 
 clean:
 	rm -rf src
-
+	rm -rf pkg
