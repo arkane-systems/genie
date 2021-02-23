@@ -39,11 +39,11 @@ install-local:
 clean-local:
 	make -C package/local clean
 
-#package-tar: make-output-directory
-#	make -C package/tar package
+package-tar: make-output-directory
+	make -C package/tar package
 
-#clean-tar:
-#	make -C package/tar clean
+clean-tar:
+	make -C package/tar clean
 
 package-debian: make-output-directory
 	make -C package/debian package
