@@ -39,25 +39,31 @@ sudo apt install -y systemd-genie
 
 (The packagecloud.io repository is now deprecated. If you are still using it, please update your system to use the repository above.)
 
+#### Ubuntu & Other Debian Derivatives
+
+Use the above Debian package.
+
 ### Arch
 
-An Arch package (currently experimental) is on its way.
+An Arch package (.zst) can be downloaded from the releases, to right. Install it manually, using `pacman -U <file>`.
 
 ### Fedora
 
-A Fedora package (currently experimental) is on its way.
-
-### Ubuntu & Other Debian Derivatives
-
-Use Debian package.
+A Fedora package (.rpm) can be downloaded from the releases, to right. Install it manually, using `dnf install <file>`.
 
 ### Other Distros
 
+If your distribution supports any of the package formats available, you may wish to try downloading the relevant format and giving it a try. This will almost certainly need some tweaking to work properly.
+
 Debian is the "native" distribution for _genie_ , for which read, "what the author uses". Specifically, Debian stretch+, with _usrmerge_ installed. If you're using anything else, you may need to tweak the configuration file (see below) accordingly.
 
-#### Other
+#### TAR
 
-We're actively looking for maintainers for everything else. If you can use .deb packages (especially if your distro is a Debian derivative), the Debian package may work for you. Otherwise, manually installing from the .tar.gz is probably the best I can suggest.
+There is a .tar.gz of a complete genie install available from the releases, to right. As a last resort, you can try untarring this (it contains every needed file, with the correct permissions, in the correct path from /) onto your system while root. Don't do this unless you're confident you know what you're doing, you're willing to go looking for any resulting issues yourself, and you aren't afraid of accidentally breaking things. You will need to install the dependencies listed above beforehand.
+
+#### Maintainers Wanted!
+
+We're actively looking for maintainers for everything that doesn't have a specific package. If you have the time, please contribute.
 
 _I am unable to support distributions which there are not prebuilt packages for. I am actively seeking maintainers for these packages._
 
