@@ -23,7 +23,7 @@ default:
 	# make clean-arch
 	# make clean-fedora
 	#
-	# make binaries-only
+	# make build-binaries
 
 #
 # Targets: individual end-product build.
@@ -70,6 +70,6 @@ clean-fedora:
 make-output-directory:
 	mkdir -p out
 
-binaries-only:
+build-binaries:
 	mkdir -C binsrc
 
