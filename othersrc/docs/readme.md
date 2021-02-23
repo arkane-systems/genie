@@ -53,6 +53,10 @@ An Arch package (currently experimental) is on its way.
 
 A Fedora package (currently experimental) is on its way.
 
+### Ubuntu & Other Debian Derivatives
+
+Use Debian package.
+
 ### Other Distros
 
 Debian is the "native" distribution for _genie_ , for which read, "what the author uses". Specifically, Debian stretch+, with _usrmerge_ installed. If you're using anything else, you may need to tweak the configuration file (see below) accordingly.
