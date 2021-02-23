@@ -17,24 +17,27 @@ default:
 	# make package-fedora (requires Fedora build environment)
 	#
 	# make clean
+	# make clean-local
+	# make clean-tar
 	# make clean-debian
 	# make clean-arch
 	# make clean-fedora
+	#
+	# make binaries-only
 
 #
 # Targets: individual end-product build.
 #
 
 clean:
-#	make -C package/local clean
-#	make -C package/debian clean
-#	make -C package/arch clean
-#	make -C package/fedora clean
-#	make -C package/tar clean
+	make -C binsrc clean
 	rm -rf out
 
-#install-local: build-local-binaries
-#	make -C package/local package
+install-local:
+	make -C package/local package
+
+clean-local:
+	make -C package/local clean
 
 #package-tar: make-output-directory
 #	make -C package/tar package
@@ -45,20 +48,20 @@ clean:
 package-debian: make-output-directory
 	make -C package/debian package
 
-clean-debian: clean
+clean-debian:
 	make -C package/debian clean
 
 package-arch: make-output-directory
 	make -C package/arch package
 
-clean-arch: clean
+clean-arch:
 	make -C package/arch clean
 
-#package-fedora: make-output-directory # build-binaries
-#	make -C package/fedora package
+package-fedora: make-output-directory # build-binaries
+	make -C package/fedora package
 
-#clean-fedora: clean
-#	make -C package/fedora clean
+clean-fedora:
+	make -C package/fedora clean
 
 #
 # Helpers: intermediate build stages.
@@ -66,3 +69,7 @@ clean-arch: clean
 
 make-output-directory:
 	mkdir -p out
+
+binaries-only:
+	mkdir -C binsrc
+
