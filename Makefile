@@ -42,11 +42,11 @@ clean:
 #clean-tar:
 #	make -C package/tar clean
 
-#package-debian: make-output-directory
-#	make -C package/debian package
+package-debian: make-output-directory
+	make -C package/debian package
 
-#clean-debian: clean
-#	make -C package/debian clean
+clean-debian: clean
+	make -C package/debian clean
 
 package-arch: make-output-directory
 	make -C package/arch package

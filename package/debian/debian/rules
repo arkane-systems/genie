@@ -12,6 +12,7 @@ export DEB_BUILD_OPTIONS = nostrip
 	dh $@
 
 override_dh_auto_build:
+	make build-inner
 
 override_dh_auto_install:
 	make package-inner
