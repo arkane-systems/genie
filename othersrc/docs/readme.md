@@ -30,10 +30,6 @@ To install, add the wsl-translinux repository here by following the instructions
 
 https://arkane-systems.github.io/wsl-transdebian/
 
-Or here by following the instructions here:
-
-https://packagecloud.io/arkane-systems/wsl-translinux
-
 then install genie using the commands:
 
 ```bash
@@ -41,9 +37,7 @@ sudo apt update
 sudo apt install -y systemd-genie
 ```
 
-#### PLEASE NOTE
-
-If you cannot install from the packagecloud.io repository, especially near the end of the month, it's probably because we're over our bandwidth quota. Please use the other repository, or download the package from the releases page and install it manually using _dpkg -i_ . Alternatively, wait a few days and try again.
+(The packagecloud.io repository is now deprecated. If you are still using it, please update your system to use the repository above.)
 
 ### Arch
 
