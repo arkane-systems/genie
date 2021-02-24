@@ -1,4 +1,4 @@
-systemd-genie (1.35) unstable; urgency=medium
+systemd-genie (1.35) buster bullseye bookworm sid focal bionic; urgency=medium
 
         * Added dependency on systemd 232.
         * Revised build procedure.

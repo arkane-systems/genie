@@ -16,7 +16,7 @@ URL:           %{project}
 Source0:       %{project}archive/genie-%{version}.tar.gz
 Requires:      systemd-container
 Requires:      daemonize
-Requires:      dotnet-runtme-5.0
+Requires:      dotnet-runtime-5.0
 BuildRequires: dotnet-sdk-5.0
 BuildRequires: make
 
