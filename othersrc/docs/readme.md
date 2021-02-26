@@ -16,6 +16,8 @@ Note: it is only possible to run _systemd_ (and thus _genie_ ) under WSL 2; WSL 
 
 ## INSTALLATION
 
+**NOTE:** Before you install _genie_ for the first time, read **ALL** of this page. This will save you a great deal of trouble later on. Especially, please note that on many distributions you **will** encounter the problem described under "Warning: Timing Out" below when you first run genie, and will need to resolve it before your system will operate correctly.
+
 If there is a package available for your distribution, this is the recommended method of installing genie.
 
 ### Debian
@@ -41,7 +43,7 @@ sudo apt install -y systemd-genie
 
 #### Ubuntu & Other Debian Derivatives
 
-Use the above Debian package.
+Use the above Debian package. For current Ubuntu releases and the timing-out problem, see comments on [#110](https://github.com/arkane-systems/genie/issues/110).
 
 ### Arch
 
