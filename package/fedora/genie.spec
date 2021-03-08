@@ -1,5 +1,5 @@
 %global project https://github.com/arkane-systems/genie/
-%global version 1.35
+%global version 1.36
 
 # debuginfo is 'not supported' for .NET binaries
 %global debug_package %{nil}
@@ -57,6 +57,9 @@ rm -rf %{buildroot}
 %config %{_sysconfdir}/genie.ini
 
 %changelog
+* Alistair Young <avatar@arkane-systems.net> 1.36-1
+- Added dependency on hostname(1).
+
 * Mon Feb 22 2021 Alistair Young <avatar@arkane-systems.net> 1.35-1
 - Packager modified for new build system.
 

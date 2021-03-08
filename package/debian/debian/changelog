@@ -1,3 +1,9 @@
+systemd-genie (1.36) buster bullseye bookworm sid focal bionic; urgency=medium
+
+        * Added dependency on hostname.
+
+ -- Alistair Young <avatar@arkane-systems.net>
+
 systemd-genie (1.35) buster bullseye bookworm sid focal bionic; urgency=medium
 
         * Added dependency on systemd 232.
