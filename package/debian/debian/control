@@ -10,7 +10,7 @@ Vcs-Browser: https://github.com/arkane-systems/genie
 
 Package: systemd-genie
 Architecture: amd64
-Depends: ${misc:Depends}, ${shlibs:Depends}, dbus, policykit-1, daemonize, systemd (>= 232-25), dotnet-runtime-5.0, systemd-container (>= 232-25), gawk
+Depends: ${misc:Depends}, ${shlibs:Depends}, dbus, policykit-1, daemonize, systemd (>= 232-25), dotnet-runtime-5.0, systemd-container (>= 232-25), gawk, hostname
 Description: quick way into a systemd "bottle" under Windows Subsystem for Linux
  Automates the process of starting up, entering into, and shutting down
  a container within which systemd is pid 1, effectively enabling the use
