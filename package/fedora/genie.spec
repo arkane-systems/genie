@@ -60,6 +60,8 @@ rm -rf %{buildroot}
 %changelog
 * Alistair Young <avatar@arkane-systems.net> 1.36-1
 - Added dependency on hostname(1).
+- Added --is-running and --is-in-bottle informational options.
+- Added storage of systemd external PID in pidfile.
 
 * Mon Feb 22 2021 Alistair Young <avatar@arkane-systems.net> 1.35-1
 - Packager modified for new build system.
