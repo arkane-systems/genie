@@ -398,7 +398,12 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             } while ( systemdPid == 0);
 
-            // Wait for systemd to be in running state.\
+            // Now that systemd exists, write out its (external) PID.
+            // We do not need to store the inside-bottle PID anywhere for obvious reasons.
+            // Create the path file.
+            File.WriteAllText("/run/genie.systemd.pid", systemdPid.ToString());
+
+            // Wait for systemd to be in running state.
             int runningYet = 255;
             int timeout = Config.SystemdStartupTimeout;
 
