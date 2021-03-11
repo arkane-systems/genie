@@ -131,6 +131,20 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             rootCommand.Add (cmdShutdown);
 
+            var cmdIsRunning = new Command ("--is-running");
+            cmdIsRunning.AddAlias ("-r");
+            cmdIsRunning.Description = "Check whether systemd is running in genie, or not.";
+            cmdIsRunning.Handler = CommandHandler.Create<bool>((Func<bool, int>)IsRunningHandler);
+
+            rootCommand.Add (cmdIsRunning);
+
+            var cmdIsInside = new Command ("--is-in-bottle");
+            cmdIsInside.AddAlias ("-b");
+            cmdIsInside.Description = "Check whether currently executing within the genie bottle, or not.";
+            cmdIsInside.Handler = CommandHandler.Create<bool>((Func<bool,int>)IsInsideHandler);
+
+            rootCommand.Add (cmdIsInside);
+
             // Parse the arguments and invoke the handler.
             return rootCommand.InvokeAsync(args).Result;
         }
@@ -291,6 +305,44 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             }
 
             return 0;
+        }
+
+        // Check whether systemd has been started by genie, or not.
+        public static int IsRunningHandler (bool verbose)
+        {
+            // Get the bottle state.
+            var state = GetBottleState (verbose);
+
+            if (state.existedAtStart)
+            {
+                Console.WriteLine ("running");
+                return 0;
+            }
+
+            Console.WriteLine ("stopped");
+            return 1;
+        }
+
+        // Check whether currently executing within the genie bottle, or not.
+        public static int IsInsideHandler (bool verbose)
+        {
+            // Get the bottle state.
+            var state = GetBottleState (verbose);
+
+            if (state.startedWithin)
+            {
+                Console.WriteLine ("inside");
+                return 0;
+            }
+
+            if (state.existedAtStart)
+            {
+                Console.WriteLine("outside");
+                return 1;
+            }
+
+            Console.WriteLine("no-bottle");
+            return 2;
         }
 
         #endregion Command handlers
