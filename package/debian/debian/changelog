@@ -3,8 +3,9 @@ systemd-genie (1.36) buster bullseye bookworm sid focal bionic; urgency=medium
         * Added dependency on hostname.
         * Added --is-running and --is-in-bottle informational options.
         * Added storage of systemd external PID in pidfile.
+        * Removed dependencies on mount and hostname.
 
- -- Alistair Young <avatar@arkane-systems.net>
+ -- Alistair Young <avatar@arkane-systems.net>  Fri, 12 Mar 2021 11:24:00 -0500
 
 systemd-genie (1.35) buster bullseye bookworm sid focal bionic; urgency=medium
 

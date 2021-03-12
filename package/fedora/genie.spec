@@ -17,7 +17,6 @@ Source0:       %{project}archive/genie-%{version}.tar.gz
 Requires:      systemd-container
 Requires:      daemonize
 Requires:      dotnet-runtime-5.0
-Requires:      hostname
 BuildRequires: dotnet-sdk-5.0
 BuildRequires: make
 
@@ -62,6 +61,7 @@ rm -rf %{buildroot}
 - Added dependency on hostname(1).
 - Added --is-running and --is-in-bottle informational options.
 - Added storage of systemd external PID in pidfile.
+- Removed dependencies on mount(1) and hostname(1).
 
 * Mon Feb 22 2021 Alistair Young <avatar@arkane-systems.net> 1.35-1
 - Packager modified for new build system.
