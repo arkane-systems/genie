@@ -138,9 +138,11 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: setting new hostname.");
 
-            Helpers.Chain ("mount",
-                new string[] {"--bind", "/run/hostname-wsl", "/etc/hostname"},
-                "initializing bottle failed; bind mounting hostname");
+            if (!Helpers.BindMount ("/run/hostname-wsl", "/etc/hostname"))
+            {
+                Console.WriteLine ("genie: initializing bottle failed; bind mounting hostname");
+                Environment.Exit(EPERM);
+            }
         }
 
         // Drop the in-bottle hostname.
@@ -150,15 +152,51 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: dropping in-bottle hostname");
 
-            Helpers.Chain ("umount", new string[] {"/etc/hostname"});
+            if (!Helpers.Unmount ("/etc/hostname"))
+            {
+                Console.WriteLine ("genie: shutdown failed; unmounting hostname");
+                Environment.Exit(EPERM);
+            }
+
             File.Delete ("/run/hostname-wsl");
 
-            Helpers.Chain ("hostname", new string[] {"-F", "/etc/hostname"} );
+            var hostname = Encoding.UTF8.GetBytes(
+                File.ReadAllLines ("/etc/hostname")[0].TrimEnd()
+            );
+
+            unsafe
+            {
+                fixed (byte * bHostname = hostname)
+                {
+                    if (sethostname(bHostname, hostname.Length) != 0)
+                    {
+                        Console.WriteLine ("genie: shutdown failed; resetting hostname");
+                    }
+                }
+            }
         }
 
-        internal static void BindMount ()
-        {}
+        private static bool BindMount (string source, string mountPoint)
+        {
+            unsafe
+            {
+                fixed (byte * bSource = Encoding.UTF8.GetBytes(source))
+                fixed (byte * bMountPoint = Encoding.UTF8.GetBytes(mountPoint))
+                {
+                    return (mount (bSource, bMountPoint, null, MS_BIND, null) == 0);
+                }
+            }
+        }
 
-        internal static
+        private static bool Unmount (string mountPoint)
+        {
+            unsafe
+            {
+                fixed (byte * bMountPoint = Encoding.UTF8.GetBytes(mountPoint))
+                {
+                    return (umount2 (bMountPoint, MNT_DETACH) == 0);
+                }
+            }
+        }
     }
 }
