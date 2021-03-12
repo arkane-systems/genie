@@ -155,5 +155,10 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             Helpers.Chain ("hostname", new string[] {"-F", "/etc/hostname"} );
         }
+
+        internal static void BindMount ()
+        {}
+
+        internal static
     }
 }
