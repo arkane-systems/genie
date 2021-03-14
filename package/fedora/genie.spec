@@ -62,6 +62,7 @@ rm -rf %{buildroot}
 - Added --is-running and --is-in-bottle informational options.
 - Added storage of systemd external PID in pidfile.
 - Removed dependencies on mount(1) and hostname(1).
+- Modified genie -u to wait for systemd exit.
 
 * Mon Feb 22 2021 Alistair Young <avatar@arkane-systems.net> 1.35-1
 - Packager modified for new build system.

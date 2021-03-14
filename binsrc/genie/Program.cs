@@ -291,11 +291,24 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                     new string[] {"-t", systemdPid.ToString(), "-m", "-p", "systemctl", "poweroff"},
                     "running command failed; nsenter");
 
-                if (verbose)
-                    Console.WriteLine ("genie: waiting for systemd to exit");
+                Console.Write ("Waiting for systemd exit...");
 
-                // Wait for systemd to exit (maximum 16 s).
-                sd.WaitForExit(16000);
+                // Wait for systemd to exit.
+                int timeout = Config.SystemdStartupTimeout;
+
+                while (!sd.WaitForExit(1000))
+                {
+                    Console.Write (".");
+                    timeout--;
+
+                    if (timeout < 0)
+                    {
+                        Console.WriteLine("\n\nTimed out waiting for systemd to exit.\nThis may indicate a systemd configuration error.\nAttempting to continue.");
+                        break;
+                    }
+                }
+
+                Console.WriteLine();
 
                 if (Config.UpdateHostname)
                 {
