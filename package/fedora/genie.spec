@@ -57,7 +57,7 @@ rm -rf %{buildroot}
 %config %{_sysconfdir}/genie.ini
 
 %changelog
-* Sun Mar 14 2012 Alistair Young <avatar@arkane-systems.net> 1.36-1
+* Sun Mar 14 2021 Alistair Young <avatar@arkane-systems.net> 1.36-1
 - Added dependency on hostname(1).
 - Added --is-running and --is-in-bottle informational options.
 - Added storage of systemd external PID in pidfile.

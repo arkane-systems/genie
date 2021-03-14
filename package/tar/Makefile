@@ -61,4 +61,5 @@ package-inner:
 
 clean:
 	rm -rf tarball
+	touch /tmp/genie-fake
 	rm /tmp/genie*
