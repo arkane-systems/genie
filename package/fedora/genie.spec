@@ -1,5 +1,5 @@
 %global project https://github.com/arkane-systems/genie/
-%global version 1.35
+%global version 1.36
 
 # debuginfo is 'not supported' for .NET binaries
 %global debug_package %{nil}
@@ -57,6 +57,13 @@ rm -rf %{buildroot}
 %config %{_sysconfdir}/genie.ini
 
 %changelog
+* Sun Mar 14 2012 Alistair Young <avatar@arkane-systems.net> 1.36-1
+- Added dependency on hostname(1).
+- Added --is-running and --is-in-bottle informational options.
+- Added storage of systemd external PID in pidfile.
+- Removed dependencies on mount(1) and hostname(1).
+- Modified genie -u to wait for systemd exit.
+
 * Mon Feb 22 2021 Alistair Young <avatar@arkane-systems.net> 1.35-1
 - Packager modified for new build system.
 

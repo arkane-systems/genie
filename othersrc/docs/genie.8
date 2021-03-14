@@ -4,7 +4,7 @@ genie \- start up, enter into, or shut down a systemd "bottle" under Windows Sub
 .SH SYNOPSIS
 .nf
 .B genie -h
-.B genie \fR[\fB-v\fR]\fB -i \fR|\fB -s \fR|\fB -u
+.B genie \fR[\fB-v\fR]\fB -i \fR|\fB -s \fR|\fB -u \fR|\fB -r \fR|\fB -b
 .B genie \fR[\fB-v\fR]\fB -c \fIcommand\fR
 .fi
 .SH DESCRIPTION
@@ -45,6 +45,14 @@ Shuts down systemd(1) cleanly and exits the bottle. This uses the \fBsystemctl p
 While not compulsory, it is recommended that you shut down and restart the WSL distribution before using \fBgenie\fR again after you have used \fBgenie -u\fR. See BUGS, below, for more details.
 .RE
 .TP
+.BR \-r "\fR, \fB" \-\-is\-running
+Checks whether \fBgenie\fR (and an associated systemd(1) instance) is currently running. Returns the string "running" and exit code 0 if one is found; returns the string "stopped" and exit code 1 if one is not.
+.RE
+.TP
+.BR \-b "\fR, \fB" \-\-is\-in\-bottle
+Checks whether the current command is executing inside the bottle. Returns the string "inside" and exit code 0 if so; returns the string "outside" and exit code 1 if one is not. If no bottle exists, returns the string "no-bottle" and exit code 2.
+.RE
+.TP
 .BR \-v "\fR, \fB" \-\-verbose
 When used in conjunction with a \fBgenie\fR command, prints verbose progress messages illustrating \fBgenie\fR's progress through the various stages of executing that command.
 .TP
@@ -59,6 +67,12 @@ INSIDE_GENIE should not be set by the user. \fBgenie\fR sets INSIDE_GENIE, such 
 .TP
 0
 success
+.TP
+1
+negative answer (when queried)
+.TP
+2
+bottle does not exist (when queried)
 .TP
 EBADF
 not executing under WSL, or on Linux
@@ -81,6 +95,12 @@ Configuration file for \fBgenie\fR. This contains two configuration paths: the s
 .TP
 \fI/run/genie.env\fR
 Contains certain environment variables required for proper functioning copied from outside the bottle, used internally by \fBgenie\fR to restore them within the bottle.
+.TP
+\fI/run/genie.path\fR
+Contains the system PATH copied from outside the bottle, used internally by \fBgenie\fR to restore the directories therein within the bottle.
+.TP
+\fI/run/genie.systemd.pid\fR
+Contains the external PID of the systemd(1) instance created by \fBgenie\fR. Not used by \fBgenie\fR itself; this PID is recorded as a convenience for the user. No analogous file exists containing the internal PID, for obvious reasons.
 .TP
 \fI/run/hostname-wsl\fR
 Contains the modified hostname used by the WSL distribution (see NOTES). This file is bind mounted over /etc/hostname when the bottle is started up, and unbound at shutdown.

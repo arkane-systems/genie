@@ -131,6 +131,20 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             rootCommand.Add (cmdShutdown);
 
+            var cmdIsRunning = new Command ("--is-running");
+            cmdIsRunning.AddAlias ("-r");
+            cmdIsRunning.Description = "Check whether systemd is running in genie, or not.";
+            cmdIsRunning.Handler = CommandHandler.Create<bool>((Func<bool, int>)IsRunningHandler);
+
+            rootCommand.Add (cmdIsRunning);
+
+            var cmdIsInside = new Command ("--is-in-bottle");
+            cmdIsInside.AddAlias ("-b");
+            cmdIsInside.Description = "Check whether currently executing within the genie bottle, or not.";
+            cmdIsInside.Handler = CommandHandler.Create<bool>((Func<bool,int>)IsInsideHandler);
+
+            rootCommand.Add (cmdIsInside);
+
             // Parse the arguments and invoke the handler.
             return rootCommand.InvokeAsync(args).Result;
         }
@@ -277,11 +291,24 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                     new string[] {"-t", systemdPid.ToString(), "-m", "-p", "systemctl", "poweroff"},
                     "running command failed; nsenter");
 
-                if (verbose)
-                    Console.WriteLine ("genie: waiting for systemd to exit");
+                Console.Write ("Waiting for systemd exit...");
 
-                // Wait for systemd to exit (maximum 16 s).
-                sd.WaitForExit(16000);
+                // Wait for systemd to exit.
+                int timeout = Config.SystemdStartupTimeout;
+
+                while (!sd.WaitForExit(1000))
+                {
+                    Console.Write (".");
+                    timeout--;
+
+                    if (timeout < 0)
+                    {
+                        Console.WriteLine("\n\nTimed out waiting for systemd to exit.\nThis may indicate a systemd configuration error.\nAttempting to continue.");
+                        break;
+                    }
+                }
+
+                Console.WriteLine();
 
                 if (Config.UpdateHostname)
                 {
@@ -291,6 +318,44 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             }
 
             return 0;
+        }
+
+        // Check whether systemd has been started by genie, or not.
+        public static int IsRunningHandler (bool verbose)
+        {
+            // Get the bottle state.
+            var state = GetBottleState (verbose);
+
+            if (state.existedAtStart)
+            {
+                Console.WriteLine ("running");
+                return 0;
+            }
+
+            Console.WriteLine ("stopped");
+            return 1;
+        }
+
+        // Check whether currently executing within the genie bottle, or not.
+        public static int IsInsideHandler (bool verbose)
+        {
+            // Get the bottle state.
+            var state = GetBottleState (verbose);
+
+            if (state.startedWithin)
+            {
+                Console.WriteLine ("inside");
+                return 0;
+            }
+
+            if (state.existedAtStart)
+            {
+                Console.WriteLine("outside");
+                return 1;
+            }
+
+            Console.WriteLine("no-bottle");
+            return 2;
         }
 
         #endregion Command handlers
@@ -346,7 +411,12 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             } while ( systemdPid == 0);
 
-            // Wait for systemd to be in running state.\
+            // Now that systemd exists, write out its (external) PID.
+            // We do not need to store the inside-bottle PID anywhere for obvious reasons.
+            // Create the path file.
+            File.WriteAllText("/run/genie.systemd.pid", systemdPid.ToString());
+
+            // Wait for systemd to be in running state.
             int runningYet = 255;
             int timeout = Config.SystemdStartupTimeout;
 

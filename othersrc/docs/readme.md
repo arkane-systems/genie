@@ -126,7 +126,9 @@ Commands:
   -s, --shell                Initialize the bottle (if necessary), and run a shell in it.
   -l, --login                Initialize the bottle (if necessary), and open a logon prompt in it.
   -c, --command <COMMAND>    Initialize the bottle (if necessary), and run the specified command in it.
-  --shutdown, -u             Shut down systemd and exit the bottle.
+  -u, --shutdown             Shut down systemd and exit the bottle.
+  -r, --is-running           Check whether systemd is running in genie, or not.
+  -b, --is-in-bottle         Check whether currently executing within the genie bottle, or not.
 ```
 
 So, it has four modes, all of which will set up the bottle and run systemd in it if it isn't already running for simplicity of use.
@@ -140,6 +142,10 @@ _genie -l_ opens a login session within the bottle. This permits you to log in t
 _genie -c [command]_ runs _command_ inside the bottle, then exits. The return code is the return code of the command. It follows sudo semantics, and so does preserve the cwd.
 
 Meanwhile, _genie -u_ , run from outside the bottle, will shut down systemd cleanly and exit the bottle. This uses the _systemctl poweroff_ command to simulate a normal Linux system shutting down. It is suggested that this be used before shutting down Windows or restarting the Linux distribution to ensure a clean shutdown of systemd services.
+
+_genie -r_ and _genie -b_ are informational commands for use in checking the state of the system and/or scripting genie. The former checks whether genie (and an associated systemd(1) instance) is currently running. It returns the string "running" and exit code 0 if one is found; it returns the string "stopped" and exit code 1 if one is not. The latter checks whether the current command is executing inside the bottle. It returns the string "inside" and exit code 0 if so; it returns the string "outside" and exit code 1 if one is not. If no bottle exists, it returns the string "no-bottle" and exit code 2.
+
+While running, genie stores the external PID of the systemd instance in the file _/run/genie.systemd.pid_ for use in user scripting. It does not provide a similar file for the internal PID for obvious reasons.
 
 While not compulsory, it is recommended that you shut down and restart the WSL distro before using genie again after you have used _genie -u_. See BUGS, below, for more details.
 
