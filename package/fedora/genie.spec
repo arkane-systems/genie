@@ -35,19 +35,19 @@ make -C binsrc
 pwd
 install -d -p %{buildroot}%{_libexecdir}/%{name}
 install -d -p %{buildroot}%{_sysconfdir}
+install -d -p %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generators
+install -d -p %{buildroot}%{_bindir}
 install -m 4755 -vp binsrc/genie/bin/Release/net5.0/linux-x64/publish/genie %{buildroot}%{_libexecdir}/%{name}
 install -m 0755 -vp binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl %{buildroot}%{_libexecdir}/%{name}
 install -m 0755 -vp othersrc/scripts/10-genie-envar.sh %{buildroot}%{_libexecdir}/%{name}
 install -m 0755 -vp othersrc/etc/genie.ini %{buildroot}%{_sysconfdir}/
-
-%post
-ln -s %{_libexecdir}/%{name}/%{name} %{_bindir}/%{name}
-ln -s %{_libexecdir}/%{name}/10-genie-envar.sh %{_exec_prefix}/lib/systemd/system-environment-generators/
+ln -sf %{_libexecdir}/%{name}/%{name} %{buildroot}%{_bindir}/%{name}
+ln -sf %{_libexecdir}/%{name}/10-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generators/
 
 %postun
 rm -rf %{_libexecdir}/%{name}
 rm -f %{_bindir}/%{name}
-rm -f %{_exec_prefix}/lib/systemd/system-environment-generators/10-envar.sh
+rm -f %{_exec_prefix}/lib/systemd/system-environment-generators/10-genie-envar.sh
 
 %clean
 rm -rf %{buildroot}
@@ -55,6 +55,8 @@ rm -rf %{buildroot}
 %files
 %{_libexecdir}/%{name}/*
 %config %{_sysconfdir}/genie.ini
+%{_bindir}/%{name}
+%{_exec_prefix}/lib/systemd/system-environment-generators/10-genie-envar.sh
 
 %changelog
 * Sun Mar 14 2021 Alistair Young <avatar@arkane-systems.net> 1.37-1
