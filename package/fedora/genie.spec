@@ -60,7 +60,7 @@ rm -rf %{buildroot}
 
 %changelog
 * Sun Mar 14 2021 Alistair Young <avatar@arkane-systems.net> 1.37-1
-- Nothing yet.
+- Merged fixes to Fedora packaging (PR #138).
 
 * Sun Mar 14 2021 Alistair Young <avatar@arkane-systems.net> 1.36-1
 - Added dependency on hostname(1).
