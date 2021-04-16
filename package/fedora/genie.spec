@@ -61,6 +61,8 @@ rm -rf %{buildroot}
 %changelog
 * Sun Mar 14 2021 Alistair Young <avatar@arkane-systems.net> 1.37-1
 - Merged fixes to Fedora packaging (PR #138).
+- Reduced default systemd startup timeout to 60s.
+- Added display of failed systemd units on timeout.
 
 * Sun Mar 14 2021 Alistair Young <avatar@arkane-systems.net> 1.36-1
 - Added dependency on hostname(1).

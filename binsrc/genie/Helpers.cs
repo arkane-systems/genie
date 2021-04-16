@@ -25,6 +25,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             return processInfo != null ? processInfo.ProcessId : 0;
         }
 
+        #region Subprocesses
+        
         // Run a subprocess and wait for it to exit, returning its return code.
         internal static int RunAndWait (string command, string[] args)
         {
@@ -56,6 +58,10 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 Environment.Exit (r);
             }
         }
+
+        #endregion Subprocesses
+
+        #region Hostname management
 
         // Add the "-wsl" suffix to the system hostname, and update the hosts file accordingly.
         internal static void UpdateHostname (bool verbose)
@@ -176,6 +182,10 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             }
         }
 
+        #endregion Hostname management
+
+        #region Mounting and unmounting
+
         private static bool BindMount (string source, string mountPoint)
         {
             unsafe
@@ -198,5 +208,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 }
             }
         }
+
+        #endregion Mounting and unmounting
     }
 }
