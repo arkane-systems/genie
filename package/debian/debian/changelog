@@ -3,7 +3,7 @@ systemd-genie (1.37) buster bullseye bookworm sid focal bionic; urgency=medium
         * Reduced default systemd startup timeout to 60s.
         * Added display of failed systemd units on timeout.
 
- -- Alistair Young <avatar@arkane-systems.net>  Sun, 14 Mar 2021 13:48:00 -0500
+ -- Alistair Young <avatar@arkane-systems.net>  Fri, 16 Apr 2021 12:32:00 -0500
 
 systemd-genie (1.36) buster bullseye bookworm sid focal bionic; urgency=medium
 

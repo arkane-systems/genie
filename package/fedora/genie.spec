@@ -59,7 +59,7 @@ rm -rf %{buildroot}
 %{_exec_prefix}/lib/systemd/system-environment-generators/10-genie-envar.sh
 
 %changelog
-* Sun Mar 14 2021 Alistair Young <avatar@arkane-systems.net> 1.37-1
+* Fri Apr 16 2021 Alistair Young <avatar@arkane-systems.net> 1.37-1
 - Merged fixes to Fedora packaging (PR #138).
 - Reduced default systemd startup timeout to 60s.
 - Added display of failed systemd units on timeout.
