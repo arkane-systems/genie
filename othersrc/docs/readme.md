@@ -139,6 +139,8 @@ _genie -i_ will set up the bottle - including changing the WSL hostname by suffi
 
 **NOTE:** It is never necessary to run _genie -i_ explicitly; the -s, -l, and -c commands will all set up the bottle if it has not already been initialized.
 
+**NOTE 2:** genie -i DOES NOT enter the bottle for you. It is important to remember that the genie bottle functions like a container, with its own cgroups and separate pid and mount namespaces. While some systemd or systemd-service powered things may work when invoked from outside the bottle, this is ENTIRELY BY CHANCE, and is NOT A SUPPORTED SCENARIO. You must enter the bottle using `genie -s`, `genie -l` or `genie -c` first. Ways to do this automatically when you start a WSL session can be found on the repo wiki.**
+
 _genie -s_ runs your login shell inside the bottle; basically, Windows-side, _wsl genie -s_ is your substitute for just _wsl_ to get started, or for the shortcut you get to start a shell in the distro. It follows login semantics, and as such does not preserve the current working directory.
 
 _genie -l_ opens a login session within the bottle. This permits you to log in to the WSL distribution as any user. The login prompt will return when you log out; to terminate the session, press ^] three times within one second. It follows login semantics, and as such does not preserve the current working directory.
