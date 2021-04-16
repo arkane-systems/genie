@@ -18,6 +18,8 @@ Note: it is only possible to run _systemd_ (and thus _genie_ ) under WSL 2; WSL 
 
 **NOTE:** Before you install _genie_ for the first time, read **ALL** of this page. This will save you a great deal of trouble later on. Especially, please note that on many distributions you **will** encounter the problem described under "Warning: Timing Out" below when you first run genie, and will need to resolve it before your system will operate correctly.
 
+**NOTE 2:** More information, tips & tricks, etc. are available on [the genie wiki](https://github.com/arkane-systems/genie/wiki). Please consult it before opening an issue.
+
 If there is a package available for your distribution, this is the recommended method of installing genie.
 
 ### Debian
@@ -43,7 +45,7 @@ sudo apt install -y systemd-genie
 
 #### Ubuntu & Other Debian Derivatives
 
-Use the above Debian package. For current Ubuntu releases and the timing-out problem, see comments on [#110](https://github.com/arkane-systems/genie/issues/110).
+Use the above Debian package. For current Ubuntu releases and the timing-out problem, see the problematic units listed on [the genie wiki](https://github.com/arkane-systems/genie/wiki).
 
 ### Arch
 
@@ -135,7 +137,9 @@ So, it has four modes, all of which will set up the bottle and run systemd in it
 
 _genie -i_ will set up the bottle - including changing the WSL hostname by suffixing -wsl, to distinguish it from the Windows host -  run systemd, and then exit. This is intended for use if you want services running all the time in the background, or to preinitialize things so you needn't worry about startup time later on, and for this purpose is ideally run from Task Scheduler on logon.
 
-**NOTE: genie -i DOES NOT enter the bottle for you. It is important to remember that the genie bottle functions like a container, with its own cgroups and separate pid and mount namespaces. While some systemd or systemd-service powered things may work when invoked from outside the bottle, this is ENTIRELY BY CHANCE, and is NOT A SUPPORTED SCENARIO. You must enter the bottle using `genie -s`, `genie -l` or `genie -c` first. Ways to do this automatically when you start a WSL session can be found on the repo wiki.**
+**NOTE:** It is never necessary to run _genie -i_ explicitly; the -s, -l, and -c commands will all set up the bottle if it has not already been initialized.
+
+**NOTE 2:** genie -i DOES NOT enter the bottle for you. It is important to remember that the genie bottle functions like a container, with its own cgroups and separate pid and mount namespaces. While some systemd or systemd-service powered things may work when invoked from outside the bottle, this is ENTIRELY BY CHANCE, and is NOT A SUPPORTED SCENARIO. You must enter the bottle using `genie -s`, `genie -l` or `genie -c` first. Ways to do this automatically when you start a WSL session can be found on the repo wiki.**
 
 _genie -s_ runs your login shell inside the bottle; basically, Windows-side, _wsl genie -s_ is your substitute for just _wsl_ to get started, or for the shortcut you get to start a shell in the distro. It follows login semantics, and as such does not preserve the current working directory.
 
@@ -159,7 +163,7 @@ If _genie_ (1.31+) seems to be blocked at the
 
 stage, this is because of the new feature in 1.31 that waits for all _systemd_ services/units to have started up before continuing, to ensure that they have started before you try and do anything that might require them. (I.e., it waits for the point at which a normal Linux system would have given you a login prompt.) It does this by waiting for _systemd_ to reach the "running" state.
 
-If it appears to have blocked, wait until the timeout (by default, 180 seconds) and run `systemctl status`. The usual cause of this problem is that one or more _systemd_ units are not starting properly, in which case the _systemd_ state shown will be "degraded", or another state other than "running". If this is the case, fixing or disabling those units such that _systemd_ can start properly will also allow _genie_ to start properly.
+If it appears to have blocked, wait until the timeout (by default, 60 seconds), at which point a list of units which have not started property will be displayed. Fixing or disabling those units such that _systemd_ can start properly will also allow _genie_ to start properly. Known-problematic units are listed on [the genie wiki](https://github.com/arkane-systems/genie/wiki).
 
 ## RECOMMENDATIONS
 

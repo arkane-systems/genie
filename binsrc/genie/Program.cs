@@ -432,7 +432,12 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 timeout--;
                 if (timeout < 0)
                 {
-                    Console.WriteLine("\n\nTimed out waiting for systemd to enter running state.\nThis may indicate a systemd configuration error.\nAttempting to continue.");
+                    Console.WriteLine("\n\nTimed out waiting for systemd to enter running state.\nThis may indicate a systemd configuration error.\nAttempting to continue.\nFailed units will now be displayed (systemctl list-units --failed):");
+
+                    Helpers.Chain ("nsenter",
+                        new string[] {"-t", systemdPid.ToString(), "-m", "-p", "systemctl", "list-units", "--failed"},
+                        "running command failed; nsenter for systemctl list-units --failed");
+
                     break;
                 }
 

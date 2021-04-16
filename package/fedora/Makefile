@@ -6,11 +6,12 @@
 # Default target: package.
 #
 
+genie_version:=$(shell rpmspec -q --qf %{Version} --srpm genie.spec)
+
 package:
 	# Packaging for Fedora.
 	rpmdev-setuptree
-	export VERSION=`rpmspec  -q --qf %{Version} --srpm genie.spec`
-	tar zcvf ~/rpmbuild/SOURCES/genie-${VERSION}.tar.gz * --dereference --transform='s/^/genie-${VERSION}\//'
+	tar zcvf ~/rpmbuild/SOURCES/genie-${genie_version}.tar.gz * --dereference --transform='s/^/genie-${genie_version}\//'
 	rpmbuild -ba -v genie.spec
 	mkdir -p ../../out/fedora
 	mv ~/rpmbuild/RPMS/x86_64/genie* ../../out/fedora
