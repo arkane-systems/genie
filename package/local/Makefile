@@ -24,6 +24,7 @@ package:
 	# Binaries.
 	install -Dm 4755 -o root "binsrc/genie/bin/ReleaseLocal/net5.0/linux-x64/publish/genie" -t "$(INSTALLDIR)"
 	install -Dm 0755 -o root "binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl" -t "$(INSTALLDIR)"
+	install -Dm 0755 -o root "othersrc/scripts/bindxsocket.sh" -t "$(INSTALLDIR)"
 	ln -s $(INSTALLDIR)/genie $(BINDIR)/genie
 
 	# Environment generator.

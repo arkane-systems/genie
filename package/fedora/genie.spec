@@ -1,5 +1,5 @@
 %global project https://github.com/arkane-systems/genie/
-%global version 1.37
+%global version 1.38
 
 # debuginfo is 'not supported' for .NET binaries
 %global debug_package %{nil}
@@ -39,6 +39,7 @@ install -d -p %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generat
 install -d -p %{buildroot}%{_bindir}
 install -m 4755 -vp binsrc/genie/bin/Release/net5.0/linux-x64/publish/genie %{buildroot}%{_libexecdir}/%{name}
 install -m 0755 -vp binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl %{buildroot}%{_libexecdir}/%{name}
+install -m 0755 -vp othersrc/scripts/bindxsocket.sh %{buildroot}%{_libexecdir}/%{name}
 install -m 0755 -vp othersrc/scripts/10-genie-envar.sh %{buildroot}%{_libexecdir}/%{name}
 install -m 0755 -vp othersrc/etc/genie.ini %{buildroot}%{_sysconfdir}/
 ln -sf %{_libexecdir}/%{name}/%{name} %{buildroot}%{_bindir}/%{name}
@@ -59,6 +60,10 @@ rm -rf %{buildroot}
 %{_exec_prefix}/lib/systemd/system-environment-generators/10-genie-envar.sh
 
 %changelog
+* Thu Apr 22 2021 Alistair Young <avatar@arkane-systems.net> 1.38-1
+- Restored original default systemd startup timeout.
+- Changes to support WSLg.
+
 * Fri Apr 16 2021 Alistair Young <avatar@arkane-systems.net> 1.37-1
 - Merged fixes to Fedora packaging (PR #138).
 - Reduced default systemd startup timeout to 60s.
