@@ -443,7 +443,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             } while ( runningYet != 0);
 
-            if (GenieConfig.MountXSocket)
+            if (Config.MountXSocket)
             {
                 if (verbose)
                     Console.Write ("genie: bind mounting WSLg X11 socket");
