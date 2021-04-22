@@ -95,7 +95,6 @@ update-hostname=true
 clone-path=false
 clone-env=WSL_DISTRO_NAME,WSL_INTEROP,WSLENV,DISPLAY,WAYLAND_DISPLAY,PULSE_SERVER
 systemd-timeout=180
-mount-x-socket=true
 ```
 
 The _secure-path_ setting should be generic enough to cover all but the weirdest Linux filesystem layouts, but on the off-chance that yours stores binaries somewhere particularly idiosyncratic, you can change it here. Meanwhile, the _unshare_ setting is much more likely to be system-dependent; if you are getting errors running genie, please replace this with the output of `which unshare` before trying anything else.
@@ -109,8 +108,6 @@ If this is set to true, the inside-bottle path will be set to the secure-path co
 The _clone-env_ setting lists the environment variables which are copied from outside the bottle to inside the bottle. It defaults to only WSL_DISTRO_NAME, WSL_INTEROP, and WSLENV, needed for correct WSL operation, plus DISPLAY, WAYLAND_DISPLAY, and PULSE_SERVER, needed for WSLg but any other environment variables which should be cloned can be added to this list. This replaces the former ability to copy additional environment variables by editing _/usr/libexec/dumpwslenv.sh_.
 
 The _systemd-timeout_ setting controls how long (the number of seconds) genie will wait when initializing the bottle for _systemd_ to reach its "running" - i.e. fully operational, with all units required by the default target active - state. This defaults to 180 seconds.
-
-The _mount-x-socket_ setting, enabled by default, controls whether genie bind mounts _/mnt/wslg/.X11-unix_ at _/tmp/.X11-unix_. This is necessary for WSLg, because the default configuration of _systemd-tmpfiles_ cleans up the latter folder automatically on "boot"; this bind mount restores it.
 
 ## USAGE
 
