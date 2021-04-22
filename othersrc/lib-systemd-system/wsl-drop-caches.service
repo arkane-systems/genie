@@ -1,9 +1,0 @@
-[Unit]
-Description=Periodically drop caches to save memory under WSL.
-Documentation=https://github.com/arkane-systems/genie
-ConditionVirtualization=microsoft
-
-[Service]
-Type=oneshot
-ExecStart=/usr/sbin/drop_cache_if_idle
-
