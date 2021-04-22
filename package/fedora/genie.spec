@@ -60,6 +60,9 @@ rm -rf %{buildroot}
 %{_exec_prefix}/lib/systemd/system-environment-generators/10-genie-envar.sh
 
 %changelog
+* Thu Apr 22 2021 Alistair Young <avatar@arkane-systems.net> 1.39-1
+- Better WSLg support, based on the code of Daniel Llewellyn (@diddledan), here: https://github.com/diddledan/one-script-wsl2-systemd.
+
 * Thu Apr 22 2021 Alistair Young <avatar@arkane-systems.net> 1.38-1
 - Restored original default systemd startup timeout.
 - Changes to support WSLg.

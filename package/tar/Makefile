@@ -12,6 +12,7 @@ ENVGENDIR = $(DESTDIR)/usr/lib/systemd/system-environment-generators
 USRENVGENDIR = $(DESTDIR)/usr/lib/systemd/user-environment-generators
 ETCDIR = $(DESTDIR)/etc
 MAN8DIR = $(DESTDIR)/usr/share/man/man8
+SVCDIR = $(DESTDIR)/lib/systemd/system
 
 #
 # Default target: package.
@@ -35,7 +36,6 @@ package-inner:
 	mkdir -p "$(BINDIR)"
 	install -Dm 4755 -o root "binsrc/genie/bin/Release/net5.0/linux-x64/publish/genie" -t "$(INSTALLDIR)"
 	install -Dm 0755 -o root "binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl" -t "$(INSTALLDIR)"
-	install -Dm 0755 -o root "othersrc/scripts/bindxsocket.sh" -t "$(INSTALLDIR)"
 	ln -s ../libexec/genie/genie $(BINDIR)/genie
 
 	# Environment generator.
@@ -48,7 +48,13 @@ package-inner:
 	# Configuration file.
 	install -Dm 0644 -o root "othersrc/etc/genie.ini" -t "$(ETCDIR)"
 
-        # Man page.
+	# Unit files.
+	install -Dm 0644 -o root "othersrc/lib-systemd-system/wslg-xwayland.service" -t "$(SVCDIR)"
+	install -Dm 0644 -o root "othersrc/lib-systemd-system/wslg-xwayland.socket" -t "$(SVCDIR)"
+
+	install -Dm 0644 -o root "othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf" -t "$(SVCDIR)/user-runtime-dir@.service.d"
+
+    # Man page.
 	# Make sure directory exists.
 	mkdir -p "$(MAN8DIR)"
 
