@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+#
+# Drop the cache and inodes, if and only if the CPU usage is low
+
+import os
+import psutil
+import subprocess
+
+def root_check():
+    if not os.geteuid() == 0:
+        print("ERROR: Root access is not granted.")
+        exit(1)
+
+def load_and_apply_check():
+    cpucount = os.cpu_count()
+    load_threshold = (75*cpucount)/100
+
+    cpuload_all_cores = psutil.cpu_percent(percpu=True, interval=0.1)
+    cpuload_core_max = max(cpuload_all_cores)
+
+    cpuload_avg = psutil.cpu_percent(percpu=False, interval=0.1)
+    load1m, _, _ = os.getloadavg()
+
+    if cpuload_avg >= 10 or cpuload_core_max >= 30:
+        print("INFO: CPU load detected, don't apply.")
+    elif load1m > load_threshold:
+        print("INFO: System load detected, don't apply.")
+    else:
+        out = subprocess.run("sync; echo 3 > /proc/sys/vm/drop_caches; touch /run/drop_caches_last_run", shell=True)
+        if isinstance(out,subprocess.CompletedProcess):
+            print("INFO: No CPU load, the command is executed successfully.")
+        else:
+            print("INFO: No CPU load, the command is not executed.")
+            print(out)
+
+def main():
+    root_check()
+    load_and_apply_check()
+    print("SUCCESS: The operation is completed successfully.")
+    exit(0)
+
+main()

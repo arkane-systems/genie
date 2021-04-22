@@ -1,3 +1,4 @@
 /usr/libexec/genie/genie /usr/bin/genie
 /usr/libexec/genie/10-genie-envar.sh /usr/lib/systemd/system-environment-generators/10-genie-envar.sh
 /usr/libexec/genie/10-genie-envar.sh /usr/lib/systemd/user-environment-generators/10-genie-envar.sh
+/usr/libexec/genie/drop_cache_if_idle /usr/sbin/drop_cache_if_idle
