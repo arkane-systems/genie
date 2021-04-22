@@ -443,6 +443,16 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             } while ( runningYet != 0);
 
+            if (GenieConfig.MountXSocket)
+            {
+                if (verbose)
+                    Console.Write ("genie: bind mounting WSLg X11 socket");
+
+                Helpers.Chain ("nsenter",
+                    new string[] {"-t", systemdPid.ToString(), "-m", "-p", Config.GetPrefixedPath ("libexec/genie/bindxsocket.sh")},
+                    "running bindxsocket.sh failed; nsenter");
+            }
+
             Console.WriteLine();
         }
 
