@@ -1,5 +1,5 @@
 %global project https://github.com/arkane-systems/genie/
-%global version 1.38
+%global version 1.39
 
 # debuginfo is 'not supported' for .NET binaries
 %global debug_package %{nil}
@@ -37,11 +37,15 @@ install -d -p %{buildroot}%{_libexecdir}/%{name}
 install -d -p %{buildroot}%{_sysconfdir}
 install -d -p %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generators
 install -d -p %{buildroot}%{_bindir}
+install -d -p %{buildroot}%{_unitdir}
+install -d -p %{buildroot}%{_unitdir}/user-runtime-dir@.service.d
 install -m 4755 -vp binsrc/genie/bin/Release/net5.0/linux-x64/publish/genie %{buildroot}%{_libexecdir}/%{name}
 install -m 0755 -vp binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl %{buildroot}%{_libexecdir}/%{name}
-install -m 0755 -vp othersrc/scripts/bindxsocket.sh %{buildroot}%{_libexecdir}/%{name}
 install -m 0755 -vp othersrc/scripts/10-genie-envar.sh %{buildroot}%{_libexecdir}/%{name}
-install -m 0755 -vp othersrc/etc/genie.ini %{buildroot}%{_sysconfdir}/
+install -m 0644 -vp othersrc/etc/genie.ini %{buildroot}%{_sysconfdir}/
+install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.service %{buildroot}%{_unitdir}
+install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.socket %{buildroot}%{_unitdir}
+install -m 0644 -vp othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf %{buildroot}%{_unitdir}/user-runtime-dir@.service.d
 ln -sf %{_libexecdir}/%{name}/%{name} %{buildroot}%{_bindir}/%{name}
 ln -sf %{_libexecdir}/%{name}/10-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generators/
 
@@ -49,17 +53,36 @@ ln -sf %{_libexecdir}/%{name}/10-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/
 rm -rf %{_libexecdir}/%{name}
 rm -f %{_bindir}/%{name}
 rm -f %{_exec_prefix}/lib/systemd/system-environment-generators/10-genie-envar.sh
+rm -f %{_unitdir}/wslg-xwayland.service
+rm -f %{_unitdir}/wslg-xwayland.socket
+rm -f %{_unitdir}/user-runtime-dir@.service.d/override.conf
 
 %clean
 rm -rf %{buildroot}
+
+# %post
+# systemctl daemon-reload
+# systemctl enable wslg-xwayland.socket
+# systemctl start wslg-xwayland.socket >/dev/null 2>&1
+
+# %preun
+# systemctl stop wslg-xwayland.socket >/dev/null 2>&1
+# systemctl disable wslg-xwayland.socket
+# systemctl daemon-reload
 
 %files
 %{_libexecdir}/%{name}/*
 %config %{_sysconfdir}/genie.ini
 %{_bindir}/%{name}
 %{_exec_prefix}/lib/systemd/system-environment-generators/10-genie-envar.sh
+%{_unitdir}/wslg-xwayland.service
+%{_unitdir}/wslg-xwayland.socket
+%{_unitdir}/user-runtime-dir@.service.d/override.conf
 
 %changelog
+* Thu Apr 22 2021 Alistair Young <avatar@arkane-systems.net> 1.39-1
+- Better WSLg support, based on the code of Daniel Llewellyn (@diddledan), here: https://github.com/diddledan/one-script-wsl2-systemd.
+
 * Thu Apr 22 2021 Alistair Young <avatar@arkane-systems.net> 1.38-1
 - Restored original default systemd startup timeout.
 - Changes to support WSLg.

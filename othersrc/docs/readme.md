@@ -65,6 +65,8 @@ Debian is the "native" distribution for _genie_ , for which read, "what the auth
 
 There is a .tar.gz of a complete genie install available from the releases, to right. As a last resort, you can try untarring this (it contains every needed file, with the correct permissions, in the correct path from /) onto your system while root. Don't do this unless you're confident you know what you're doing, you're willing to go looking for any resulting issues yourself, and you aren't afraid of accidentally breaking things. You will need to install the dependencies listed above beforehand.
 
+If you install from the tarball, you will need to enable the _wslg-xwayland.service_ and _wslg-xwayland.socket_ systemd units manually.
+
 #### Maintainers Wanted!
 
 We're actively looking for maintainers for everything that doesn't have a specific package. If you have the time, please contribute.
@@ -83,6 +85,12 @@ sudo make install-local
 
 This will build genie and install it under _/usr/local_ .
 
+After installing locally and starting genie and systemd for the first time, you will need to enable the _wslg-xwayland.socket_ systemd units manually:
+
+```
+systemctl enable wslg-xwayland.socket
+```
+
 ## CONFIGURATION FILE
 
 That would be the file _/etc/genie.ini_. This defines the secure path (i.e., those directories in which genie will look for the utilities it depends on), and the explicit path to _unshare(1)_, required by _daemonize(1)_, and three settings controlling genie behavior. Normally, it looks like this:
@@ -95,7 +103,6 @@ update-hostname=true
 clone-path=false
 clone-env=WSL_DISTRO_NAME,WSL_INTEROP,WSLENV,DISPLAY,WAYLAND_DISPLAY,PULSE_SERVER
 systemd-timeout=180
-mount-x-socket=true
 ```
 
 The _secure-path_ setting should be generic enough to cover all but the weirdest Linux filesystem layouts, but on the off-chance that yours stores binaries somewhere particularly idiosyncratic, you can change it here. Meanwhile, the _unshare_ setting is much more likely to be system-dependent; if you are getting errors running genie, please replace this with the output of `which unshare` before trying anything else.
@@ -110,7 +117,7 @@ The _clone-env_ setting lists the environment variables which are copied from ou
 
 The _systemd-timeout_ setting controls how long (the number of seconds) genie will wait when initializing the bottle for _systemd_ to reach its "running" - i.e. fully operational, with all units required by the default target active - state. This defaults to 180 seconds.
 
-The _mount-x-socket_ setting, enabled by default, controls whether genie bind mounts _/mnt/wslg/.X11-unix_ at _/tmp/.X11-unix_. This is necessary for WSLg, because the default configuration of _systemd-tmpfiles_ cleans up the latter folder automatically on "boot"; this bind mount restores it.
+_genie_ (1.39+) also installs a pair of systemd units (_wslg-xwayland.service_ and _wslg-xwayland.socket_ and an override for _user-runtime-dir@.service_) to ensure that WSLg operates correctly from inside the bottle. If desired, these can be disabled and enabled independently of genie itself.
 
 ## USAGE
 
@@ -180,3 +187,5 @@ Further tips on usage from other genie users can be found on the wiki for this r
 But see also [RunInGenie](https://github.com/arkane-systems/RunInGenie)!
 
 2. genie is not idempotent; i.e., it is possible that changes made by genie or by systemd inside the bottle will not be perfectly reverted when the genie bottle is shut down with _genie -u_ . As such, it is recommended that you terminate the entire wsl session with _wsl -t <distro>_ or _wsl --shutdown_ in between stopping and restarting the bottle, or errors may occur.
+
+3. As of 1.38, while WSLg operates correctly with _genie_ and GUI apps can be run from inside the bottle, Linux GUI apps started from the Windows Start Menu items created by WSLg will run outside the bottle. This is being worked on.

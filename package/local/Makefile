@@ -9,6 +9,7 @@ ENVGENDIR = /usr/lib/systemd/system-environment-generators
 USRENVGENDIR = /usr/lib/systemd/user-environment-generators
 ETCDIR = /etc
 MAN8DIR = /usr/local/share/man/man8
+SVCDIR = /etc/systemd/system
 
 #
 # Default target: package.
@@ -34,6 +35,16 @@ package:
 
 	# Configuration file.
 	install -Dm 0644 -o root "othersrc/etc/genie.ini" -t "$(ETCDIR)"
+
+	# Unit files.
+	install -Dm 0644 -o root "othersrc/lib-systemd-system/wslg-xwayland.service" -t "$(SVCDIR)"
+	install -Dm 0644 -o root "othersrc/lib-systemd-system/wslg-xwayland.socket" -t "$(SVCDIR)"
+
+	install -Dm 0644 -o root "othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf" -t "$(SVCDIR)/user-runtime-dir@.service.d"
+
+	# enable units
+	systemctl daemon-reload
+	systemctl enable wslg-xwayland.socket
 
 	# Man page.
 	# Make sure directory exists.
