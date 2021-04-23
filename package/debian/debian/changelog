@@ -1,6 +1,6 @@
 systemd-genie (1.40) buster bullseye bookworm sid focal bionic; urgency=medium
 
-        * Nothing yet.
+        * Moved generic Linux/WSL functionality into shared assembly.
 
  -- Alistair Young <avatar@arkane-systems.net>  Thu, 22 Apr 2021 18:00:00 -0500
 
