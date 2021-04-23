@@ -70,26 +70,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: generating new hostname.");
 
-            string externalHost;
-
-            unsafe
-            {
-                int success;
-
-                byte [] bytes = new byte[64] ;
-                fixed (byte * buffer = bytes)
-                {
-                    success = gethostname (buffer, 64);
-                }
-
-                if (success != 0)
-                {
-                    Console.WriteLine ($"genie: error retrieving hostname: {success}.");
-                    Environment.Exit (success);
-                }
-
-                externalHost = Encoding.UTF8.GetString(bytes).TrimEnd('\0');
-            }
+            string externalHost = HostHelpers.Hostname;
 
             if (verbose)
                 Console.WriteLine ($"genie: external hostname is {externalHost}");
@@ -144,7 +125,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: setting new hostname.");
 
-            if (!Helpers.BindMount ("/run/hostname-wsl", "/etc/hostname"))
+            if (!MountHelpers.BindMount ("/run/hostname-wsl", "/etc/hostname"))
             {
                 Console.WriteLine ("genie: initializing bottle failed; bind mounting hostname");
                 Environment.Exit(EPERM);
@@ -158,7 +139,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ("genie: dropping in-bottle hostname");
 
-            if (!Helpers.Unmount ("/etc/hostname"))
+            if (!MountHelpers.UnMount ("/etc/hostname"))
             {
                 Console.WriteLine ("genie: shutdown failed; unmounting hostname");
                 Environment.Exit(EPERM);
@@ -166,49 +147,11 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             File.Delete ("/run/hostname-wsl");
 
-            var hostname = Encoding.UTF8.GetBytes(
-                File.ReadAllLines ("/etc/hostname")[0].TrimEnd()
-            );
+            var hostname = File.ReadAllLines ("/etc/hostname")[0].TrimEnd();
 
-            unsafe
-            {
-                fixed (byte * bHostname = hostname)
-                {
-                    if (sethostname(bHostname, hostname.Length) != 0)
-                    {
-                        Console.WriteLine ("genie: shutdown failed; resetting hostname");
-                    }
-                }
-            }
+            HostHelpers.Hostname = hostname;
         }
 
         #endregion Hostname management
-
-        #region Mounting and unmounting
-
-        private static bool BindMount (string source, string mountPoint)
-        {
-            unsafe
-            {
-                fixed (byte * bSource = Encoding.UTF8.GetBytes(source))
-                fixed (byte * bMountPoint = Encoding.UTF8.GetBytes(mountPoint))
-                {
-                    return (mount (bSource, bMountPoint, null, MS_BIND, null) == 0);
-                }
-            }
-        }
-
-        private static bool Unmount (string mountPoint)
-        {
-            unsafe
-            {
-                fixed (byte * bMountPoint = Encoding.UTF8.GetBytes(mountPoint))
-                {
-                    return (umount2 (bMountPoint, MNT_DETACH) == 0);
-                }
-            }
-        }
-
-        #endregion Mounting and unmounting
     }
 }
