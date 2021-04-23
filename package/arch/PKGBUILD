@@ -2,7 +2,7 @@
 # Contributor: facekapow, rayfalling, Ducksoft
 
 pkgname=genie-systemd
-pkgver=1.39
+pkgver=1.40
 pkgrel=1
 pkgdesc="A quick way into a systemd \"bottle\" for WSL"
 arch=('x86_64')
@@ -43,10 +43,11 @@ package() {
   ln -s /usr/libexec/genie/10-genie-envar.sh ${pkgdir}/usr/lib/systemd/system-environment-generators/10-genie-envar.sh
 
 	# Unit files.
-	install -Dm 0644 -o root "../othersrc/lib-systemd-system/wslg-xwayland.service" -t "${pkgdir}/lib/systemd/system"
-	install -Dm 0644 -o root "../othersrc/lib-systemd-system/wslg-xwayland.socket" -t "${pkgdir}/lib/systemd/system"
+  install -Dm 0644 -o root "../othersrc/lib-systemd-system/wslg-xwayland.service" -t "${pkgdir}/usr/lib/systemd/system"
+  install -Dm 0644 -o root "../othersrc/lib-systemd-system/wslg-xwayland.socket" -t "${pkgdir}/usr/lib/systemd/system"
+  ln -s /usr/lib/systemd/system/wslg-xwayland.socket ${pkgdir}/usr/lib/systemd/system/sockets.target.wants/wslg-xwayland.socket
 
-	install -Dm 0644 -o root "../othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf" -t "${pkgdir}/lib/systemd/system/user-runtime-dir@.service.d"
+  install -Dm 0644 -o root "../othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf" -t "${pkgdir}/usr/lib/systemd/system/user-runtime-dir@.service.d"
 
   # man page
   cp ../othersrc/docs/genie.8 /tmp/genie.8
@@ -54,8 +55,3 @@ package() {
   install -Dm 0644 -o root /tmp/genie.8.gz -t "${pkgdir}/usr/share/man/man8"
   rm /tmp/genie.8.gz
 }
-
-# post_install() {
-#   systemctl daemon-reload
-#   systemctl enable wslg-xwayland.socket
-# }

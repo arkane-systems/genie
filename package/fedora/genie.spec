@@ -1,5 +1,5 @@
 %global project https://github.com/arkane-systems/genie/
-%global version 1.39
+%global version 1.40
 
 # debuginfo is 'not supported' for .NET binaries
 %global debug_package %{nil}
@@ -48,27 +48,19 @@ install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.socket %{buildroot
 install -m 0644 -vp othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf %{buildroot}%{_unitdir}/user-runtime-dir@.service.d
 ln -sf %{_libexecdir}/%{name}/%{name} %{buildroot}%{_bindir}/%{name}
 ln -sf %{_libexecdir}/%{name}/10-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generators/
+ln -sf %{_unitdir}/wslg-xwayland.socket %{buildroot}%{_unitdir}/sockets.target.wants/wslg-xwayland.socket
 
 %postun
 rm -rf %{_libexecdir}/%{name}
 rm -f %{_bindir}/%{name}
 rm -f %{_exec_prefix}/lib/systemd/system-environment-generators/10-genie-envar.sh
+rm -f %{_unitdir}/sockets.target.wants/wslg-xwayland.socket
 rm -f %{_unitdir}/wslg-xwayland.service
 rm -f %{_unitdir}/wslg-xwayland.socket
 rm -f %{_unitdir}/user-runtime-dir@.service.d/override.conf
 
 %clean
 rm -rf %{buildroot}
-
-# %post
-# systemctl daemon-reload
-# systemctl enable wslg-xwayland.socket
-# systemctl start wslg-xwayland.socket >/dev/null 2>&1
-
-# %preun
-# systemctl stop wslg-xwayland.socket >/dev/null 2>&1
-# systemctl disable wslg-xwayland.socket
-# systemctl daemon-reload
 
 %files
 %{_libexecdir}/%{name}/*
@@ -77,9 +69,13 @@ rm -rf %{buildroot}
 %{_exec_prefix}/lib/systemd/system-environment-generators/10-genie-envar.sh
 %{_unitdir}/wslg-xwayland.service
 %{_unitdir}/wslg-xwayland.socket
+%{_unitdir}/sockets.target.wants/wslg-xwayland.socket
 %{_unitdir}/user-runtime-dir@.service.d/override.conf
 
 %changelog
+* Thu Apr 22 2021 Alistair Young <avatar@arkane-systems.net> 1.40-1
+- Improved Fedora packaging to eliminate manual unit enable.
+
 * Thu Apr 22 2021 Alistair Young <avatar@arkane-systems.net> 1.39-1
 - Better WSLg support, based on the code of Daniel Llewellyn (@diddledan), here: https://github.com/diddledan/one-script-wsl2-systemd.
 

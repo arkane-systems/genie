@@ -43,8 +43,7 @@ package:
 	install -Dm 0644 -o root "othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf" -t "$(SVCDIR)/user-runtime-dir@.service.d"
 
 	# enable units
-	systemctl daemon-reload
-	systemctl enable wslg-xwayland.socket
+	ln -s $(SVCDIR)/wslg-xwayland.socket $(SVCDIR)/sockets.target.wants/wslg-xwayland.socket
 
 	# Man page.
 	# Make sure directory exists.
