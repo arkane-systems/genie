@@ -36,24 +36,27 @@ pwd
 install -d -p %{buildroot}%{_libexecdir}/%{name}
 install -d -p %{buildroot}%{_sysconfdir}
 install -d -p %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generators
+install -d -p %{buildroot}%{_exec_prefix}/lib/systemd/user-environment-generators
 install -d -p %{buildroot}%{_bindir}
 install -d -p %{buildroot}%{_unitdir}
 install -d -p %{buildroot}%{_unitdir}/user-runtime-dir@.service.d
 install -m 4755 -vp binsrc/genie/bin/Release/net5.0/linux-x64/publish/genie %{buildroot}%{_libexecdir}/%{name}
 install -m 0755 -vp binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl %{buildroot}%{_libexecdir}/%{name}
-install -m 0755 -vp othersrc/scripts/10-genie-envar.sh %{buildroot}%{_libexecdir}/%{name}
+install -m 0755 -vp othersrc/scripts/80-genie-envar.sh %{buildroot}%{_libexecdir}/%{name}
 install -m 0644 -vp othersrc/etc/genie.ini %{buildroot}%{_sysconfdir}/
 install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.service %{buildroot}%{_unitdir}
 install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.socket %{buildroot}%{_unitdir}
 install -m 0644 -vp othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf %{buildroot}%{_unitdir}/user-runtime-dir@.service.d
 ln -sf %{_libexecdir}/%{name}/%{name} %{buildroot}%{_bindir}/%{name}
-ln -sf %{_libexecdir}/%{name}/10-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generators/
+ln -sf %{_libexecdir}/%{name}/80-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generators/
+ln -sf %{_libexecdir}/%{name}/80-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/systemd/user-environment-generators/
 ln -sf %{_unitdir}/wslg-xwayland.socket %{buildroot}%{_unitdir}/sockets.target.wants/wslg-xwayland.socket
 
 %postun
 rm -rf %{_libexecdir}/%{name}
 rm -f %{_bindir}/%{name}
-rm -f %{_exec_prefix}/lib/systemd/system-environment-generators/10-genie-envar.sh
+rm -f %{_exec_prefix}/lib/systemd/system-environment-generators/80-genie-envar.sh
+rm -f %{_exec_prefix}/lib/systemd/user-environment-generators/80-genie-envar.sh
 rm -f %{_unitdir}/sockets.target.wants/wslg-xwayland.socket
 rm -f %{_unitdir}/wslg-xwayland.service
 rm -f %{_unitdir}/wslg-xwayland.socket
@@ -66,7 +69,8 @@ rm -rf %{buildroot}
 %{_libexecdir}/%{name}/*
 %config %{_sysconfdir}/genie.ini
 %{_bindir}/%{name}
-%{_exec_prefix}/lib/systemd/system-environment-generators/10-genie-envar.sh
+%{_exec_prefix}/lib/systemd/system-environment-generators/80-genie-envar.sh
+%{_exec_prefix}/lib/systemd/user-environment-generators/80-genie-envar.sh
 %{_unitdir}/wslg-xwayland.service
 %{_unitdir}/wslg-xwayland.socket
 %{_unitdir}/sockets.target.wants/wslg-xwayland.socket
@@ -75,6 +79,9 @@ rm -rf %{buildroot}
 %changelog
 * Thu Apr 22 2021 Alistair Young <avatar@arkane-systems.net> 1.40-1
 - Improved Fedora packaging to eliminate manual unit enable.
+- Moved generic Linux/WSL functionality into shared assembly.
+- Fixed missing user-environment-generator in Fedora package.
+- Upnumbered genie-envar to fix missing path cloning on some systems.
 
 * Thu Apr 22 2021 Alistair Young <avatar@arkane-systems.net> 1.39-1
 - Better WSLg support, based on the code of Daniel Llewellyn (@diddledan), here: https://github.com/diddledan/one-script-wsl2-systemd.
