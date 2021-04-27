@@ -7,7 +7,7 @@ fi
 
 WUID=$(stat -c "%u" /mnt/wslg/runtime-dir)
 
-if [ $1 == $WUID ]
+if [ $1 -eq $WUID ]
 then
   # We are the WSLg user, so unmap the runtime-dir
   umount /run/user/$1
