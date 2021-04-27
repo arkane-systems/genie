@@ -43,6 +43,8 @@ install -d -p %{buildroot}%{_unitdir}/user-runtime-dir@.service.d
 install -m 4755 -vp binsrc/genie/bin/Release/net5.0/linux-x64/publish/genie %{buildroot}%{_libexecdir}/%{name}
 install -m 0755 -vp binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl %{buildroot}%{_libexecdir}/%{name}
 install -m 0755 -vp othersrc/scripts/80-genie-envar.sh %{buildroot}%{_libexecdir}/%{name}
+install -m 0755 -o root "othersrc/scripts/map-user-runtime-dir.sh" %{buildroot}%{_libexecdir}/%{name}
+install -m 0755 -o root "othersrc/scripts/unmap-user-runtime-dir.sh" %{buildroot}%{_libexecdir}/%{name}
 install -m 0644 -vp othersrc/etc/genie.ini %{buildroot}%{_sysconfdir}/
 install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.service %{buildroot}%{_unitdir}
 install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.socket %{buildroot}%{_unitdir}
@@ -84,6 +86,7 @@ rm -rf %{buildroot}
 - Upnumbered genie-envar to fix missing path cloning on some systems.
 - Fixed typo in wslg-xwayland.socket.
 - Map XWayland socket only where WSLg is present and active.
+- Mount user runtime directory only where WSLg is present and user matches.
 
 * Thu Apr 22 2021 Alistair Young <avatar@arkane-systems.net> 1.39-1
 - Better WSLg support, based on the code of Daniel Llewellyn (@diddledan), here: https://github.com/diddledan/one-script-wsl2-systemd.
