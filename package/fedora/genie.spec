@@ -82,6 +82,8 @@ rm -rf %{buildroot}
 - Moved generic Linux/WSL functionality into shared assembly.
 - Fixed missing user-environment-generator in Fedora package.
 - Upnumbered genie-envar to fix missing path cloning on some systems.
+- Fixed typo in wslg-xwayland.socket.
+- Map XWayland socket only where WSLg is present and active.
 
 * Thu Apr 22 2021 Alistair Young <avatar@arkane-systems.net> 1.39-1
 - Better WSLg support, based on the code of Daniel Llewellyn (@diddledan), here: https://github.com/diddledan/one-script-wsl2-systemd.

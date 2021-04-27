@@ -1,7 +1,12 @@
+[Unit]
+Requires=systemd-tmpfiles-setup.service
+After=systemd-tmpfiles-setup.service
+ConditionVirtualization=microsoft
+ConditionPathExists=/mnt/wslg/.X11-unix/X0
+
 [Socket]
 ListenStream=/tmp/.X11-unix/X0
 
 [Install]
 WantedBy=sockets.target
-Requires=systemd-tmpfiles-setup.service
-After=systemd-tmpfiles-setup.service
+
