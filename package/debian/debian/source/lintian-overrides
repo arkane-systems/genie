@@ -1,0 +1,2 @@
+# Appears to be no other place to set this.
+debian-rules-sets-DEB_BUILD_OPTIONS line 9

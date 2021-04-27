@@ -7,6 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
+using ArkaneSystems.WindowsSubsystemForLinux;
+
 using static Tmds.Linux.LibC;
 
 using Process=System.Diagnostics.Process;
@@ -32,25 +34,25 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         {
             // *** PRELAUNCH CHECKS
             // Check that we are, in fact, running on Linux/WSL.
-            if (!Checks.IsLinux)
+            if (!PlatformChecks.IsLinux)
             {
                 Console.WriteLine ("genie: not executing on the Linux platform - how did we get here?");
                 return EBADF;
             }
 
-            if (Checks.IsWsl1)
+            if (PlatformChecks.IsWsl1)
             {
                 Console.WriteLine ("genie: systemd is not supported under WSL 1.");
                 return EPERM;
             }
 
-            if (!Checks.IsWsl2)
+            if (!PlatformChecks.IsWsl2)
             {
                 Console.WriteLine ("genie: not executing under WSL 2 - how did we get here?");
                 return EBADF;
             }
 
-            if (!Checks.IsSetuidRoot)
+            if (!UidChecks.IsEffectivelyRoot)
             {
                 Console.WriteLine ("genie: must execute as root - has the setuid bit gone astray?");
                 return EPERM;

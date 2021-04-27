@@ -39,11 +39,15 @@ package-inner:
 	ln -s ../libexec/genie/genie $(BINDIR)/genie
 
 	# Environment generator.
-	install -Dm 0755 -o root "othersrc/scripts/10-genie-envar.sh" -t "$(INSTALLDIR)"
+	install -Dm 0755 -o root "othersrc/scripts/80-genie-envar.sh" -t "$(INSTALLDIR)"
 	mkdir -p "$(ENVGENDIR)"
 	mkdir -p "$(USRENVGENDIR)"
-	ln -s ../../../libexec/genie/10-genie-envar.sh $(ENVGENDIR)/10-genie-envar.sh
-	ln -s ../../../libexec/genie/10-genie-envar.sh $(USRENVGENDIR)/10-genie-envar.sh
+	ln -s ../../../libexec/genie/80-genie-envar.sh $(ENVGENDIR)/80-genie-envar.sh
+	ln -s ../../../libexec/genie/80-genie-envar.sh $(USRENVGENDIR)/80-genie-envar.sh
+
+	# Runtime dir mapping
+	install -Dm 0755 -o root "othersrc/scripts/map-user-runtime-dir.sh" -t "$(INSTALLDIR)"
+	install -Dm 0755 -o root "othersrc/scripts/unmap-user-runtime-dir.sh" -t "$(INSTALLDIR)"
 
 	# Configuration file.
 	install -Dm 0644 -o root "othersrc/etc/genie.ini" -t "$(ETCDIR)"
