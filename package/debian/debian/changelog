@@ -6,7 +6,7 @@ systemd-genie (1.40) buster bullseye bookworm sid focal bionic; urgency=medium
         * Map XWayland socket only where WSLg is present and active.
         * Mount user runtime directory only where +WSLg and user matches.
 
- -- Alistair Young <avatar@arkane-systems.net>  Thu, 22 Apr 2021 18:00:00 -0500
+ -- Alistair Young <avatar@arkane-systems.net>  Tue, 27 Apr 2021 15:00:00 -0500
 
 systemd-genie (1.39) buster bullseye bookworm sid focal bionic; urgency=medium
 

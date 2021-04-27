@@ -79,7 +79,7 @@ rm -rf %{buildroot}
 %{_unitdir}/user-runtime-dir@.service.d/override.conf
 
 %changelog
-* Thu Apr 22 2021 Alistair Young <avatar@arkane-systems.net> 1.40-1
+* Tue Apr 27 2021 Alistair Young <avatar@arkane-systems.net> 1.40-1
 - Improved Fedora packaging to eliminate manual unit enable.
 - Moved generic Linux/WSL functionality into shared assembly.
 - Fixed missing user-environment-generator in Fedora package.
