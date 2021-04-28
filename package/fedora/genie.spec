@@ -40,6 +40,7 @@ install -d -p %{buildroot}%{_exec_prefix}/lib/systemd/user-environment-generator
 install -d -p %{buildroot}%{_bindir}
 install -d -p %{buildroot}%{_unitdir}
 install -d -p %{buildroot}%{_unitdir}/user-runtime-dir@.service.d
+install -d -p %{buildroot}%{_unitdir}/sockets.target.wants
 install -m 4755 -vp binsrc/genie/bin/Release/net5.0/linux-x64/publish/genie %{buildroot}%{_libexecdir}/%{name}
 install -m 0755 -vp binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl %{buildroot}%{_libexecdir}/%{name}
 install -m 0755 -vp othersrc/scripts/80-genie-envar.sh %{buildroot}%{_libexecdir}/%{name}

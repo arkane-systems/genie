@@ -49,6 +49,7 @@ package() {
 	# Unit files.
   install -Dm 0644 -o root "../othersrc/lib-systemd-system/wslg-xwayland.service" -t "${pkgdir}/usr/lib/systemd/system"
   install -Dm 0644 -o root "../othersrc/lib-systemd-system/wslg-xwayland.socket" -t "${pkgdir}/usr/lib/systemd/system"
+  mkdir -p ${pkgdir}/usr/lib/systemd/system/sockets.target.wants
   ln -s /usr/lib/systemd/system/wslg-xwayland.socket ${pkgdir}/usr/lib/systemd/system/sockets.target.wants/wslg-xwayland.socket
 
   install -Dm 0644 -o root "../othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf" -t "${pkgdir}/usr/lib/systemd/system/user-runtime-dir@.service.d"
