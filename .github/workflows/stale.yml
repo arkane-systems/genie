@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/stale@v1
+    - uses: actions/stale@main
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         stale-issue-message: 'There has been no activity on this issue for over 60 days. If there is no further activity within 7 days from this message, it will be automatically closed.'
@@ -19,3 +19,5 @@ jobs:
         stale-pr-label: 'no-pr-activity'
         exempt-issue-labels: 'on-hold'
         exempt-pr-labels: 'on-hold'
+        close-issue-label: 'closed-as-stale'
+        close-pr-label: 'closed-as-stale'
