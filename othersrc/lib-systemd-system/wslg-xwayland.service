@@ -1,7 +1,7 @@
 [Unit]
 Requires=wslg-xwayland.socket
 After=wslg-xwayland.socket
-ConditionVirtualization=microsoft
+ConditionVirtualization=wsl
 ConditionPathExists=/mnt/wslg/.X11-unix/X0
 
 [Service]
