@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -44,6 +45,32 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
                 // never reached
                 return 127;
+            }
+        }
+
+        // Run a subprocess and wait for it to exit, returning its output.
+        internal static string RunAndWaitForOutput (string command, string[] args)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo (command, string.Join(" ", args));
+                psi.UseShellExecute = false;
+                psi.RedirectStandardOutput = true;
+
+                var p = Process.Start(psi);
+
+                string output = p.StandardOutput.ReadToEnd();
+                p.WaitForExit();
+
+                return output;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine ($"genie: error executing command '{command} {string.Join(' ', args)}':\r\n{ex.Message}");
+                Environment.Exit (127);
+
+                // never reached
+                return "never-reached";
             }
         }
 

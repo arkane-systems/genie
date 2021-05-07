@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <VersionPrefix>1.40</VersionPrefix>
+    <VersionPrefix>1.41</VersionPrefix>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>false</SelfContained>

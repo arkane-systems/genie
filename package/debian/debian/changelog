@@ -1,8 +1,10 @@
 systemd-genie (1.41) buster bullseye bookworm sid focal bionic; urgency=medium
 
         * Moved user-runtime-dir@.service override to ExecStartPost.
+        * Fix virtualization detection for non-custom kernels.
+        * Detect slow-start as different from failed-start.
 
- -- Alistair Young <avatar@arkane-systems.net>  Tue, 27 Apr 2021 15:00:00 -0500
+ -- Alistair Young <avatar@arkane-systems.net>  Thu, 06 May 2021 23:40:00 -0500
 
 systemd-genie (1.40) buster bullseye bookworm sid focal bionic; urgency=medium
 

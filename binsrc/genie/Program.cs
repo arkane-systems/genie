@@ -434,11 +434,21 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 timeout--;
                 if (timeout < 0)
                 {
-                    Console.WriteLine("\n\nTimed out waiting for systemd to enter running state.\nThis may indicate a systemd configuration error.\nAttempting to continue.\nFailed units will now be displayed (systemctl list-units --failed):");
+                    // What state are we in?
+                    var state = Helpers.RunAndWaitForOutput ("sh", new string[] {"-c", $"nsenter -t {systemdPid} -m -p systemctl is-system-running 2> /dev/null"});
 
-                    Helpers.Chain ("nsenter",
-                        new string[] {"-t", systemdPid.ToString(), "-m", "-p", "systemctl", "list-units", "--failed"},
-                        "running command failed; nsenter for systemctl list-units --failed");
+                    if (state.StartsWith("starting"))
+                    {
+                        Console.WriteLine("\n\nSystemd is still starting. This may indicate a unit is being slow to start.\nAttempting to continue.\n");
+                    }
+                    else
+                    {
+                        Console.WriteLine("\n\nTimed out waiting for systemd to enter running state.\nThis may indicate a systemd configuration error.\nAttempting to continue.\nFailed units will now be displayed (systemctl list-units --failed):");
+
+                        Helpers.Chain ("nsenter",
+                         new string[] {"-t", systemdPid.ToString(), "-m", "-p", "systemctl", "list-units", "--failed"},
+                         "running command failed; nsenter for systemctl list-units --failed");
+                    }
 
                     break;
                 }
