@@ -81,11 +81,10 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             // *** PARSE COMMAND-LINE
             // Create options.
-            Option optVerbose = new Option ("--verbose",
-                                            "Display verbose progress messages");
+            Option optVerbose = new Option<bool> ("--verbose",
+                                                  getDefaultValue: () => false,
+                                                  description: "Display verbose progress messages");
             optVerbose.AddAlias ("-v");
-            optVerbose.Argument = new Argument<bool>();
-            optVerbose.Argument.SetDefaultValue(false);
 
             // Add them to the root command.
             var rootCommand = new RootCommand();
@@ -177,7 +176,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             // Daemonize expects real uid root as well as effective uid root.
             using (var r = new RootPrivilege())
-            {            
+            {
                 // Init the bottle.
                 InitializeBottle(verbose);
             }
@@ -410,7 +409,6 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 systemdPid = Helpers.GetSystemdPid();
 
                 Console.Write (".");
-
             } while ( systemdPid == 0);
 
             // Now that systemd exists, write out its (external) PID.
@@ -435,7 +433,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 if (timeout < 0)
                 {
                     // What state are we in?
-                    var state = Helpers.RunAndWaitForOutput ("sh", new string[] {"-c", $"nsenter -t {systemdPid} -m -p systemctl is-system-running 2> /dev/null"});
+                    var state = Helpers.RunAndWaitForOutput ("sh", new string[] {"-c", $"\"nsenter -t {systemdPid} -m -p systemctl is-system-running 2> /dev/null\""});
 
                     if (state.StartsWith("starting"))
                     {

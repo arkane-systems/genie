@@ -27,7 +27,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         }
 
         #region Subprocesses
-        
+
         // Run a subprocess and wait for it to exit, returning its return code.
         internal static int RunAndWait (string command, string[] args)
         {

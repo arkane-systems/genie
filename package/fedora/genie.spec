@@ -1,5 +1,5 @@
 %global project https://github.com/arkane-systems/genie/
-%global version 1.41
+%global version 1.42
 
 # debuginfo is 'not supported' for .NET binaries
 %global debug_package %{nil}
@@ -80,6 +80,9 @@ rm -rf %{buildroot}
 %{_unitdir}/user-runtime-dir@.service.d/override.conf
 
 %changelog
+* Thu May 06 2021 Alistair Young <avatar@arkane-systems.net> 1.42-1
+- Regression fixes.
+
 * Thu May 06 2021 Alistair Young <avatar@arkane-systems.net> 1.41-1
 - Moved user-runtime-dir@.service override to ExecStartPost.
 - Fix virtualization detection for non-custom kernels.
