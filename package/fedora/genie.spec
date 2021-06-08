@@ -38,6 +38,7 @@ install -d -p %{buildroot}%{_sysconfdir}
 install -d -p %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generators
 install -d -p %{buildroot}%{_exec_prefix}/lib/systemd/user-environment-generators
 install -d -p %{buildroot}%{_exec_prefix}/lib/tmpfiles.d
+install -d -p %{buildroot}%{_exec_prefix}/lib/binfmt.d
 install -d -p %{buildroot}%{_bindir}
 install -d -p %{buildroot}%{_unitdir}
 install -d -p %{buildroot}%{_unitdir}/user-runtime-dir@.service.d
@@ -52,6 +53,7 @@ install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.service %{buildroo
 install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.socket %{buildroot}%{_unitdir}
 install -m 0644 -vp othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf %{buildroot}%{_unitdir}/user-runtime-dir@.service.d
 install -m 0644 -vp othersrc/usr-lib/tmpfiles.d/genie-stub-resolv.conf" %{buildroot}%{_exec_prefix}/lib/tmpfiles.d/
+install -m 0644 -vp othersrc/usr-lib/binfmt.d/WSLInterop.conf" %{buildroot}%{_exec_prefix}/lib/binfmt.d/
 ln -sf %{_libexecdir}/%{name}/%{name} %{buildroot}%{_bindir}/%{name}
 ln -sf %{_libexecdir}/%{name}/80-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generators/
 ln -sf %{_libexecdir}/%{name}/80-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/systemd/user-environment-generators/
@@ -67,6 +69,7 @@ rm -f %{_unitdir}/wslg-xwayland.service
 rm -f %{_unitdir}/wslg-xwayland.socket
 rm -f %{_unitdir}/user-runtime-dir@.service.d/override.conf
 rm -f %{_exec_prefix}/lib/tmpfiles.d/genie-stub-resolv.conf
+rm -f %{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
 
 %clean
 rm -rf %{buildroot}
@@ -82,11 +85,13 @@ rm -rf %{buildroot}
 %{_unitdir}/sockets.target.wants/wslg-xwayland.socket
 %{_unitdir}/user-runtime-dir@.service.d/override.conf
 %{_exec_prefix}/lib/tmpfiles.d/genie-stub-resolv.conf
+%{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
 
 %changelog
 * Tue Jun 08 2021 Alistair Young <avatar@arkane-systems.net> 1.43-1
 - Based on collated systemd-analyze results, re-upped systemd startup timeout to 240.
-- Added automated creation of resolv.conf symlink.
+- Added automated creation of resolv.conf symlink (per #130).
+- Added fix for binfmt mount (per #142).
 
 * Thu May 06 2021 Alistair Young <avatar@arkane-systems.net> 1.42-1
 - Regression fixes.

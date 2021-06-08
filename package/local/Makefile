@@ -11,6 +11,7 @@ ETCDIR = /etc
 MAN8DIR = /usr/local/share/man/man8
 SVCDIR = /etc/systemd/system
 USRLIBDIR = /usr/lib
+LIBDIR = /lib
 
 #
 # Default target: package.
@@ -49,6 +50,9 @@ package:
 
 	# tmpfiles.d
 	install -Dm 0644 -o root "othersrc/usr-lib/tmpfiles.d/genie-stub-resolv.conf" -t "$(USRLIBDIR)/tmpfiles.d"
+
+	# binfmt.d
+	install -Dm 0644 -o root "othersrc/usr-lib/binfmt.d/WSLInterop.conf" -t "$(LIBDIR)/binfmt.d"
 
 	# enable units
 	ln -s $(SVCDIR)/wslg-xwayland.socket $(SVCDIR)/sockets.target.wants/wslg-xwayland.socket

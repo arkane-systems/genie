@@ -14,6 +14,7 @@ ETCDIR = $(DESTDIR)/etc
 MAN8DIR = $(DESTDIR)/usr/share/man/man8
 SVCDIR = $(DESTDIR)/lib/systemd/system
 USRLIBDIR = $(DESTDIR)/usr/lib
+LIBDIR = $(DESTDIR)/lib
 
 #
 # Default target: package.
@@ -61,6 +62,9 @@ package-inner:
 
 	# tmpfiles.d
 	install -Dm 0644 -o root "othersrc/usr-lib/tmpfiles.d/genie-stub-resolv.conf" -t "$(USRLIBDIR)/tmpfiles.d"
+
+	# binfmt.d
+	install -Dm 0644 -o root "othersrc/usr-lib/binfmt.d/WSLInterop.conf" -t "$(LIBDIR)/binfmt.d"
 
     # Man page.
 	# Make sure directory exists.
