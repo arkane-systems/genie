@@ -13,6 +13,7 @@ USRENVGENDIR = $(DESTDIR)/usr/lib/systemd/user-environment-generators
 ETCDIR = $(DESTDIR)/etc
 MAN8DIR = $(DESTDIR)/usr/share/man/man8
 SVCDIR = $(DESTDIR)/lib/systemd/system
+USRLIBDIR = $(DESTDIR)/usr/lib
 
 #
 # Default target: package.
@@ -57,6 +58,9 @@ package-inner:
 	install -Dm 0644 -o root "othersrc/lib-systemd-system/wslg-xwayland.socket" -t "$(SVCDIR)"
 
 	install -Dm 0644 -o root "othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf" -t "$(SVCDIR)/user-runtime-dir@.service.d"
+
+	# tmpfiles.d
+	install -Dm 0644 -o root "othersrc/usr-lib/tmpfiles.d/genie-stub-resolv.conf" -t "$(USRLIBDIR)/tmpfiles.d"
 
     # Man page.
 	# Make sure directory exists.

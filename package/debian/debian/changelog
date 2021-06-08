@@ -2,6 +2,7 @@ systemd-genie (1.43) buster bullseye bookworm sid focal bionic; urgency=medium
 
         * Based on collated systemd-analyze results, re-upped systemd startup
           timeout to 240.
+        * Added automated creation of resolv.conf symlink.
 
  -- Alistair Young <avatar@arkane-systems.net>  Tue, 08 Jun 2021 05:40:00 -0500
 

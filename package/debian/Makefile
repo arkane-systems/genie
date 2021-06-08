@@ -10,6 +10,7 @@ INSTALLDIR = $(DESTDIR)/usr/libexec/genie
 BINDIR = $(DESTDIR)/usr/bin
 ETCDIR = $(DESTDIR)/etc
 SVCDIR = $(DESTDIR)/lib/systemd/system
+USRLIBDIR = $(DESTDIR)/usr/lib
 
 #
 # Default target: package.
@@ -48,6 +49,9 @@ package-inner:
 	install -Dm 0644 -o root "othersrc/lib-systemd-system/wslg-xwayland.socket" -t "$(SVCDIR)"
 
 	install -Dm 0644 -o root "othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf" -t "$(SVCDIR)/user-runtime-dir@.service.d"
+
+	# tmpfiles.d
+	install -Dm 0644 -o root "othersrc/usr-lib/tmpfiles.d/genie-stub-resolv.conf" -t "$(USRLIBDIR)/tmpfiles.d"
 
 clean:
 	debuild -- clean
