@@ -390,6 +390,24 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (Config.UpdateHostname)
                 Helpers.UpdateHostname (verbose);
 
+            // Unmount the binfmts fs before starting systemd, so systemd can mount it
+            // again with all the trimmings.
+            if (Directory.Exists("/proc/sys/fs/binfmt_misc"))
+            {
+                if (verbose)
+                    Console.WriteLine ("genie: unmounting binfmt_misc filesystem before proceeding");
+
+                if (!MountHelpers.UnMount ("/proc/sys/fs/binfmt_misc"))
+                {
+                    Console.WriteLine ("genie: failed to unmount binfmt_misc filesystem; attempting to continue");
+                }
+            }
+            else
+            {
+                if (verbose)
+                    Console.WriteLine ("genie: no binfmt_misc filesystem present");
+            }
+
             // Run systemd in a container.
             if (verbose)
                 Console.WriteLine ("genie: starting systemd.");
