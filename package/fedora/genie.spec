@@ -81,7 +81,7 @@ rm -rf %{buildroot}
 
 %changelog
 * Tue Jun 08 2021 Alistair Young <avatar@arkane-systems.net> 1.43-1
-- 
+- Based on collated systemd-analyze results, re-upped systemd startup timeout to 360.
 
 * Thu May 06 2021 Alistair Young <avatar@arkane-systems.net> 1.42-1
 - Regression fixes.
