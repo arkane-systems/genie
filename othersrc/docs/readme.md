@@ -28,7 +28,7 @@ Dependent packages on Debian are _daemonize_, _dbus_, _dotnet-runtime-5.0_, _gaw
 
 The chief exception is _dotnet-runtime-5.0_ , for which you will need to follow the installation instructions here:
 
-https://dotnet.microsoft.com/download/
+https://docs.microsoft.com/en-us/dotnet/core/install/linux
 
 To install, add the wsl-translinux repository here by following the instructions here:
 
