@@ -52,8 +52,8 @@ install -m 0644 -vp othersrc/etc/genie.ini %{buildroot}%{_sysconfdir}/
 install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.service %{buildroot}%{_unitdir}
 install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.socket %{buildroot}%{_unitdir}
 install -m 0644 -vp othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf %{buildroot}%{_unitdir}/user-runtime-dir@.service.d
-install -m 0644 -vp othersrc/usr-lib/tmpfiles.d/genie-stub-resolv.conf" %{buildroot}%{_exec_prefix}/lib/tmpfiles.d/
-install -m 0644 -vp othersrc/usr-lib/binfmt.d/WSLInterop.conf" %{buildroot}%{_exec_prefix}/lib/binfmt.d/
+install -m 0644 -vp othersrc/usr-lib/tmpfiles.d/genie-stub-resolv.conf %{buildroot}%{_exec_prefix}/lib/tmpfiles.d/
+install -m 0644 -vp othersrc/usr-lib/binfmt.d/WSLInterop.conf %{buildroot}%{_exec_prefix}/lib/binfmt.d/
 ln -sf %{_libexecdir}/%{name}/%{name} %{buildroot}%{_bindir}/%{name}
 ln -sf %{_libexecdir}/%{name}/80-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generators/
 ln -sf %{_libexecdir}/%{name}/80-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/systemd/user-environment-generators/
