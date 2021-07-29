@@ -88,7 +88,7 @@ rm -rf %{buildroot}
 %{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
 
 %changelog
-* Tue Jun 08 2021 Alistair Young <avatar@arkane-systems.net> 1.43-1
+* Thu Jul 29 2021 Alistair Young <avatar@arkane-systems.net> 1.43-1
 - Based on collated systemd-analyze results, re-upped systemd startup timeout to 240.
 - Added automated creation of resolv.conf symlink (per #130).
 - Added fix for binfmt mount (per #142).
