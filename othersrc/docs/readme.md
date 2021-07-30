@@ -160,6 +160,8 @@ Meanwhile, _genie -u_ , run from outside the bottle, will shut down systemd clea
 
 _genie -r_ and _genie -b_ are informational commands for use in checking the state of the system and/or scripting genie. The former checks whether genie (and an associated systemd(1) instance) is currently running. It returns the string "running" and exit code 0 if one is found; it returns the string "stopped" and exit code 1 if one is not. The latter checks whether the current command is executing inside the bottle. It returns the string "inside" and exit code 0 if so; it returns the string "outside" and exit code 1 if one is not. If no bottle exists, it returns the string "no-bottle" and exit code 2.
 
+**NOTE 3:** _genie -r_ and _genie -b_ cannot, obviously, look above the systemd process in the process tree, since that would pass out of the bottle's PID namespace. As such, running these commands on a non-genie system (why would you do that?) will detect the system systemd instance and indicate that genie is running and you are within the bottle. Since the behavior of such a system should be indistinguishable from a genie bottle from within, this is not considered a bug.
+
 While running, genie stores the external PID of the systemd instance in the file _/run/genie.systemd.pid_ for use in user scripting. It does not provide a similar file for the internal PID for obvious reasons.
 
 While not compulsory, it is recommended that you shut down and restart the WSL distro before using genie again after you have used _genie -u_. See BUGS, below, for more details.
