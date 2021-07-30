@@ -58,7 +58,7 @@ package() {
   install -Dm 0644 -o root "../othersrc/usr-lib/tmpfiles.d/genie-stub-resolv.conf" -t "${pkgdir}/usr/lib/tmpfiles.d"
 
   # binfmt.d
-  install -Dm 0644 -o root "../othersrc/usr-lib/binfmt.d/WSLInterop.conf" -t "${pkgdir}/lib/binfmt.d"
+  install -Dm 0644 -o root "../othersrc/usr-lib/binfmt.d/WSLInterop.conf" -t "${pkgdir}/usr/lib/binfmt.d"
 
   # man page
   cp ../othersrc/docs/genie.8 /tmp/genie.8
