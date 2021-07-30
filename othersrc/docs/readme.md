@@ -117,7 +117,7 @@ The _clone-env_ setting lists the environment variables which are copied from ou
 
 The _systemd-timeout_ setting controls how long (the number of seconds) genie will wait when initializing the bottle for _systemd_ to reach its "running" - i.e. fully operational, with all units required by the default target active - state. This defaults to 240 seconds.
 
-_genie_ (1.39+) also installs a pair of systemd units (_wslg-xwayland.service_ and _wslg-xwayland.socket_ and an override for _user-runtime-dir@.service_) to ensure that WSLg operates correctly from inside the bottle. If desired, these can be disabled and enabled independently of genie itself.
+_genie_ (1.39+) also installs a pair of systemd units (_wslg-xwayland.service_ and _wslg-xwayland.socket_ and an override for _user-runtime-dir@.service_) to ensure that WSLg operates correctly from inside the bottle. If desired, these can be disabled and enabled independently of _genie_ itself. _genie_ (1.43+) also automatically recreates the _resolv.conf_ symlink needed by _systemd-resolved_, and unmounts _/proc/sys/fs/binfmt_misc_ pre-bottle creation to prevent issues with _systemd-binfmt.service_ .
 
 ## USAGE
 
