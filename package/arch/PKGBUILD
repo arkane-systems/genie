@@ -1,7 +1,7 @@
 # Maintainer: Xuanrui Qi <me@xuanruiqi.com>
 # Contributor: Rayfalling <Rayfalling@outlook.com>
 # Contributor: facekapow, rayfalling, Ducksoft
-pkgname=systemd-genie
+pkgname=genie-systemd
 _pkgname=genie
 pkgver=1.43
 pkgrel=1
