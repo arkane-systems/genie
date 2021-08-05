@@ -158,9 +158,11 @@ _genie -c [command]_ runs _command_ inside the bottle, then exits. The return co
 
 Meanwhile, _genie -u_ , run from outside the bottle, will shut down systemd cleanly and exit the bottle. This uses the _systemctl poweroff_ command to simulate a normal Linux system shutting down. It is suggested that this be used before shutting down Windows or restarting the Linux distribution to ensure a clean shutdown of systemd services.
 
+**NOTE 3:** genie is not and cannot be idempotent. As such, it is strongly recommended that you do not restart genie or continue to use the WSL distro session after using _genie -u_. See BUGS, below.
+
 _genie -r_ and _genie -b_ are informational commands for use in checking the state of the system and/or scripting genie. The former checks whether genie (and an associated systemd(1) instance) is currently running. It returns the string "running" and exit code 0 if one is found; it returns the string "stopped" and exit code 1 if one is not. The latter checks whether the current command is executing inside the bottle. It returns the string "inside" and exit code 0 if so; it returns the string "outside" and exit code 1 if one is not. If no bottle exists, it returns the string "no-bottle" and exit code 2.
 
-**NOTE 3:** _genie -r_ and _genie -b_ cannot, obviously, look above the systemd process in the process tree, since that would pass out of the bottle's PID namespace. As such, running these commands on a non-genie system (why would you do that?) will detect the system systemd instance and indicate that genie is running and you are within the bottle. Since the behavior of such a system should be indistinguishable from a genie bottle from within, this is not considered a bug.
+**NOTE 4:** _genie -r_ and _genie -b_ cannot, obviously, look above the systemd process in the process tree, since that would pass out of the bottle's PID namespace. As such, running these commands on a non-genie system (why would you do that?) will detect the system systemd instance and indicate that genie is running and you are within the bottle. Since the behavior of such a system should be indistinguishable from a genie bottle from within, this is not considered a bug.
 
 While running, genie stores the external PID of the systemd instance in the file _/run/genie.systemd.pid_ for use in user scripting. It does not provide a similar file for the internal PID for obvious reasons.
 
@@ -184,10 +186,8 @@ Further tips on usage from other genie users can be found on the wiki for this r
 
 ## BUGS
 
-1. It is considerably clunkier than I'd like it to be, inasmuch as you have to invoke genie every time to get inside the bottle, either manually (replacing, for example, _wsl [command]_ with _wsl genie -c [command]_), or by using your own shortcut in place of the one WSL gives you for the distro, using which will put you _outside_ the bottle. Pull requests, etc.
+1. It is considerably clunkier than I'd like it to be, inasmuch as you have to invoke genie every time to get inside the bottle, either manually (replacing, for example, _wsl [command]_ with _wsl genie -c [command]_), or by using your own shortcut in place of the one WSL gives you for the distro, using which will put you _outside_ the bottle. Pull requests, etc. But see also [RunInGenie](https://github.com/arkane-systems/RunInGenie)!
 
-But see also [RunInGenie](https://github.com/arkane-systems/RunInGenie)!
-
-2. genie is not idempotent; i.e., it is possible that changes made by genie or by systemd inside the bottle will not be perfectly reverted when the genie bottle is shut down with _genie -u_ . As such, it is recommended that you terminate the entire wsl session with _wsl -t <distro>_ or _wsl --shutdown_ in between stopping and restarting the bottle, or errors may occur.
+2. genie is not idempotent; i.e., it is possible that changes made by genie or by systemd inside the bottle will not be perfectly reverted when the genie bottle is shut down with _genie -u_ . (Linux pid/mount namespaces aren't perfect containers, and systemd units and other actions inside the bottle can and will change things that affect the outside of the bottle, possibly even across distros. And note that _genie -u_ calls _systemctl poweroff_ which believes that it is shutting down the entire machine; the in-bottle systemd is a full systemd installation, not a cut-down container install.) As such, it is **strongly recommended** that you terminate the entire wsl session with _wsl -t <distro>_ or _wsl --shutdown_ in between stopping and restarting the bottle, or errors may occur; we cannot support such scenarios.
 
 3. As of 1.38, while WSLg operates correctly with _genie_ and GUI apps can be run from inside the bottle, Linux GUI apps started from the Windows Start Menu items created by WSLg will run outside the bottle. This is being worked on.
