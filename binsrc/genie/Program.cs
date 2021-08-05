@@ -311,6 +311,20 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
                 Console.WriteLine();
 
+                // Having unmounted the binfmts fs before starting systemd, we remount it now as
+                // a courtesy. But remember, genie is not guaranteed to be idempotent, so don't
+                // rely on this, for the love of Thompson and Ritchie!
+                if (!Directory.Exists("/proc/sys/fs/binfmt_misc"))
+                {
+                    if (verbose)
+                        Console.WriteLine ("genie: remounting binfmt_misc filesystem as a courtesy");
+
+                    if (!MountHelpers.Mount("binfmt_misc", "binfmt_misc", "/proc/sys/fs/binfmt_misc"))
+                    {
+                        Console.WriteLine ("genie: failed to remount binfmt_misc filesystem; attempting to continue");
+                    }
+                }
+
                 if (Config.UpdateHostname)
                 {
                     Thread.Sleep (500);

@@ -1,5 +1,5 @@
 %global project https://github.com/arkane-systems/genie/
-%global version 1.43
+%global version 1.44
 
 # debuginfo is 'not supported' for .NET binaries
 %global debug_package %{nil}
@@ -88,6 +88,9 @@ rm -rf %{buildroot}
 %{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
 
 %changelog
+* Thu Jul 29 2021 Alistair Young <avatar@arkane-systems.net> 1.44-1
+- Standardized use of /usr/lib rather than /lib.
+
 * Thu Jul 29 2021 Alistair Young <avatar@arkane-systems.net> 1.43-1
 - Based on collated systemd-analyze results, re-upped systemd startup timeout to 240.
 - Added automated creation of resolv.conf symlink (per #130).
