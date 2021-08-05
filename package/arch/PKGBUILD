@@ -1,8 +1,8 @@
 # Maintainer: Xuanrui Qi <me@xuanruiqi.com>
 # Contributor: Rayfalling <Rayfalling@outlook.com>
 # Contributor: facekapow, rayfalling, Ducksoft
-pkgname=genie-systemd
 _pkgname=genie
+pkgname=${_pkgname}-systemd
 pkgver=1.44
 pkgrel=1
 pkgdesc="A quick way into a systemd \"bottle\" for WSL"
