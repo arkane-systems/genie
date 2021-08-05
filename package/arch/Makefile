@@ -8,6 +8,7 @@
 
 package:
 	# Packaging for Arch.
+	updpkgsums
 	makepkg
 	mkdir -p ../../out/arch
 	mv genie* ../../out/arch
