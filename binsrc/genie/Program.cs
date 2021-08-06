@@ -319,7 +319,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                     if (verbose)
                         Console.WriteLine ("genie: remounting binfmt_misc filesystem as a courtesy");
 
-                    if (!MountHelpers.Mount("binfmt_misc", "binfmt_misc", "/proc/sys/fs/binfmt_misc"))
+                    if (!MountHelpers.Mount("binfmt_misc", "/proc/sys/fs/binfmt_misc", FsType.BinaryFormats))
                     {
                         Console.WriteLine ("genie: failed to remount binfmt_misc filesystem; attempting to continue");
                     }
