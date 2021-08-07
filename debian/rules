@@ -12,13 +12,13 @@ export DEB_BUILD_OPTIONS = nostrip
 	dh $@
 
 override_dh_auto_build:
-	make build-inner
+	make build-binaries
 
 override_dh_auto_install:
-	make package-inner
+	make internal-debian-package
 
 override_dh_auto_clean:
-	make clean-inner
+	make internal-debian-clean
 
 # Allow our setuid executable to pass unfixed.
 override_dh_fixperms:

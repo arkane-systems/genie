@@ -3,12 +3,13 @@ dist/
 out/
 
 # Debian build intermediates
-package/debian/debian/systemd-genie
-package/debian/debian/.debhelper/
-package/debian/debian/debhelper-build-stamp
-package/debian/debian/files
-package/debian/debian/systemd-genie.*
-package/systemd-genie*
+
+debian/systemd-genie
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/systemd-genie.*
+debian/genie-*
 
 # Arch build intermediates
 
