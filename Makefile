@@ -131,14 +131,14 @@ build-binaries:
 # Altpacking
 #
 
-# package-arch: make-output-directory
-# 	make -C package/arch package
+package-arch: make-output-directory
+	make -C package/arch package
 
-# clean-arch:
-# 	make -C package/arch clean
+clean-arch:
+	make -C package/arch clean
 
-# package-fedora: make-output-directory # build-binaries
-# 	make -C package/fedora package
+package-fedora: make-output-directory # build-binaries
+	make -C package/fedora package
 
-# clean-fedora:
-# 	make -C package/fedora clean
+clean-fedora:
+	make -C package/fedora clean
