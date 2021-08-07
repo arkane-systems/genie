@@ -27,7 +27,8 @@ jobs:
 
     - name: Make Debian Package
       uses: dawidd6/action-debian-package@v1
-      artifacts_directory: out/debian
+      with:
+        artifacts_directory: out/debian
 
     - name: Update Release
       uses: xresloader/upload-to-github-release@v1
