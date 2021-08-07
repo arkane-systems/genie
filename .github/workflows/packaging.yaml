@@ -3,6 +3,7 @@ name: packaging
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 jobs:
   build-deb:
