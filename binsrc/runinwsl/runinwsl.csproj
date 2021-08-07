@@ -14,11 +14,7 @@
   <ItemGroup>
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Tmds.LibC" Version="0.5.0" />
-  </ItemGroup>
-
+  
   <PropertyGroup Condition="'$(Configuration)' == 'ReleaseLocal'">
     <ConfigurationGroup>Release</ConfigurationGroup>
     <DefineConstants>LOCAL</DefineConstants>
