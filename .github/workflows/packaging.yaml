@@ -11,8 +11,8 @@ jobs:
 
     steps:
         
-    - name: Install dependencies
-      run: sudo apt install devscripts debhelper
+#   - name: Install dependencies
+#     run: sudo apt install devscripts debhelper
 
     - name: Import GPG Key
       uses: crazy-max/ghaction-import-gpg@v1
@@ -28,6 +28,7 @@ jobs:
     - name: Make Debian Package
       uses: dawidd6/action-debian-package@v1
       with:
+        os_distribution: sid
         artifacts_directory: out/debian
 
     - name: Update Release
