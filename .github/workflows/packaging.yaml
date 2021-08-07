@@ -1,4 +1,4 @@
-name: build-deb
+name: packaging
 
 on:
   release:
