@@ -5,7 +5,7 @@ systemd-genie (1.44) buster bullseye bookworm sid focal bionic; urgency=medium
         * Made genie resolv.conf stub option-controlled.
         * Misc fixes.
 
- -- Alistair Young <avatar@arkane-systems.net>  Thu, 29 Jul 2021 05:40:00 -0500
+ -- Alistair Young <avatar@arkane-systems.net>  Sat, 08 Aug 2021 16:40:00 -0500
 
 systemd-genie (1.43) buster bullseye bookworm sid focal bionic; urgency=medium
 
