@@ -1,0 +1,24 @@
+name: build-deb
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-deb:
+    runs-on: ubuntu-20.04
+
+    steps:
+        
+    - name: Install dependencies
+      run: sudo apt install devscripts debhelper
+
+    - run: apt-cache show debhelper
+    
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        ref: $GITHUB_REF
+
+    - name: Make Binaries
+      run: make package-debian
