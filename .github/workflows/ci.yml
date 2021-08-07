@@ -11,12 +11,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-        
-#    - name: Install dependencies
-#      run: sudo apt install devscripts debhelper
-
-#    - run: apt-cache show debhelper
-    
+           
     - name: Checkout
       uses: actions/checkout@v2
 
