@@ -93,7 +93,7 @@ systemctl enable wslg-xwayland.socket
 
 ## CONFIGURATION FILE
 
-That would be the file _/etc/genie.ini_. This defines the secure path (i.e., those directories in which genie will look for the utilities it depends on), and the explicit path to _unshare(1)_, required by _daemonize(1)_, and three settings controlling genie behavior. Normally, it looks like this:
+That would be the file _/etc/genie.ini_. This defines the secure path (i.e., those directories in which genie will look for the utilities it depends on), and the explicit path to _unshare(1)_, required by _daemonize(1)_, and five settings controlling genie behavior. Normally, it looks like this:
 
 ```
 [genie]
@@ -103,6 +103,7 @@ update-hostname=true
 clone-path=false
 clone-env=WSL_DISTRO_NAME,WSL_INTEROP,WSLENV,DISPLAY,WAYLAND_DISPLAY,PULSE_SERVER
 systemd-timeout=240
+resolved-stub=false
 ```
 
 The _secure-path_ setting should be generic enough to cover all but the weirdest Linux filesystem layouts, but on the off-chance that yours stores binaries somewhere particularly idiosyncratic, you can change it here. Meanwhile, the _unshare_ setting is much more likely to be system-dependent; if you are getting errors running genie, please replace this with the output of `which unshare` before trying anything else.
@@ -117,7 +118,9 @@ The _clone-env_ setting lists the environment variables which are copied from ou
 
 The _systemd-timeout_ setting controls how long (the number of seconds) genie will wait when initializing the bottle for _systemd_ to reach its "running" - i.e. fully operational, with all units required by the default target active - state. This defaults to 240 seconds.
 
-_genie_ (1.39+) also installs a pair of systemd units (_wslg-xwayland.service_ and _wslg-xwayland.socket_ and an override for _user-runtime-dir@.service_) to ensure that WSLg operates correctly from inside the bottle. If desired, these can be disabled and enabled independently of _genie_ itself. _genie_ (1.43+) also automatically recreates the _resolv.conf_ symlink needed by _systemd-resolved_, and unmounts _/proc/sys/fs/binfmt_misc_ pre-bottle creation to prevent issues with _systemd-binfmt.service_ .
+_genie_ (1.44+) provides the _resolved-stub_ option to automatically back up the existing _/etc/resolv.conf_ and replace it with the symlink necessary to run _systemd-resolved_ in stub mode when initializing the bottle, and revert to the backup when the bottle terminates. (**NOTE:** This last is a courtesy and should NOT be interpreted as meaning idempotency is supported in any way; see _BUGS_ .) 1.43 performed this action by default; upgraders from 1.43 who wish to retain this behavior must set _resolved-stub=true_ in the configuration file.
+
+_genie_ (1.39+) also installs a pair of systemd units (_wslg-xwayland.service_ and _wslg-xwayland.socket_ and an override for _user-runtime-dir@.service_) to ensure that WSLg operates correctly from inside the bottle. If desired, these can be disabled and enabled independently of _genie_ itself.
 
 ## USAGE
 

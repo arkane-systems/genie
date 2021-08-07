@@ -87,8 +87,9 @@ rm -rf %{buildroot}
 %changelog
 * Thu Jul 29 2021 Alistair Young <avatar@arkane-systems.net> 1.44-1
 - Standardized use of /usr/lib rather than /lib.
-- Updated to ArkaneSystems.WSL 0.2.0.
-- Made stub resolv.conf file optional.
+- Updated to ArkaneSystems.WSL 0.2.13.
+- Made stub resolv.conf file option-controlled.
+- Misc fixes.
 
 * Thu Jul 29 2021 Alistair Young <avatar@arkane-systems.net> 1.43-1
 - Based on collated systemd-analyze results, re-upped systemd startup timeout to 240.
