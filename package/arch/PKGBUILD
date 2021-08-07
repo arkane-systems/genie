@@ -56,9 +56,6 @@ package() {
 
   install -Dm0644 othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf -t ${pkgdir}/usr/lib/systemd/system/user-runtime-dir@.service.d
 
-  # tmpfiles.d
-  install -Dm0644 othersrc/usr-lib/tmpfiles.d/genie-stub-resolv.conf -t ${pkgdir}/usr/lib/tmpfiles.d
-
   # binfmt.d
   install -Dm0644 othersrc/usr-lib/binfmt.d/WSLInterop.conf -t ${pkgdir}/usr/lib/binfmt.d
 

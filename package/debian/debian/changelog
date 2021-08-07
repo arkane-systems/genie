@@ -1,6 +1,8 @@
 systemd-genie (1.44) buster bullseye bookworm sid focal bionic; urgency=medium
 
         * Standardized use of /usr/lib rather than /lib.
+        * Updated ArkaneSystems.WSL to 0.2.0.
+        * Made genie resolv.conf stub optional.
 
  -- Alistair Young <avatar@arkane-systems.net>  Thu, 29 Jul 2021 05:40:00 -0500
 
