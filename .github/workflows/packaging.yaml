@@ -25,5 +25,14 @@ jobs:
       with:
         ref: ${{ env.GITHUB_REF }}
 
-    - name: Make Binaries
+    - name: Make Debian Package
       run: make package-debian
+
+    - name: Update Release
+      uses: xresloader/upload-to-github-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        file: out/debian/*
+        overwrite: true
+        update_latest_release: true
