@@ -26,9 +26,8 @@ jobs:
         ref: ${{ env.GITHUB_REF }}
 
     - name: Make Debian Package
-      run: |
-        export GPG_TTY=$(tty)
-        make package-debian
+      uses: dawidd6/action-debian-package@v1
+      artifacts_directory: out/debian
 
     - name: Update Release
       uses: xresloader/upload-to-github-release@v1
