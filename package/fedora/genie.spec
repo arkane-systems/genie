@@ -1,5 +1,5 @@
 %global project https://github.com/arkane-systems/genie/
-%global version 1.43
+%global version 1.44
 
 # debuginfo is 'not supported' for .NET binaries
 %global debug_package %{nil}
@@ -52,7 +52,6 @@ install -m 0644 -vp othersrc/etc/genie.ini %{buildroot}%{_sysconfdir}/
 install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.service %{buildroot}%{_unitdir}
 install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.socket %{buildroot}%{_unitdir}
 install -m 0644 -vp othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf %{buildroot}%{_unitdir}/user-runtime-dir@.service.d
-install -m 0644 -vp othersrc/usr-lib/tmpfiles.d/genie-stub-resolv.conf %{buildroot}%{_exec_prefix}/lib/tmpfiles.d/
 install -m 0644 -vp othersrc/usr-lib/binfmt.d/WSLInterop.conf %{buildroot}%{_exec_prefix}/lib/binfmt.d/
 ln -sf %{_libexecdir}/%{name}/%{name} %{buildroot}%{_bindir}/%{name}
 ln -sf %{_libexecdir}/%{name}/80-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generators/
@@ -68,7 +67,6 @@ rm -f %{_unitdir}/sockets.target.wants/wslg-xwayland.socket
 rm -f %{_unitdir}/wslg-xwayland.service
 rm -f %{_unitdir}/wslg-xwayland.socket
 rm -f %{_unitdir}/user-runtime-dir@.service.d/override.conf
-rm -f %{_exec_prefix}/lib/tmpfiles.d/genie-stub-resolv.conf
 rm -f %{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
 
 %clean
@@ -84,10 +82,15 @@ rm -rf %{buildroot}
 %{_unitdir}/wslg-xwayland.socket
 %{_unitdir}/sockets.target.wants/wslg-xwayland.socket
 %{_unitdir}/user-runtime-dir@.service.d/override.conf
-%{_exec_prefix}/lib/tmpfiles.d/genie-stub-resolv.conf
 %{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
 
 %changelog
+* Thu Jul 29 2021 Alistair Young <avatar@arkane-systems.net> 1.44-1
+- Standardized use of /usr/lib rather than /lib.
+- Updated to ArkaneSystems.WSL 0.2.13.
+- Made stub resolv.conf file option-controlled.
+- Misc fixes.
+
 * Thu Jul 29 2021 Alistair Young <avatar@arkane-systems.net> 1.43-1
 - Based on collated systemd-analyze results, re-upped systemd startup timeout to 240.
 - Added automated creation of resolv.conf symlink (per #130).

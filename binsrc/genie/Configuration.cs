@@ -50,7 +50,10 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         internal string PathToUnshare => this.Configuration.GetValue<string> ("genie:unshare", "/usr/bin/unshare");
 
         // Seconds to wait for systemd to enter the running state on startup.
-        internal int SystemdStartupTimeout => this.Configuration.GetValue<int> ("genie:systemd-timeout", 180);
+        internal int SystemdStartupTimeout => this.Configuration.GetValue<int> ("genie:systemd-timeout", 240);
+
+        // True to symlink a stub resolv.conf file for systemd-resolved, false otherwise.
+        internal bool ResolvedStub => this.Configuration.GetValue<bool> ("genie:resolved-stub", false);
     
         // Get the installation-dependent path for a given file.
         internal string GetPrefixedPath (string path) => Path.Combine (GenieConfig.Prefix, path);

@@ -311,6 +311,23 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
                 Console.WriteLine();
 
+                // Having unmounted the binfmts fs before starting systemd, we remount it now as
+                // a courtesy. But remember, genie is not guaranteed to be idempotent, so don't
+                // rely on this, for the love of Thompson and Ritchie!
+                if (!Directory.Exists("/proc/sys/fs/binfmt_misc"))
+                {
+                    if (verbose)
+                        Console.WriteLine ("genie: remounting binfmt_misc filesystem as a courtesy");
+
+                    if (!MountHelpers.Mount("binfmt_misc", "/proc/sys/fs/binfmt_misc", FsType.BinaryFormats))
+                    {
+                        Console.WriteLine ("genie: failed to remount binfmt_misc filesystem; attempting to continue");
+                    }
+                }
+
+                if (Config.ResolvedStub)
+                    Helpers.RemoveResolvSymlink (verbose);
+
                 if (Config.UpdateHostname)
                 {
                     Thread.Sleep (500);
@@ -389,6 +406,10 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             // for backwards compatibility.
             if (Config.UpdateHostname)
                 Helpers.UpdateHostname (verbose);
+
+            // If configured to, create the resolv.conf symlink.
+            if (Config.ResolvedStub)
+                    Helpers.CreateResolvSymlink (verbose);
 
             // Unmount the binfmts fs before starting systemd, so systemd can mount it
             // again with all the trimmings.

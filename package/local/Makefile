@@ -26,7 +26,6 @@ package:
 	# Binaries.
 	install -Dm 4755 -o root "binsrc/genie/bin/ReleaseLocal/net5.0/linux-x64/publish/genie" -t "$(INSTALLDIR)"
 	install -Dm 0755 -o root "binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl" -t "$(INSTALLDIR)"
-	install -Dm 0755 -o root "othersrc/scripts/bindxsocket.sh" -t "$(INSTALLDIR)"
 	ln -s $(INSTALLDIR)/genie $(BINDIR)/genie
 
 	# Environment generator.
@@ -46,9 +45,6 @@ package:
 	install -Dm 0644 -o root "othersrc/lib-systemd-system/wslg-xwayland.socket" -t "$(SVCDIR)"
 
 	install -Dm 0644 -o root "othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf" -t "$(SVCDIR)/user-runtime-dir@.service.d"
-
-	# tmpfiles.d
-	install -Dm 0644 -o root "othersrc/usr-lib/tmpfiles.d/genie-stub-resolv.conf" -t "$(USRLIBDIR)/tmpfiles.d"
 
 	# binfmt.d
 	install -Dm 0644 -o root "othersrc/usr-lib/binfmt.d/WSLInterop.conf" -t "$(USRLIBDIR)/binfmt.d"
