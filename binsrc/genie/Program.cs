@@ -325,6 +325,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                     }
                 }
 
+                if (Config.ResolvedStub)
+                    Helpers.RemoveResolvSymlink (verbose);
+
                 if (Config.UpdateHostname)
                 {
                     Thread.Sleep (500);
@@ -403,6 +406,10 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             // for backwards compatibility.
             if (Config.UpdateHostname)
                 Helpers.UpdateHostname (verbose);
+
+            // If configured to, create the resolv.conf symlink.
+            if (Config.ResolvedStub)
+                    Helpers.CreateResolvSymlink (verbose);
 
             // Unmount the binfmts fs before starting systemd, so systemd can mount it
             // again with all the trimmings.

@@ -180,5 +180,67 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         }
 
         #endregion Hostname management
+
+        #region Resolved symlink
+
+        internal static void CreateResolvSymlink (bool verbose)
+        {
+            // We cannot check if the target (/run/systemd/resolve/stub-resolv.conf) exists,
+            // since it will not be created until after systemd-resolved starts up. So we're
+            // going to have to live with that uncertainty.
+
+            // Check if source (/etc/resolv.conf) exists.
+            if (File.Exists ("/etc/resolv.conf"))
+            {
+                // If so, move it to the backup file (/etc/resolv.conf.wsl).
+                if (verbose)
+                    Console.WriteLine ("genie: backing up old resolv.conf");
+
+                File.Move ("/etc/resolv.conf", "/etc/resolv.conf.wsl", true);
+            }
+
+            // Create symbolic link from /etc/resolv.conf to /run/systemd/resolve/stub-resolv.conf.
+            if (verbose)
+                Console.WriteLine ("genie: creating resolv symlink");
+
+            try
+            {
+                FsHelpers.CreateSymbolicLink ("/etc/resolv.conf", "/run/systemd/resolve/stub-resolv.conf");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine ($"genie: error creating resolv symlink: {ex.Message}");
+            }
+        }
+
+        internal static void RemoveResolvSymlink (bool verbose)
+        {
+            // Check if /etc/resolv.conf exists, and if so, if it is a symlink to the target
+            // (/run/systemd/resolve/stub-resolv.conf).
+            if (!File.Exists ("/etc/resolv.conf"))
+            {
+                Console.WriteLine ("genie: resolv symlink does not exist.");
+                return;
+            }
+
+            if (!(File.GetAttributes ("/etc/resolv.conf").HasFlag (FileAttributes.ReparsePoint)))
+            {
+                Console.WriteLine ("genie: resolv symlink is not a symlink.");
+                return;
+            }
+
+            // If so, delete the symlink.
+            File.Delete ("/etc/resolv.conf");
+
+            // Check if /etc/resolv.conf.wsl exists.
+            if (File.Exists ("/etc/resolv.conf.wsl"))
+                // If so, move it to /etc/resolv.conf.
+                File.Move ("/etc/resolv.conf.wsl", "/etc/resolv.conf", true);
+            else
+                // If not, warn the user.
+                Console.WriteLine ("genie: could not find /etc/resolv.conf backup. Please manually restore /etc/resolv.conf.");
+        }
+
+        #endregion Resolved symlink
     }
 }
