@@ -17,8 +17,8 @@ jobs:
     - name: Import GPG Key
       uses: crazy-max/ghaction-import-gpg@v1
       env:
-        GPG_PRIVATE_KEY: ${{ secrets.TRANSDEBIAN_REPO_SIGNING_KEY }}
-        PASSPHRASE: ${{ secrets.TRANSDEBIAN_REPO_PASSPHRASE }}
+        GPG_PRIVATE_KEY: ${{ secrets.APTKEY_KEY }}
+        PASSPHRASE: ${{ secrets.APTKEY_PASSPHRASE }}
     
     - name: Checkout
       uses: actions/checkout@v2
