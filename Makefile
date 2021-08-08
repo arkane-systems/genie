@@ -42,7 +42,7 @@ default:
 # Targets: individual end-product build.
 #
 
-clean: clean-local clean-tar clean-debian # clean-arch clean-fedora
+clean: clean-local clean-tar clean-debian clean-arch clean-fedora
 	make -C binsrc clean
 	rm -rf out
 

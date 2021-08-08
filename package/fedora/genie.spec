@@ -85,6 +85,9 @@ rm -rf %{buildroot}
 %{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
 
 %changelog
+* Sat Aug 07 2021 Alistair Young <avatar@arkane-systems.net> 1.45-1
+- Stuff.
+
 * Sat Aug 07 2021 Alistair Young <avatar@arkane-systems.net> 1.44-1
 - Standardized use of /usr/lib rather than /lib.
 - Updated to ArkaneSystems.WSL 0.2.13.
