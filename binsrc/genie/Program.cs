@@ -501,7 +501,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             if (verbose)
                 Console.WriteLine ($"genie: running command '{string.Join(' ', commandLine)}'");
 
-            var commandPrefix = new string[] {"shell", "-q", $"{realUserName}@.host", Config.GetPrefixedPath ("libexec/genie/runinwsl"),
+            var commandPrefix = new string[] {"shell", "-q", $"{realUserName}@.host", Config.GetPrefixedPath ("lib/genie/runinwsl"),
                     Environment.CurrentDirectory };
 
             var command = commandPrefix.Concat(commandLine);

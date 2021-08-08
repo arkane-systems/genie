@@ -25,28 +25,28 @@ package() {
   cd "$srcdir/$_pkgname-$pkgver"
   
   # Binaries
-  install -Dm4755 binsrc/genie/bin/Release/net5.0/linux-x64/publish/genie -t ${pkgdir}/usr/libexec/genie
-  install -Dm0755 binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl -t ${pkgdir}/usr/libexec/genie
+  install -Dm4755 binsrc/genie/bin/Release/net5.0/linux-x64/publish/genie -t ${pkgdir}/usr/lib/genie
+  install -Dm0755 binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl -t ${pkgdir}/usr/lib/genie
 
   # Environment generator.
-  install -Dm0755 othersrc/scripts/80-genie-envar.sh -t ${pkgdir}/usr/libexec/genie
+  install -Dm0755 othersrc/scripts/80-genie-envar.sh -t ${pkgdir}/usr/lib/genie
 
   # Runtime dir mapping
-  install -Dm0755 othersrc/scripts/map-user-runtime-dir.sh -t ${pkgdir}/usr/libexec/genie
-  install -Dm0755 othersrc/scripts/unmap-user-runtime-dir.sh -t ${pkgdir}/usr/libexec/genie
+  install -Dm0755 othersrc/scripts/map-user-runtime-dir.sh -t ${pkgdir}/usr/lib/genie
+  install -Dm0755 othersrc/scripts/unmap-user-runtime-dir.sh -t ${pkgdir}/usr/lib/genie
 
   # Configuration file.
   install -Dm0644 othersrc/etc/genie.ini -t ${pkgdir}/etc
 
   # genie symlink
   mkdir -p ${pkgdir}/usr/bin
-  ln -s /usr/libexec/genie/genie ${pkgdir}/usr/bin/genie
+  ln -s /usr/lib/genie/genie ${pkgdir}/usr/bin/genie
 
   # 10-genie-envar.sh symlinks
   mkdir -p ${pkgdir}/usr/lib/systemd/user-environment-generators
   mkdir -p ${pkgdir}/usr/lib/systemd/system-environment-generators
-  ln -s /usr/libexec/genie/80-genie-envar.sh ${pkgdir}/usr/lib/systemd/user-environment-generators/80-genie-envar.sh
-  ln -s /usr/libexec/genie/80-genie-envar.sh ${pkgdir}/usr/lib/systemd/system-environment-generators/80-genie-envar.sh
+  ln -s /usr/lib/genie/80-genie-envar.sh ${pkgdir}/usr/lib/systemd/user-environment-generators/80-genie-envar.sh
+  ln -s /usr/lib/genie/80-genie-envar.sh ${pkgdir}/usr/lib/systemd/system-environment-generators/80-genie-envar.sh
 
 	# Unit files.
   install -Dm0644 othersrc/lib-systemd-system/wslg-xwayland.service -t ${pkgdir}/usr/lib/systemd/system

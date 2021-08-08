@@ -72,7 +72,7 @@ clean-tar:
 
 DESTDIR=debian/systemd-genie
 
-INSTALLDIR = $(DESTDIR)/usr/libexec/genie
+INSTALLDIR = $(DESTDIR)/usr/lib/genie
 BINDIR = $(DESTDIR)/usr/bin
 ETCDIR = $(DESTDIR)/etc
 SVCDIR = $(DESTDIR)/usr/lib/systemd/system
