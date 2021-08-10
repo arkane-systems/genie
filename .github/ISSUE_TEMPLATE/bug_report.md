@@ -38,3 +38,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Additional context**
 Add any other context about the problem here.
+
+**I confirm that I have read the ENTIRE supplied readme file and checked for relevant information on the repository wiki before raising this issue, and that if the solution to this issue is found in either location, it will be closed without further comment:**
+
+[ ] Yes.
