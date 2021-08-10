@@ -20,7 +20,7 @@ The output of `genie --version`
 **Describe the bug**
 A clear and concise description of what the bug is.
 
-**If the bug involves `systemctl` or a service running under systemd, confirm that you are running inside the bottle:**
+**Confirm that you are running inside the bottle:**
 The output of `genie -b`.
 
 **To Reproduce**
