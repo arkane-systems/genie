@@ -405,7 +405,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             // it automatically in genie an option, enable/disable in genie.ini. Defaults to on
             // for backwards compatibility.
             if (Config.UpdateHostname)
-                Helpers.UpdateHostname (verbose);
+                Helpers.UpdateHostname (Config.HostnameSuffix, verbose);
 
             // If configured to, create the resolv.conf symlink.
             if (Config.ResolvedStub)
