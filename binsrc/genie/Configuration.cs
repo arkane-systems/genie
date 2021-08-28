@@ -46,7 +46,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         // True to update the host name with the "-wsl" suffix, false otherwise.
         internal bool UpdateHostname => this.Configuration.GetValue<bool> ("genie:update-hostname", true);
 
-        // True to update the host name with the "-wsl" suffix, false otherwise.
+        // Suffix with which to update the host name, if the above is true.
         internal string HostnameSuffix => this.Configuration.GetValue<string> ("genie:update-hostname-suffix", "-wsl");
 
         // Path to the local binary for unshare(1).
