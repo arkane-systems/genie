@@ -57,7 +57,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
         // True to symlink a stub resolv.conf file for systemd-resolved, false otherwise.
         internal bool ResolvedStub => this.Configuration.GetValue<bool> ("genie:resolved-stub", false);
-    
+
+        internal bool AppArmorNamespace => this.Configuration.GetValue<bool> ("genie:apparmor-namespace", false);
+
         // Get the installation-dependent path for a given file.
         internal string GetPrefixedPath (string path) => Path.Combine (GenieConfig.Prefix, path);
     }
