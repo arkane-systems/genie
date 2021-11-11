@@ -87,6 +87,7 @@ rm -rf %{buildroot}
 %changelog
 * Sat Aug 07 2021 Alistair Young <avatar@arkane-systems.net> 1.45-1
 - Moved executables from /usr/libexec/genie to /usr/lib/genie.
+- Allow configuration of hostname suffix.
 - Improved Arch PKGBUILD file.
 - Support for AppArmor namespaces.
 
