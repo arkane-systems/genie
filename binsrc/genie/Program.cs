@@ -429,12 +429,60 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                     Console.WriteLine ("genie: no binfmt_misc filesystem present");
             }
 
+            // Define systemd startup chain - command string to pass to daemonize
+            string [] startupChain = new string[] {Config.PathToUnshare, "-fp", "--propagation", "shared", "--mount-proc", "--"};
+
+            // Are we doing AppArmor?
+            if (Config.AppArmorNamespace)
+            {
+                // Check whether AppArmor is available in the kernel.
+                if (Directory.Exists("/sys/module/apparmor"))
+                {
+                    // If the AppArmor filesystem is not mounted, mount it.
+                    if (!Directory.Exists("/sys/kernel/security/apparmor"))
+                    {
+                        // Mount AppArmor filesystem.
+                        if (!MountHelpers.Mount ("securityfs", "/sys/kernel/security", "securityfs"))
+                        {
+                            Console.WriteLine ("genie: could not mount AppArmor filesystem; attempting to continue without AppArmor namespace");
+                            goto error;
+                        }
+                    }
+
+                    // Create AppArmor namespace for genie bottle
+                    string nsName = $"genie-{Helpers.WslDistroName}";
+
+                    if (verbose)
+                        Console.WriteLine ($"genie: creating AppArmor namespace {nsName}");
+
+                    if (!Directory.Exists("/sys/kernel/security/apparmor/policy/namespaces"))
+                    {
+                        Console.WriteLine ("genie: could not find AppArmor filesystem; attempting to continue without AppArmor namespace");
+                        goto error;
+                    }
+
+                    Directory.CreateDirectory ($"/sys/kernel/security/apparmor/policy/namespaces/{nsName}");
+
+                    // Update startup chain with aa-exec command.
+                    startupChain = startupChain.Concat(new string[] {"aa-exec", "-n", $"{nsName}", "-p", "unconfined", "--"}).ToArray();
+                }
+                else
+                    Console.WriteLine ("genie: AppArmor not available in kernel; attempting to continue without AppArmor namespace");
+            }
+
+            error:
+
+            // Update startup chain with systemd command.
+            startupChain = startupChain.Append("systemd").ToArray();
+
             // Run systemd in a container.
             if (verbose)
                 Console.WriteLine ("genie: starting systemd.");
 
+            Console.WriteLine(string.Join(" ", startupChain));
+
             Helpers.Chain ("daemonize",
-                new string[] {Config.PathToUnshare, "-fp", "--propagation", "shared", "--mount-proc", "systemd"},
+                startupChain,
                 "initializing bottle failed; daemonize");
 
             // Wait for systemd to be up. (Polling, sigh.)

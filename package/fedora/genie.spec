@@ -88,6 +88,7 @@ rm -rf %{buildroot}
 * Sat Aug 07 2021 Alistair Young <avatar@arkane-systems.net> 1.45-1
 - Moved executables from /usr/libexec/genie to /usr/lib/genie.
 - Improved Arch PKGBUILD file.
+- Support for AppArmor namespaces.
 
 * Sat Aug 07 2021 Alistair Young <avatar@arkane-systems.net> 1.44-1
 - Standardized use of /usr/lib rather than /lib.

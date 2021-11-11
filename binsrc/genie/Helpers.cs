@@ -15,6 +15,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 {
     internal static class Helpers
     {
+        internal static string WslDistroName => System.Environment.GetEnvironmentVariable("WSL_DISTRO_NAME") ;
+
         // Get the pid of the earliest running root systemd, or 0 if none is running.
         internal static int GetSystemdPid ()
         {
