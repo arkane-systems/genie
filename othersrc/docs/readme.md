@@ -1,3 +1,4 @@
+<img src="https://i.imgur.com/LqcK6bH.png" style="float: left;position: relative;"/>
 # genie
 
 [ ![ci](https://github.com/arkane-systems/genie/workflows/ci/badge.svg?branch=master) ](https://github.com/arkane-systems/genie/actions?query=workflow%3Aci+branch%3Amaster)
