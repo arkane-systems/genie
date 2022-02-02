@@ -46,8 +46,8 @@ install -d -p %{buildroot}%{_unitdir}/sockets.target.wants
 install -m 4755 -vp binsrc/genie/bin/Release/net5.0/linux-x64/publish/genie %{buildroot}%{_libexecdir}/%{name}
 install -m 0755 -vp binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl %{buildroot}%{_libexecdir}/%{name}
 install -m 0755 -vp othersrc/scripts/80-genie-envar.sh %{buildroot}%{_libexecdir}/%{name}
-install -m 0755 -o root "othersrc/scripts/map-user-runtime-dir.sh" %{buildroot}%{_libexecdir}/%{name}
-install -m 0755 -o root "othersrc/scripts/unmap-user-runtime-dir.sh" %{buildroot}%{_libexecdir}/%{name}
+install -m 0755 "othersrc/scripts/map-user-runtime-dir.sh" %{buildroot}%{_libexecdir}/%{name}
+install -m 0755 "othersrc/scripts/unmap-user-runtime-dir.sh" %{buildroot}%{_libexecdir}/%{name}
 install -m 0644 -vp othersrc/etc/genie.ini %{buildroot}%{_sysconfdir}/
 install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.service %{buildroot}%{_unitdir}
 install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.socket %{buildroot}%{_unitdir}
