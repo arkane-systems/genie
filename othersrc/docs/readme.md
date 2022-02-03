@@ -1,4 +1,4 @@
-<p align="center"><img src="https://user-images.githubusercontent.com/5055400/152260030-e8d05340-e538-4662-b14f-ec65fb66d6bc.png"/></p>
+<p align="center"><img src="./wslgenie.png"/></p>
 
 # genie
 
