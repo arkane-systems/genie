@@ -1,5 +1,5 @@
 %global project https://github.com/arkane-systems/genie/
-%global version 1.44
+%global version 1.45
 
 # debuginfo is 'not supported' for .NET binaries
 %global debug_package %{nil}
@@ -33,7 +33,7 @@ make -C binsrc
 
 %install
 pwd
-install -d -p %{buildroot}%{_libexecdir}/%{name}
+install -d -p %{buildroot}%{_exec_prefix}/lib/%{name}
 install -d -p %{buildroot}%{_sysconfdir}
 install -d -p %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generators
 install -d -p %{buildroot}%{_exec_prefix}/lib/systemd/user-environment-generators
@@ -53,9 +53,9 @@ install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.service %{buildroo
 install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.socket %{buildroot}%{_unitdir}
 install -m 0644 -vp othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf %{buildroot}%{_unitdir}/user-runtime-dir@.service.d
 install -m 0644 -vp othersrc/usr-lib/binfmt.d/WSLInterop.conf %{buildroot}%{_exec_prefix}/lib/binfmt.d/
-ln -sf %{_libexecdir}/%{name}/%{name} %{buildroot}%{_bindir}/%{name}
-ln -sf %{_libexecdir}/%{name}/80-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generators/
-ln -sf %{_libexecdir}/%{name}/80-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/systemd/user-environment-generators/
+ln -sf %{_exec_prefix}/lib/%{name}/%{name} %{buildroot}%{_bindir}/%{name}
+ln -sf %{_exec_prefix}/lib/%{name}/80-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generators/
+ln -sf %{_exec_prefix}/lib/%{name}/80-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/systemd/user-environment-generators/
 ln -sf %{_unitdir}/wslg-xwayland.socket %{buildroot}%{_unitdir}/sockets.target.wants/wslg-xwayland.socket
 
 %postun
@@ -75,7 +75,7 @@ fi
 rm -rf %{buildroot}
 
 %files
-%{_libexecdir}/%{name}/*
+%{_exec_prefix}/lib/%{name}/*
 %config %{_sysconfdir}/genie.ini
 %{_bindir}/%{name}
 %{_exec_prefix}/lib/systemd/system-environment-generators/80-genie-envar.sh
@@ -87,6 +87,11 @@ rm -rf %{buildroot}
 %{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
 
 %changelog
+* Sat Aug 07 2021 Alistair Young <avatar@arkane-systems.net> 1.45-1
+- Moved executables from /usr/libexec/genie to /usr/lib/genie.
+- Improved Arch PKGBUILD file.
+- Support for AppArmor namespaces.
+
 * Sat Aug 07 2021 Alistair Young <avatar@arkane-systems.net> 1.44-1
 - Standardized use of /usr/lib rather than /lib.
 - Updated to ArkaneSystems.WSL 0.2.13.

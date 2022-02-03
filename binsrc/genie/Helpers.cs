@@ -15,6 +15,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 {
     internal static class Helpers
     {
+        internal static string WslDistroName => System.Environment.GetEnvironmentVariable("WSL_DISTRO_NAME") ;
+
         // Get the pid of the earliest running root systemd, or 0 if none is running.
         internal static int GetSystemdPid ()
         {
@@ -91,7 +93,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         #region Hostname management
 
         // Add the "-wsl" suffix to the system hostname, and update the hosts file accordingly.
-        internal static void UpdateHostname (bool verbose)
+        internal static void UpdateHostname (string HostnameSuffix, bool verbose)
         {
             // Generate new hostname.
             if (verbose)
@@ -103,7 +105,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 Console.WriteLine ($"genie: external hostname is {externalHost}");
 
             // Make new hostname.
-            string internalHost = $"{externalHost.Substring(0, (externalHost.Length <= 60 ? externalHost.Length : 60))}-wsl";
+            string internalHost = $"{externalHost.Substring(0, (externalHost.Length <= 60 ? externalHost.Length : 60))}{HostnameSuffix}";
 
             File.WriteAllLines ("/run/hostname-wsl", new string[] {
                 internalHost

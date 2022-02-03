@@ -42,7 +42,7 @@ default:
 # Targets: individual end-product build.
 #
 
-clean: clean-local clean-tar clean-debian # clean-arch clean-fedora
+clean: clean-local clean-tar clean-debian clean-arch clean-fedora
 	make -C binsrc clean
 	rm -rf out
 
@@ -72,7 +72,7 @@ clean-tar:
 
 DESTDIR=debian/systemd-genie
 
-INSTALLDIR = $(DESTDIR)/usr/libexec/genie
+INSTALLDIR = $(DESTDIR)/usr/lib/genie
 BINDIR = $(DESTDIR)/usr/bin
 ETCDIR = $(DESTDIR)/etc
 SVCDIR = $(DESTDIR)/usr/lib/systemd/system

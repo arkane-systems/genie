@@ -6,7 +6,7 @@
 
 DESTDIR=tarball
 
-INSTALLDIR = $(DESTDIR)/usr/libexec/genie
+INSTALLDIR = $(DESTDIR)/usr/lib/genie
 BINDIR = $(DESTDIR)/usr/bin
 ENVGENDIR = $(DESTDIR)/usr/lib/systemd/system-environment-generators
 USRENVGENDIR = $(DESTDIR)/usr/lib/systemd/user-environment-generators
@@ -37,14 +37,14 @@ package-inner:
 	mkdir -p "$(BINDIR)"
 	install -Dm 4755 -o root "binsrc/genie/bin/Release/net5.0/linux-x64/publish/genie" -t "$(INSTALLDIR)"
 	install -Dm 0755 -o root "binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl" -t "$(INSTALLDIR)"
-	ln -s ../libexec/genie/genie $(BINDIR)/genie
+	ln -s $(INSTALLDIR)/genie $(BINDIR)/genie
 
 	# Environment generator.
 	install -Dm 0755 -o root "othersrc/scripts/80-genie-envar.sh" -t "$(INSTALLDIR)"
 	mkdir -p "$(ENVGENDIR)"
 	mkdir -p "$(USRENVGENDIR)"
-	ln -s ../../../libexec/genie/80-genie-envar.sh $(ENVGENDIR)/80-genie-envar.sh
-	ln -s ../../../libexec/genie/80-genie-envar.sh $(USRENVGENDIR)/80-genie-envar.sh
+	ln -s $(INSTALLDIR)/80-genie-envar.sh $(ENVGENDIR)/80-genie-envar.sh
+	ln -s $(INSTALLDIR)/80-genie-envar.sh $(USRENVGENDIR)/80-genie-envar.sh
 
 	# Runtime dir mapping
 	install -Dm 0755 -o root "othersrc/scripts/map-user-runtime-dir.sh" -t "$(INSTALLDIR)"

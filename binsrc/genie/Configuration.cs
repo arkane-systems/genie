@@ -46,6 +46,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         // True to update the host name with the "-wsl" suffix, false otherwise.
         internal bool UpdateHostname => this.Configuration.GetValue<bool> ("genie:update-hostname", true);
 
+        // Suffix with which to update the host name, if the above is true.
+        internal string HostnameSuffix => this.Configuration.GetValue<string> ("genie:update-hostname-suffix", "-wsl");
+
         // Path to the local binary for unshare(1).
         internal string PathToUnshare => this.Configuration.GetValue<string> ("genie:unshare", "/usr/bin/unshare");
 
@@ -54,7 +57,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
         // True to symlink a stub resolv.conf file for systemd-resolved, false otherwise.
         internal bool ResolvedStub => this.Configuration.GetValue<bool> ("genie:resolved-stub", false);
-    
+
+        internal bool AppArmorNamespace => this.Configuration.GetValue<bool> ("genie:apparmor-namespace", false);
+
         // Get the installation-dependent path for a given file.
         internal string GetPrefixedPath (string path) => Path.Combine (GenieConfig.Prefix, path);
     }

@@ -3,7 +3,7 @@
 #
 
 # Installation locations.
-INSTALLDIR = /usr/local/libexec/genie
+INSTALLDIR = /usr/local/lib/genie
 BINDIR = /usr/local/bin
 ENVGENDIR = /usr/lib/systemd/system-environment-generators
 USRENVGENDIR = /usr/lib/systemd/user-environment-generators
