@@ -1,4 +1,4 @@
-<p align="center"><img src="./wslgenie.png"/></p>
+<p align="center"><img src="./othersrc/docs/wslgenie.png"/></p>
 
 # genie
 
