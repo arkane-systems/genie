@@ -1,3 +1,5 @@
+<p align="center"><img src="./othersrc/docs/wslgenie.png"/></p>
+
 # genie
 
 [ ![ci](https://github.com/arkane-systems/genie/workflows/ci/badge.svg?branch=master) ](https://github.com/arkane-systems/genie/actions?query=workflow%3Aci+branch%3Amaster)
