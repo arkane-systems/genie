@@ -59,6 +59,7 @@ ln -sf %{_libexecdir}/%{name}/80-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/
 ln -sf %{_unitdir}/wslg-xwayland.socket %{buildroot}%{_unitdir}/sockets.target.wants/wslg-xwayland.socket
 
 %postun
+if [ $1 -eq 0 ]; then
 rm -rf %{_libexecdir}/%{name}
 rm -f %{_bindir}/%{name}
 rm -f %{_exec_prefix}/lib/systemd/system-environment-generators/80-genie-envar.sh
@@ -68,6 +69,7 @@ rm -f %{_unitdir}/wslg-xwayland.service
 rm -f %{_unitdir}/wslg-xwayland.socket
 rm -f %{_unitdir}/user-runtime-dir@.service.d/override.conf
 rm -f %{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
+fi
 
 %clean
 rm -rf %{buildroot}
