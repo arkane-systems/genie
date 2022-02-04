@@ -43,11 +43,11 @@ install -d -p %{buildroot}%{_bindir}
 install -d -p %{buildroot}%{_unitdir}
 install -d -p %{buildroot}%{_unitdir}/user-runtime-dir@.service.d
 install -d -p %{buildroot}%{_unitdir}/sockets.target.wants
-install -m 4755 -vp binsrc/genie/bin/Release/net5.0/linux-x64/publish/genie %{buildroot}%{_exec_prefix}/lib/%{name}
-install -m 0755 -vp binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl %{buildroot}%{_exec_prefix}/lib/%{name}
-install -m 0755 -vp othersrc/scripts/80-genie-envar.sh %{buildroot}%{_exec_prefix}/lib/%{name}
-install -m 0755 -o root "othersrc/scripts/map-user-runtime-dir.sh" %{buildroot}%{_exec_prefix}/lib/%{name}
-install -m 0755 -o root "othersrc/scripts/unmap-user-runtime-dir.sh" %{buildroot}%{_exec_prefix}/lib/%{name}
+install -m 4755 -vp binsrc/genie/bin/Release/net5.0/linux-x64/publish/genie %{buildroot}%{_libexecdir}/%{name}
+install -m 0755 -vp binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl %{buildroot}%{_libexecdir}/%{name}
+install -m 0755 -vp othersrc/scripts/80-genie-envar.sh %{buildroot}%{_libexecdir}/%{name}
+install -m 0755 "othersrc/scripts/map-user-runtime-dir.sh" %{buildroot}%{_libexecdir}/%{name}
+install -m 0755 "othersrc/scripts/unmap-user-runtime-dir.sh" %{buildroot}%{_libexecdir}/%{name}
 install -m 0644 -vp othersrc/etc/genie.ini %{buildroot}%{_sysconfdir}/
 install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.service %{buildroot}%{_unitdir}
 install -m 0644 -vp othersrc/lib-systemd-system/wslg-xwayland.socket %{buildroot}%{_unitdir}
@@ -59,7 +59,8 @@ ln -sf %{_exec_prefix}/lib/%{name}/80-genie-envar.sh %{buildroot}%{_exec_prefix}
 ln -sf %{_unitdir}/wslg-xwayland.socket %{buildroot}%{_unitdir}/sockets.target.wants/wslg-xwayland.socket
 
 %postun
-rm -rf %{_exec_prefix}/lib/%{name}
+if [ $1 -eq 0 ]; then
+rm -rf %{_libexecdir}/%{name}
 rm -f %{_bindir}/%{name}
 rm -f %{_exec_prefix}/lib/systemd/system-environment-generators/80-genie-envar.sh
 rm -f %{_exec_prefix}/lib/systemd/user-environment-generators/80-genie-envar.sh
@@ -68,6 +69,7 @@ rm -f %{_unitdir}/wslg-xwayland.service
 rm -f %{_unitdir}/wslg-xwayland.socket
 rm -f %{_unitdir}/user-runtime-dir@.service.d/override.conf
 rm -f %{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
+fi
 
 %clean
 rm -rf %{buildroot}
