@@ -1,3 +1,5 @@
+<p align="center"><img src="./othersrc/docs/wslgenie.png"/></p>
+
 # genie
 
 [ ![ci](https://github.com/arkane-systems/genie/workflows/ci/badge.svg?branch=master) ](https://github.com/arkane-systems/genie/actions?query=workflow%3Aci+branch%3Amaster)
@@ -8,7 +10,7 @@ What does that even mean?
 
 Well, this gives you a way to run systemd as pid 1, with all the trimmings, inside WSL 2. It does this by creating a pid namespace, the eponymous poor-man's-container "bottle", starting up systemd in there, and entering it, and providing some helpful shortcuts to do so.
 
-If you want to try it, please read this entire document first, _especially_ the BUGS section.
+If you want to try it, please read this entire document first, _especially_ the BUGS section. Also read the [WSLg FAQ](https://github.com/arkane-systems/genie/wiki/WSLg-FAQ) and the [known-problematic systemd units list](https://github.com/arkane-systems/genie/wiki/Systemd-units-known-to-be-problematic-under-WSL) for known problems and known solutions to them before reporting any issues.
 
 ## NOTE: WSL 2 ONLY
 
