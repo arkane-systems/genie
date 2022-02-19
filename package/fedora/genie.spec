@@ -92,6 +92,7 @@ rm -rf %{buildroot}
 - Allow configuration of hostname suffix.
 - Improved Arch PKGBUILD file.
 - Support for AppArmor namespaces.
+- Add mutex to prevent multiple simultaneous init attempts.
 
 * Sat Aug 07 2021 Alistair Young <avatar@arkane-systems.net> 1.44-1
 - Standardized use of /usr/lib rather than /lib.

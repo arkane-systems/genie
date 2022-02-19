@@ -311,6 +311,29 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
                 Console.WriteLine();
 
+                // Now we have exited the bottle, clean up the AppArmor namespace.
+                if (Config.AppArmorNamespace)
+                {
+                    string nsName = $"genie-{Helpers.WslDistroName}";
+
+                    if (verbose)
+                        Console.WriteLine ($"genie: deleting AppArmor namespace {nsName}");
+
+                    if (Directory.Exists($"/sys/kernel/security/apparmor/policy/namespaces/{nsName}"))
+                    {
+                        try
+                        {
+                            Directory.Delete($"/sys/kernel/security/apparmor/policy/namespaces/{nsName}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine ($"genie: could not delete AppArmor namespace; {ex.Message}");
+                        }
+                    }
+                    else
+                        Console.WriteLine ("genie: no AppArmor namespace to delete");
+                }
+
                 // Having unmounted the binfmts fs before starting systemd, we remount it now as
                 // a courtesy. But remember, genie is not guaranteed to be idempotent, so don't
                 // rely on this, for the love of Thompson and Ritchie!
@@ -392,155 +415,177 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         // Do the work of initializing the bottle.
         private static void InitializeBottle (bool verbose)
         {
-            if (verbose)
-                Console.WriteLine ("genie: initializing bottle.");
+            // Create a new mutex to indicate that the system is initializing.
+            var inProcess = new Mutex (false, "genieInitializing");
 
-            // Create the path file.
-            File.WriteAllText("/run/genie.path", originalPath);
-
-            // Create the env file.
-            File.WriteAllLines("/run/genie.env", clonedVariables);
-
-            // Now that the WSL hostname can be set via .wslconfig, we're going to make changing
-            // it automatically in genie an option, enable/disable in genie.ini. Defaults to on
-            // for backwards compatibility.
-            if (Config.UpdateHostname)
-                Helpers.UpdateHostname (Config.HostnameSuffix, verbose);
-
-            // If configured to, create the resolv.conf symlink.
-            if (Config.ResolvedStub)
-                    Helpers.CreateResolvSymlink (verbose);
-
-            // Unmount the binfmts fs before starting systemd, so systemd can mount it
-            // again with all the trimmings.
-            if (Directory.Exists("/proc/sys/fs/binfmt_misc"))
+            // Try to gain control of the mutex.
+            if (inProcess.WaitOne (100))
             {
-                if (verbose)
-                    Console.WriteLine ("genie: unmounting binfmt_misc filesystem before proceeding");
+                // Mutex successfully acquired.
 
-                if (!MountHelpers.UnMount ("/proc/sys/fs/binfmt_misc"))
+                if (verbose)
+                    Console.WriteLine ("genie: initializing bottle.");
+
+                // Create the path file.
+                File.WriteAllText("/run/genie.path", originalPath);
+
+                // Create the env file.
+                File.WriteAllLines("/run/genie.env", clonedVariables);
+
+                // Now that the WSL hostname can be set via .wslconfig, we're going to make changing
+                // it automatically in genie an option, enable/disable in genie.ini. Defaults to on
+                // for backwards compatibility.
+                if (Config.UpdateHostname)
+                    Helpers.UpdateHostname (Config.HostnameSuffix, verbose);
+
+                // If configured to, create the resolv.conf symlink.
+                if (Config.ResolvedStub)
+                        Helpers.CreateResolvSymlink (verbose);
+
+                // Unmount the binfmts fs before starting systemd, so systemd can mount it
+                // again with all the trimmings.
+                if (Directory.Exists("/proc/sys/fs/binfmt_misc"))
                 {
-                    Console.WriteLine ("genie: failed to unmount binfmt_misc filesystem; attempting to continue");
+                    if (verbose)
+                        Console.WriteLine ("genie: unmounting binfmt_misc filesystem before proceeding");
+
+                    if (!MountHelpers.UnMount ("/proc/sys/fs/binfmt_misc"))
+                    {
+                        Console.WriteLine ("genie: failed to unmount binfmt_misc filesystem; attempting to continue");
+                    }
                 }
+                else
+                {
+                    if (verbose)
+                        Console.WriteLine ("genie: no binfmt_misc filesystem present");
+                }
+
+                // Define systemd startup chain - command string to pass to daemonize
+                string [] startupChain = new string[] {Config.PathToUnshare, "-fp", "--propagation", "shared", "--mount-proc", "--"};
+
+                // Are we doing AppArmor?
+                if (Config.AppArmorNamespace)
+                {
+                    // Check whether AppArmor is available in the kernel.
+                    if (Directory.Exists("/sys/module/apparmor"))
+                    {
+                        // If the AppArmor filesystem is not mounted, mount it.
+                        if (!Directory.Exists("/sys/kernel/security/apparmor"))
+                        {
+                            // Mount AppArmor filesystem.
+                            if (!MountHelpers.Mount ("securityfs", "/sys/kernel/security", "securityfs"))
+                            {
+                                Console.WriteLine ("genie: could not mount AppArmor filesystem; attempting to continue without AppArmor namespace");
+                                goto error;
+                            }
+                        }
+
+                        // Create AppArmor namespace for genie bottle
+                        string nsName = $"genie-{Helpers.WslDistroName}";
+
+                        if (verbose)
+                            Console.WriteLine ($"genie: creating AppArmor namespace {nsName}");
+
+                        if (!Directory.Exists("/sys/kernel/security/apparmor/policy/namespaces"))
+                        {
+                            Console.WriteLine ("genie: could not find AppArmor filesystem; attempting to continue without AppArmor namespace");
+                            goto error;
+                        }
+
+                        Directory.CreateDirectory ($"/sys/kernel/security/apparmor/policy/namespaces/{nsName}");
+
+                        // Update startup chain with aa-exec command.
+                        startupChain = startupChain.Concat(new string[] {"aa-exec", "-n", $"{nsName}", "-p", "unconfined", "--"}).ToArray();
+                    }
+                    else
+                        Console.WriteLine ("genie: AppArmor not available in kernel; attempting to continue without AppArmor namespace");
+                }
+
+                error:
+
+                // Update startup chain with systemd command.
+                startupChain = startupChain.Append("systemd").ToArray();
+
+                // Run systemd in a container.
+                if (verbose)
+                    Console.WriteLine ("genie: starting systemd.");
+
+                // debug code: Console.WriteLine(string.Join(" ", startupChain));
+
+                Helpers.Chain ("daemonize",
+                    startupChain,
+                    "initializing bottle failed; daemonize");
+
+                // Wait for systemd to be up. (Polling, sigh.)
+                Console.Write ("Waiting for systemd...");
+
+                int systemdPid;
+
+                do
+                {
+                    Thread.Sleep (500);
+                    systemdPid = Helpers.GetSystemdPid();
+
+                    Console.Write (".");
+                } while ( systemdPid == 0);
+
+                // Now that systemd exists, write out its (external) PID.
+                // We do not need to store the inside-bottle PID anywhere for obvious reasons.
+                // Create the path file.
+                File.WriteAllText("/run/genie.systemd.pid", systemdPid.ToString());
+
+                // Wait for systemd to be in running state.
+                int runningYet = 255;
+                int timeout = Config.SystemdStartupTimeout;
+
+                var ryArgs = new string[] {"-c", $"nsenter -t {systemdPid} -m -p systemctl is-system-running -q 2> /dev/null"};
+
+                do
+                {
+                    Thread.Sleep (1000);
+                    runningYet = Helpers.RunAndWait ("sh", ryArgs);
+
+                    Console.Write ("!");
+
+                    timeout--;
+                    if (timeout < 0)
+                    {
+                        // What state are we in?
+                        var state = Helpers.RunAndWaitForOutput ("sh", new string[] {"-c", $"\"nsenter -t {systemdPid} -m -p systemctl is-system-running 2> /dev/null\""});
+
+                        if (state.StartsWith("starting"))
+                        {
+                            Console.WriteLine("\n\nSystemd is still starting. This may indicate a unit is being slow to start.\nAttempting to continue.\n");
+                        }
+                        else
+                        {
+                            Console.WriteLine("\n\nTimed out waiting for systemd to enter running state.\nThis may indicate a systemd configuration error.\nAttempting to continue.\nFailed units will now be displayed (systemctl list-units --failed):");
+
+                            Helpers.Chain ("nsenter",
+                            new string[] {"-t", systemdPid.ToString(), "-m", "-p", "systemctl", "list-units", "--failed"},
+                            "running command failed; nsenter for systemctl list-units --failed");
+                        }
+
+                        break;
+                    }
+
+                } while ( runningYet != 0);
+
+                inProcess.ReleaseMutex();
             }
             else
             {
-                if (verbose)
-                    Console.WriteLine ("genie: no binfmt_misc filesystem present");
+                Console.WriteLine ("genie: bottle initializing elsewhere; please wait...");
+                
+                var result = inProcess.WaitOne(1000 * Config.SystemdStartupTimeout);
+
+                // Release immediately on acquisition.
+                if (result)
+                    inProcess.ReleaseMutex();
             }
-
-            // Define systemd startup chain - command string to pass to daemonize
-            string [] startupChain = new string[] {Config.PathToUnshare, "-fp", "--propagation", "shared", "--mount-proc", "--"};
-
-            // Are we doing AppArmor?
-            if (Config.AppArmorNamespace)
-            {
-                // Check whether AppArmor is available in the kernel.
-                if (Directory.Exists("/sys/module/apparmor"))
-                {
-                    // If the AppArmor filesystem is not mounted, mount it.
-                    if (!Directory.Exists("/sys/kernel/security/apparmor"))
-                    {
-                        // Mount AppArmor filesystem.
-                        if (!MountHelpers.Mount ("securityfs", "/sys/kernel/security", "securityfs"))
-                        {
-                            Console.WriteLine ("genie: could not mount AppArmor filesystem; attempting to continue without AppArmor namespace");
-                            goto error;
-                        }
-                    }
-
-                    // Create AppArmor namespace for genie bottle
-                    string nsName = $"genie-{Helpers.WslDistroName}";
-
-                    if (verbose)
-                        Console.WriteLine ($"genie: creating AppArmor namespace {nsName}");
-
-                    if (!Directory.Exists("/sys/kernel/security/apparmor/policy/namespaces"))
-                    {
-                        Console.WriteLine ("genie: could not find AppArmor filesystem; attempting to continue without AppArmor namespace");
-                        goto error;
-                    }
-
-                    Directory.CreateDirectory ($"/sys/kernel/security/apparmor/policy/namespaces/{nsName}");
-
-                    // Update startup chain with aa-exec command.
-                    startupChain = startupChain.Concat(new string[] {"aa-exec", "-n", $"{nsName}", "-p", "unconfined", "--"}).ToArray();
-                }
-                else
-                    Console.WriteLine ("genie: AppArmor not available in kernel; attempting to continue without AppArmor namespace");
-            }
-
-            error:
-
-            // Update startup chain with systemd command.
-            startupChain = startupChain.Append("systemd").ToArray();
-
-            // Run systemd in a container.
-            if (verbose)
-                Console.WriteLine ("genie: starting systemd.");
-
-            Console.WriteLine(string.Join(" ", startupChain));
-
-            Helpers.Chain ("daemonize",
-                startupChain,
-                "initializing bottle failed; daemonize");
-
-            // Wait for systemd to be up. (Polling, sigh.)
-            Console.Write ("Waiting for systemd...");
-
-            int systemdPid;
-
-            do
-            {
-                Thread.Sleep (500);
-                systemdPid = Helpers.GetSystemdPid();
-
-                Console.Write (".");
-            } while ( systemdPid == 0);
-
-            // Now that systemd exists, write out its (external) PID.
-            // We do not need to store the inside-bottle PID anywhere for obvious reasons.
-            // Create the path file.
-            File.WriteAllText("/run/genie.systemd.pid", systemdPid.ToString());
-
-            // Wait for systemd to be in running state.
-            int runningYet = 255;
-            int timeout = Config.SystemdStartupTimeout;
-
-            var ryArgs = new string[] {"-c", $"nsenter -t {systemdPid} -m -p systemctl is-system-running -q 2> /dev/null"};
-
-            do
-            {
-                Thread.Sleep (1000);
-                runningYet = Helpers.RunAndWait ("sh", ryArgs);
-
-                Console.Write ("!");
-
-                timeout--;
-                if (timeout < 0)
-                {
-                    // What state are we in?
-                    var state = Helpers.RunAndWaitForOutput ("sh", new string[] {"-c", $"\"nsenter -t {systemdPid} -m -p systemctl is-system-running 2> /dev/null\""});
-
-                    if (state.StartsWith("starting"))
-                    {
-                        Console.WriteLine("\n\nSystemd is still starting. This may indicate a unit is being slow to start.\nAttempting to continue.\n");
-                    }
-                    else
-                    {
-                        Console.WriteLine("\n\nTimed out waiting for systemd to enter running state.\nThis may indicate a systemd configuration error.\nAttempting to continue.\nFailed units will now be displayed (systemctl list-units --failed):");
-
-                        Helpers.Chain ("nsenter",
-                         new string[] {"-t", systemdPid.ToString(), "-m", "-p", "systemctl", "list-units", "--failed"},
-                         "running command failed; nsenter for systemctl list-units --failed");
-                    }
-
-                    break;
-                }
-
-            } while ( runningYet != 0);
 
             Console.WriteLine();
+
         }
 
         // Do the work of running a command inside the bottle.

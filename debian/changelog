@@ -4,6 +4,7 @@ systemd-genie (1.45) buster bullseye bookworm sid focal bionic; urgency=medium
         * Allow configuration of hostname suffix.
         * Improved Arch PKGBUILD file.
         * Support for AppArmor namespaces.
+        * Add mutex to prevent multiple simultaneous init attempts.
 
  -- Alistair Young <avatar@arkane-systems.net>  Sat, 07 Aug 2021 16:40:00 -0500
 
