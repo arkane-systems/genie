@@ -102,6 +102,9 @@ internal-debian-package:
 	install -Dm 0755 -o root "othersrc/scripts/map-user-runtime-dir.sh" -t "$(INSTALLDIR)"
 	install -Dm 0755 -o root "othersrc/scripts/unmap-user-runtime-dir.sh" -t "$(INSTALLDIR)"
 
+	# Target check
+	install -Dm 0755 -o root "othersrc/scripts/check-default-target.sh" -t "$(INSTALLDIR)"
+
 	# Configuration file.
 	install -Dm 0644 -o root "othersrc/etc/genie.ini" -t "$(ETCDIR)"
 

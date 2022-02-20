@@ -192,6 +192,12 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             rootCommand.Add (cmdIsInside);
 
+            var cmdCleanup = new Command ("--cleanup");
+            cmdCleanup.Description = "Clean up leftover genie files (only when not in use).";
+            cmdCleanup.Handler = CommandHandler.Create<bool>((Func<bool, int>)CleanupHandler);
+
+            rootCommand.Add (cmdCleanup);
+
             return rootCommand;
         }
 
@@ -241,6 +247,12 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             SetUpSecurePath();
             StashEnvironment();
+
+            // Check and warn if not multi-user.target
+            if (Config.TargetWarning)
+            {
+                Helpers.RunAndWait ("sh", new string[] { Config.GetPrefixedPath ("lib/genie/check-default-target.sh") });
+            } 
 
             // Now that the WSL hostname can be set via .wslconfig, we're going to make changing
             // it automatically in genie an option, enable/disable in genie.ini. Defaults to on
@@ -294,7 +306,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             // Now that systemd exists, write out its (external) PID.
             // We do not need to store the inside-bottle PID anywhere for obvious reasons.
             // Create the path file.
-            File.WriteAllText("/run/genie.systemd.pid", systemdPid.ToString());           
+            File.WriteAllText("/run/genie.systemd.pid", systemdPid.ToString());   
 
             // Wait for systemd to be in running state.
             int runningYet = 255;
@@ -327,6 +339,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                         Helpers.Chain ("nsenter",
                             new string[] {"-t", systemdPid.ToString(), "-m", "-p", "systemctl", "list-units", "--failed"},
                             "running command failed; nsenter for systemctl list-units --failed");
+
+                        Console.WriteLine("Information on known-problematic units may be found at\nhttps://github.com/arkane-systems/genie/wiki/Systemd-units-known-to-be-problematic-under-WSL\n");
                     }
 
                     break;
@@ -518,6 +532,11 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 Console.WriteLine();
             }
 
+            if (state.BottleError)
+            {
+                Console.WriteLine ("* WARNING: Bottled systemd is not in running state; errors may occur");
+            }
+
             using (var r = new RootPrivilege())
             {
                 // At this point, we should be outside an existing bottle, one way or another.
@@ -577,6 +596,11 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 Console.WriteLine();
             }
 
+            if (state.BottleError)
+            {
+                Console.WriteLine ("* WARNING: Bottled systemd is not in running state; errors may occur");
+            }
+
             using (var r = new RootPrivilege())
             {
                 // At this point, we should be outside an existing bottle, one way or another.
@@ -633,6 +657,11 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 Console.WriteLine();
             }
 
+            if (state.BottleError)
+            {
+                Console.WriteLine ("* WARNING: Bottled systemd is not in running state; errors may occur");
+            }
+
             using (var r = new RootPrivilege())
             {
                 // At this point, we should be inside an existing bottle, one way or another.
@@ -680,7 +709,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             // Get the bottle state.
             var state = new BottleStatus (verbose);
 
-            if (state.BottleExists)
+            if (state.BottleExists && !state.BottleError)
             {
                 Console.WriteLine ("running");
                 return 0;
@@ -694,6 +723,11 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             {
                 Console.WriteLine ("stopping");
                 return 3;
+            }
+            else if (state.BottleError)
+            {
+                Console.WriteLine ("running (systemd errors)");
+                return 4;
             }
 
             Console.WriteLine ("stopped");
@@ -719,6 +753,42 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             Console.WriteLine("no-bottle");
             return 2;
+        }
+
+        // Cleanup leftover genie files
+        public static int CleanupHandler (bool verbose)
+        {
+            string[] files = {
+                "/run/genie.startup",
+                "/run/genie.shutdown",
+                "/run/genie.up",
+                "/run/genie.env",
+                "/run/genie.path",
+                "/run/genie.systemd.pid",
+                "/run/hostname-wsl"
+            };
+
+            // Get the bottle state.
+            var state = new BottleStatus (verbose);
+
+            if (state.Status != Status.NoBottlePresent)
+            {
+                Console.WriteLine ("genie: cannot clean up while bottle exists.");
+                return EINVAL;
+            }
+
+            foreach (string s in files)
+            {
+                if (File.Exists (s))
+                {
+                    if (verbose)
+                        Console.WriteLine ($"genie: deleting leftover file {s}");
+
+                    File.Delete (s);
+                }
+            }
+
+            return 0;
         }
 
         #endregion Command handlers

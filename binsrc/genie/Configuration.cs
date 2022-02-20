@@ -62,5 +62,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
         // Get the installation-dependent path for a given file.
         internal string GetPrefixedPath (string path) => Path.Combine (GenieConfig.Prefix, path);
+
+        // Warn the user if the systemd target is not multi-user.target.
+        internal bool TargetWarning => this.Configuration.GetValue<bool> ("genie:target-warning", true);
     }
 }

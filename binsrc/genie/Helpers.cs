@@ -271,24 +271,29 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
         internal static string GetLoginName ()
         {
-            unsafe
-            {
-                byte[] bytes = new byte[64];
+            return Environment.GetEnvironmentVariable("LOGNAME");
 
-                fixed (byte* buffer = bytes)
-                {
-                    int gls = getlogin_r(buffer, 64);
+            // Try this again later?
+            // Error code 6? What is code 6?
 
-                    if (gls == 0)
-                        return Encoding.UTF8.GetString (bytes);
-                    else
-                    {
-                        Console.WriteLine ($"genie: error retrieving login name gls={gls}, using fallback");
-                        return Environment.GetEnvironmentVariable ("LOGNAME");
-                        // throw new InvalidOperationException ("genie: Could not retrieve real user name.");
-                    }
-                }
-            }
+            // unsafe
+            // {
+            //     byte[] bytes = new byte[64];
+
+            //     fixed (byte* buffer = bytes)
+            //     {
+            //         int gls = getlogin_r(buffer, 64);
+
+            //         if (gls == 0)
+            //             return Encoding.UTF8.GetString (bytes);
+            //         else
+            //         {
+            //             Console.WriteLine ($"genie: error retrieving login name gls={gls}, using fallback");
+            //             return Environment.GetEnvironmentVariable ("LOGNAME");
+            //             // throw new InvalidOperationException ("genie: Could not retrieve real user name.");
+            //         }
+            //     }
+            // }
         }
 
         #endregion User identities
