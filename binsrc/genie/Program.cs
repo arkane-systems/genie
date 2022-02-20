@@ -7,8 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
-using ArkaneSystems.WindowsSubsystemForLinux;
-
 using static Tmds.Linux.LibC;
 
 using Process=System.Diagnostics.Process;
@@ -17,69 +15,117 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 {
     public static class Program
     {
-        // Configuration for genie.
-        internal static GenieConfig Config { get; } = new GenieConfig();
+        #region Helper methods
 
-        // Original path before we enforce secure path.
-        public static string originalPath {get; set;}
+        #region AppArmor
 
-        // Selection of original environment variables.
-        public static string[] clonedVariables {get; set;}
-
-        // User name of the real user running genie.
-        public static string realUserName { get; set;}
-
-        // Entrypoint.
-        public static int Main (string[] args)
+        private static void ConfigureAppArmorNamespace (ref string[] startupChain, bool verbose)
         {
-            // *** PRELAUNCH CHECKS
-            // Check that we are, in fact, running on Linux/WSL.
-            if (!PlatformChecks.IsLinux)
+            // Check whether AppArmor is available in the kernel.
+            if (Directory.Exists("/sys/module/apparmor"))
             {
-                Console.WriteLine ("genie: not executing on the Linux platform - how did we get here?");
-                return EBADF;
+                // If the AppArmor filesystem is not mounted, mount it.
+                if (!Directory.Exists("/sys/kernel/security/apparmor"))
+                {
+                    // Mount AppArmor filesystem.
+                    if (!MountHelpers.Mount ("securityfs", "/sys/kernel/security", "securityfs"))
+                    {
+                        Console.WriteLine ("genie: could not mount AppArmor filesystem; attempting to continue without AppArmor namespace");
+                        return;
+                    }
+                }
+
+                // Create AppArmor namespace for genie bottle.
+                string nsName = $"genie-{Helpers.WslDistroName}";
+
+                if (verbose)
+                   Console.WriteLine ($"genie: creating AppArmor namespace {nsName}");
+
+                if (!Directory.Exists("/sys/kernel/security/apparmor/policy/namespaces"))
+                {
+                    Console.WriteLine ("genie: could not find AppArmor filesystem; attempting to continue without AppArmor namespace");
+                    return;
+                }
+
+                Directory.CreateDirectory ($"/sys/kernel/security/apparmor/policy/namespaces/{nsName}");
+
+                // Update startup chain with aa-exec command.
+                startupChain = startupChain.Concat(new string[] {"aa-exec", "-n", $"{nsName}", "-p", "unconfined", "--"}).ToArray();
             }
-
-            if (PlatformChecks.IsWsl1)
-            {
-                Console.WriteLine ("genie: systemd is not supported under WSL 1.");
-                return EPERM;
-            }
-
-            if (!PlatformChecks.IsWsl2)
-            {
-                Console.WriteLine ("genie: not executing under WSL 2 - how did we get here?");
-                return EBADF;
-            }
-
-            if (!UidChecks.IsEffectivelyRoot)
-            {
-                Console.WriteLine ("genie: must execute as root - has the setuid bit gone astray?");
-                return EPERM;
-            }
-
-            // Set up secure path, saving original if specified.
-
-            if (Config.ClonePath)
-                originalPath = Environment.GetEnvironmentVariable("PATH");
             else
-                // TODO: Should reference system drive by letter
-                originalPath = @"/mnt/c/Windows/System32";
+            {
+                Console.WriteLine ("genie: AppArmor not available in kernel; attempting to continue without AppArmor namespace");
+            }
+        }
 
-            Environment.SetEnvironmentVariable ("PATH", Config.SecurePath);
+        // Now we have exited the bottle, clean up the AppArmor namespace.
+        private static void UnconfigureAppArmorNamespace (bool verbose)
+        {
+            string nsName = $"genie-{Helpers.WslDistroName}";
 
-            // Stash original environment (specified variables only).
-            clonedVariables = GenieConfig.DefaultVariables
-                .Union (from DictionaryEntry de in Environment.GetEnvironmentVariables()
-                        where Config.CloneEnv.Contains (de.Key)
-                        select $"{de.Key}={de.Value}")
-                .ToArray();
+            if (verbose)
+                Console.WriteLine ($"genie: deleting AppArmor namespace {nsName}");
 
-            // Store the name of the real user.
-            // TODO: replace this with something less hilariously insecure
-            realUserName = Environment.GetEnvironmentVariable("LOGNAME");
+            if (Directory.Exists($"/sys/kernel/security/apparmor/policy/namespaces/{nsName}"))
+            {
+                try
+                {
+                    Directory.Delete($"/sys/kernel/security/apparmor/policy/namespaces/{nsName}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine ($"genie: could not delete AppArmor namespace; {ex.Message}");
+                }
+            }
+            else
+                Console.WriteLine ("genie: no AppArmor namespace to delete"); 
+        }
 
-            // *** PARSE COMMAND-LINE
+        #endregion AppArmor
+
+        #region Binfmts
+
+        // Unmount the binfmts fs.
+        private static void UnmountBinfmts (bool verbose)
+        {
+            if (Directory.Exists("/proc/sys/fs/binfmt_misc"))
+            {
+                if (verbose)
+                    Console.WriteLine ("genie: unmounting binfmt_misc filesystem before proceeding");
+
+                if (!MountHelpers.UnMount ("/proc/sys/fs/binfmt_misc"))
+                {
+                    Console.WriteLine ("genie: failed to unmount binfmt_misc filesystem; attempting to continue");
+                }
+            }
+            else
+            {
+                if (verbose)
+                    Console.WriteLine ("genie: no binfmt_misc filesystem present");
+            }
+        }
+
+        // Having unmounted the binfmts fs before starting systemd, we remount it now as
+        // a courtesy. But remember, genie is not guaranteed to be idempotent, so don't
+        // rely on this, for the love of Thompson and Ritchie!
+        private static void RemountBinfmts (bool verbose)
+        {
+            if (!Directory.Exists("/proc/sys/fs/binfmt_misc"))
+            {
+                if (verbose)
+                    Console.WriteLine ("genie: remounting binfmt_misc filesystem as a courtesy");
+
+                if (!MountHelpers.Mount("binfmt_misc", "/proc/sys/fs/binfmt_misc", FsType.BinaryFormats))
+                {
+                    Console.WriteLine ("genie: failed to remount binfmt_misc filesystem; attempting to continue");
+                }
+            }
+        }
+
+        #endregion Binfmts
+
+        private static RootCommand GetCommandLineParser()
+        {
             // Create options.
             Option optVerbose = new Option<bool> ("--verbose",
                                                   getDefaultValue: () => false,
@@ -146,449 +192,234 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             rootCommand.Add (cmdIsInside);
 
-            // Parse the arguments and invoke the handler.
-            return rootCommand.InvokeAsync(args).Result;
+            return rootCommand;
         }
 
-        #region Command handlers
-
-        // Handle the case where genie is invoked without a command specified.
-        public static int RootHandler (bool verbose)
+        // Set up secure path, saving original if specified.
+        private static void SetUpSecurePath()
         {
-            Console.WriteLine("genie: one of the commands -i, -s, or -c must be supplied.");
-            return 0;
+            string originalPath;
+
+            if (Config.ClonePath)
+                originalPath = Environment.GetEnvironmentVariable("PATH");
+            else
+                // TODO: Should reference system drive by letter
+                originalPath = @"/mnt/c/Windows/System32";
+
+            Environment.SetEnvironmentVariable ("PATH", Config.SecurePath);
+
+            // Create the path file.
+            File.WriteAllText("/run/genie.path", originalPath);
         }
 
-        // Initialize the bottle (if necessary) only
-        public static int InitializeHandler (bool verbose)
+        // Stash original environment (specified variables only).
+        private static void StashEnvironment()
         {
-            // Get the bottle state.
-            var state = GetBottleState(verbose);
+            string[] clonedVariables;
 
-            // If a bottle exists, we have succeeded already. Exit and report success.
-            if (state.existedAtStart)
-            {
-                if (verbose)
-                    Console.WriteLine ("genie: bottle already exists (no need to initialize).");
+            clonedVariables = GenieConfig.DefaultVariables
+                .Union (from DictionaryEntry de in Environment.GetEnvironmentVariables()
+                        where Config.CloneEnv.Contains (de.Key)
+                        select $"{de.Key}={de.Value}")
+                .ToArray();
 
-                return 0;
-            }
-
-            // Daemonize expects real uid root as well as effective uid root.
-            using (var r = new RootPrivilege())
-            {
-                // Init the bottle.
-                InitializeBottle(verbose);
-            }
-
-            return 0;
+            // Create the env file.
+            File.WriteAllLines("/run/genie.env", clonedVariables);
         }
 
-        // Initialize the bottle, if necessary, then start a shell in it.
-        public static int ShellHandler (bool verbose)
-        {
-            // Get the bottle state.
-            var state = GetBottleState (verbose);
+        #endregion Helper methods
 
-            if (state.startedWithin)
-            {
-                Console.WriteLine ("genie: already inside the bottle; cannot start shell!");
-                return EINVAL;
-            }
-
-            using (var r = new RootPrivilege())
-            {
-                if (!state.existedAtStart)
-                    InitializeBottle(verbose);
-
-                // At this point, we should be outside an existing bottle, one way or another.
-
-                // It shouldn't matter whether we have setuid here, since we start the shell with
-                // machinectl, which reassigns uid appropriately as login(1).
-                StartShell(verbose);
-            }
-
-            return 0;
-        }
-
-        // Initialize the bottle, if necessary, then start a login prompt in it.
-        public static int LoginHandler (bool verbose)
-        {
-            // Get the bottle state.
-            var state = GetBottleState (verbose);
-
-            if (state.startedWithin)
-            {
-                Console.WriteLine ("genie: already inside the bottle; cannot start login prompt!");
-                return EINVAL;
-            }
-
-            using (var r = new RootPrivilege())
-            {
-                if (!state.existedAtStart)
-                    InitializeBottle(verbose);
-
-                // At this point, we should be outside an existing bottle, one way or another.
-
-                // It shouldn't matter whether we have setuid here, since we start the shell with
-                // a login prompt, which reassigns uid appropriately.
-                StartLogin(verbose);
-            }
-
-            return 0;
-        }
-
-        // Initialize the bottle, if necessary, then run a command in it.
-        public static int ExecHandler (bool verbose, IEnumerable<string> command)
-        {
-            // Get the bottle state.
-            var state = GetBottleState (verbose);
-
-            // If already inside, just execute it.
-            if (state.startedWithin)
-                return Helpers.RunAndWait (command.First(), command.Skip(1).ToArray());
-
-            using (var r = new RootPrivilege())
-            {
-
-                if (!state.existedAtStart)
-                    InitializeBottle(verbose);
-
-                // At this point, we should be inside an existing bottle, one way or another.
-
-                RunCommand (verbose, command.ToArray());
-            }
-
-            return 0;
-        }
-
-        // Shut down the bottle and clean up.
-        public static int ShutdownHandler (bool verbose)
-        {
-            // Get the bottle state.
-            var state = GetBottleState (verbose);
-
-            if (!state.existedAtStart)
-            {
-                Console.WriteLine ("genie: no bottle exists.");
-                return EINVAL;
-            }
-
-            if (state.startedWithin)
-            {
-                Console.WriteLine ("genie: cannot shut down bottle from inside bottle; exiting.");
-                return EINVAL;
-            }
-
-            using (var r = new RootPrivilege())
-            {
-                if (verbose)
-                    Console.WriteLine ("genie: running systemctl poweroff within bottle");
-
-                var systemdPid = Helpers.GetSystemdPid();
-                var sd = Process.GetProcessById (systemdPid);
-
-                Helpers.Chain ("nsenter",
-                    new string[] {"-t", systemdPid.ToString(), "-m", "-p", "systemctl", "poweroff"},
-                    "running command failed; nsenter");
-
-                Console.Write ("Waiting for systemd exit...");
-
-                // Wait for systemd to exit.
-                int timeout = Config.SystemdStartupTimeout;
-
-                while (!sd.WaitForExit(1000))
-                {
-                    Console.Write (".");
-                    timeout--;
-
-                    if (timeout < 0)
-                    {
-                        Console.WriteLine("\n\nTimed out waiting for systemd to exit.\nThis may indicate a systemd configuration error.\nAttempting to continue.");
-                        break;
-                    }
-                }
-
-                Console.WriteLine();
-
-                // Now we have exited the bottle, clean up the AppArmor namespace.
-                if (Config.AppArmorNamespace)
-                {
-                    string nsName = $"genie-{Helpers.WslDistroName}";
-
-                    if (verbose)
-                        Console.WriteLine ($"genie: deleting AppArmor namespace {nsName}");
-
-                    if (Directory.Exists($"/sys/kernel/security/apparmor/policy/namespaces/{nsName}"))
-                    {
-                        try
-                        {
-                            Directory.Delete($"/sys/kernel/security/apparmor/policy/namespaces/{nsName}");
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine ($"genie: could not delete AppArmor namespace; {ex.Message}");
-                        }
-                    }
-                    else
-                        Console.WriteLine ("genie: no AppArmor namespace to delete");
-                }
-
-                // Having unmounted the binfmts fs before starting systemd, we remount it now as
-                // a courtesy. But remember, genie is not guaranteed to be idempotent, so don't
-                // rely on this, for the love of Thompson and Ritchie!
-                if (!Directory.Exists("/proc/sys/fs/binfmt_misc"))
-                {
-                    if (verbose)
-                        Console.WriteLine ("genie: remounting binfmt_misc filesystem as a courtesy");
-
-                    if (!MountHelpers.Mount("binfmt_misc", "/proc/sys/fs/binfmt_misc", FsType.BinaryFormats))
-                    {
-                        Console.WriteLine ("genie: failed to remount binfmt_misc filesystem; attempting to continue");
-                    }
-                }
-
-                if (Config.ResolvedStub)
-                    Helpers.RemoveResolvSymlink (verbose);
-
-                if (Config.UpdateHostname)
-                {
-                    Thread.Sleep (500);
-                    Helpers.DropHostname (verbose);
-                }
-            }
-
-            return 0;
-        }
-
-        // Check whether systemd has been started by genie, or not.
-        public static int IsRunningHandler (bool verbose)
-        {
-            // Get the bottle state.
-            var state = GetBottleState (verbose);
-
-            if (state.existedAtStart)
-            {
-                Console.WriteLine ("running");
-                return 0;
-            }
-
-            Console.WriteLine ("stopped");
-            return 1;
-        }
-
-        // Check whether currently executing within the genie bottle, or not.
-        public static int IsInsideHandler (bool verbose)
-        {
-            // Get the bottle state.
-            var state = GetBottleState (verbose);
-
-            if (state.startedWithin)
-            {
-                Console.WriteLine ("inside");
-                return 0;
-            }
-
-            if (state.existedAtStart)
-            {
-                Console.WriteLine("outside");
-                return 1;
-            }
-
-            Console.WriteLine("no-bottle");
-            return 2;
-        }
-
-        #endregion Command handlers
-
-        #region Implementation methods
-
-        // Get the current status of the bottle.
-        private static BottleStatus GetBottleState (bool verbose)
-        {
-            // Get systemd PID.
-            var systemdPid = Helpers.GetSystemdPid();
-
-            return new BottleStatus (systemdPid, verbose);
-        }
+        #region Bottle startup and shutdown
 
         // Do the work of initializing the bottle.
-        private static void InitializeBottle (bool verbose)
+        public static void StartBottle (bool verbose)
         {
-            // Create a new mutex to indicate that the system is initializing.
-            var inProcess = new Mutex (false, "genieInitializing");
+            FlagFiles.StartupFile = true;
 
-            // Try to gain control of the mutex.
-            if (inProcess.WaitOne (100))
+            if (verbose)
+                Console.WriteLine ("genie: starting bottle");
+
+            SetUpSecurePath();
+            StashEnvironment();
+
+            // Now that the WSL hostname can be set via .wslconfig, we're going to make changing
+            // it automatically in genie an option, enable/disable in genie.ini. Defaults to on
+            // for backwards compatibility and because turning off when using bridged networking is
+            // a Bad Idea.
+            if (Config.UpdateHostname)
+                Helpers.UpdateHostname (Config.HostnameSuffix, verbose);
+
+            // If configured to, create the resolv.conf symlink.
+            if (Config.ResolvedStub)
+                Helpers.CreateResolvSymlink (verbose);
+
+            // Unmount the binfmts fs before starting systemd, so systemd can mount it
+            // again with all the trimmings.
+            UnmountBinfmts (verbose);
+
+            // Define systemd startup chain - command string to pass to daemonize
+            string [] startupChain = new string[] {Config.PathToUnshare, "-fp", "--propagation", "shared", "--mount-proc", "--"};
+
+            // If requested, configure AppArmor namespace.
+            if (Config.AppArmorNamespace)
+                ConfigureAppArmorNamespace (ref startupChain, verbose);
+
+            // Update startup chain with systemd command.
+            startupChain = startupChain.Append("systemd").ToArray();
+
+            // Run systemd in a container.
+            if (verbose)
             {
-                // Mutex successfully acquired.
+                Console.WriteLine ("genie: starting systemd with command line:");
+                Console.WriteLine (string.Join(" ", startupChain));
+            }
 
-                if (verbose)
-                    Console.WriteLine ("genie: initializing bottle.");
+            Helpers.Chain ("daemonize",
+                startupChain,
+                "initializing bottle failed; daemonize");
 
-                // Create the path file.
-                File.WriteAllText("/run/genie.path", originalPath);
+            // Wait for systemd to be up. (Polling, sigh.)
+            Console.Write ("Waiting for systemd...");
 
-                // Create the env file.
-                File.WriteAllLines("/run/genie.env", clonedVariables);
+            int systemdPid;
 
-                // Now that the WSL hostname can be set via .wslconfig, we're going to make changing
-                // it automatically in genie an option, enable/disable in genie.ini. Defaults to on
-                // for backwards compatibility.
-                if (Config.UpdateHostname)
-                    Helpers.UpdateHostname (Config.HostnameSuffix, verbose);
+            do
+            {
+                Thread.Sleep (500);
+                systemdPid = Helpers.GetSystemdPid();
 
-                // If configured to, create the resolv.conf symlink.
-                if (Config.ResolvedStub)
-                        Helpers.CreateResolvSymlink (verbose);
+                Console.Write (".");
+            } while ( systemdPid == 0);
 
-                // Unmount the binfmts fs before starting systemd, so systemd can mount it
-                // again with all the trimmings.
-                if (Directory.Exists("/proc/sys/fs/binfmt_misc"))
+            // Now that systemd exists, write out its (external) PID.
+            // We do not need to store the inside-bottle PID anywhere for obvious reasons.
+            // Create the path file.
+            File.WriteAllText("/run/genie.systemd.pid", systemdPid.ToString());           
+
+            // Wait for systemd to be in running state.
+            int runningYet = 255;
+            int timeout = Config.SystemdStartupTimeout;
+
+            var ryArgs = new string[] {"-c", $"nsenter -t {systemdPid} -m -p systemctl is-system-running -q 2> /dev/null"};
+
+            do
+            {
+                Thread.Sleep (1000);
+                runningYet = Helpers.RunAndWait ("sh", ryArgs);
+
+                Console.Write ("!");
+
+                timeout--;
+
+                if (timeout < 0)
                 {
-                    if (verbose)
-                        Console.WriteLine ("genie: unmounting binfmt_misc filesystem before proceeding");
+                    // What state are we in?
+                    var state = Helpers.RunAndWaitForOutput ("sh", new string[] {"-c", $"\"nsenter -t {systemdPid} -m -p systemctl is-system-running 2> /dev/null\""});
 
-                    if (!MountHelpers.UnMount ("/proc/sys/fs/binfmt_misc"))
+                    if (state.StartsWith("starting"))
                     {
-                        Console.WriteLine ("genie: failed to unmount binfmt_misc filesystem; attempting to continue");
-                    }
-                }
-                else
-                {
-                    if (verbose)
-                        Console.WriteLine ("genie: no binfmt_misc filesystem present");
-                }
-
-                // Define systemd startup chain - command string to pass to daemonize
-                string [] startupChain = new string[] {Config.PathToUnshare, "-fp", "--propagation", "shared", "--mount-proc", "--"};
-
-                // Are we doing AppArmor?
-                if (Config.AppArmorNamespace)
-                {
-                    // Check whether AppArmor is available in the kernel.
-                    if (Directory.Exists("/sys/module/apparmor"))
-                    {
-                        // If the AppArmor filesystem is not mounted, mount it.
-                        if (!Directory.Exists("/sys/kernel/security/apparmor"))
-                        {
-                            // Mount AppArmor filesystem.
-                            if (!MountHelpers.Mount ("securityfs", "/sys/kernel/security", "securityfs"))
-                            {
-                                Console.WriteLine ("genie: could not mount AppArmor filesystem; attempting to continue without AppArmor namespace");
-                                goto error;
-                            }
-                        }
-
-                        // Create AppArmor namespace for genie bottle
-                        string nsName = $"genie-{Helpers.WslDistroName}";
-
-                        if (verbose)
-                            Console.WriteLine ($"genie: creating AppArmor namespace {nsName}");
-
-                        if (!Directory.Exists("/sys/kernel/security/apparmor/policy/namespaces"))
-                        {
-                            Console.WriteLine ("genie: could not find AppArmor filesystem; attempting to continue without AppArmor namespace");
-                            goto error;
-                        }
-
-                        Directory.CreateDirectory ($"/sys/kernel/security/apparmor/policy/namespaces/{nsName}");
-
-                        // Update startup chain with aa-exec command.
-                        startupChain = startupChain.Concat(new string[] {"aa-exec", "-n", $"{nsName}", "-p", "unconfined", "--"}).ToArray();
+                        Console.WriteLine("\n\nSystemd is still starting. This may indicate a unit is being slow to start.\nAttempting to continue.\n");
                     }
                     else
-                        Console.WriteLine ("genie: AppArmor not available in kernel; attempting to continue without AppArmor namespace");
-                }
-
-                error:
-
-                // Update startup chain with systemd command.
-                startupChain = startupChain.Append("systemd").ToArray();
-
-                // Run systemd in a container.
-                if (verbose)
-                    Console.WriteLine ("genie: starting systemd.");
-
-                // debug code: Console.WriteLine(string.Join(" ", startupChain));
-
-                Helpers.Chain ("daemonize",
-                    startupChain,
-                    "initializing bottle failed; daemonize");
-
-                // Wait for systemd to be up. (Polling, sigh.)
-                Console.Write ("Waiting for systemd...");
-
-                int systemdPid;
-
-                do
-                {
-                    Thread.Sleep (500);
-                    systemdPid = Helpers.GetSystemdPid();
-
-                    Console.Write (".");
-                } while ( systemdPid == 0);
-
-                // Now that systemd exists, write out its (external) PID.
-                // We do not need to store the inside-bottle PID anywhere for obvious reasons.
-                // Create the path file.
-                File.WriteAllText("/run/genie.systemd.pid", systemdPid.ToString());
-
-                // Wait for systemd to be in running state.
-                int runningYet = 255;
-                int timeout = Config.SystemdStartupTimeout;
-
-                var ryArgs = new string[] {"-c", $"nsenter -t {systemdPid} -m -p systemctl is-system-running -q 2> /dev/null"};
-
-                do
-                {
-                    Thread.Sleep (1000);
-                    runningYet = Helpers.RunAndWait ("sh", ryArgs);
-
-                    Console.Write ("!");
-
-                    timeout--;
-                    if (timeout < 0)
                     {
-                        // What state are we in?
-                        var state = Helpers.RunAndWaitForOutput ("sh", new string[] {"-c", $"\"nsenter -t {systemdPid} -m -p systemctl is-system-running 2> /dev/null\""});
+                        Console.WriteLine("\n\nTimed out waiting for systemd to enter running state.\nThis may indicate a systemd configuration error.\nAttempting to continue.\nFailed units will now be displayed (systemctl list-units --failed):");
 
-                        if (state.StartsWith("starting"))
-                        {
-                            Console.WriteLine("\n\nSystemd is still starting. This may indicate a unit is being slow to start.\nAttempting to continue.\n");
-                        }
-                        else
-                        {
-                            Console.WriteLine("\n\nTimed out waiting for systemd to enter running state.\nThis may indicate a systemd configuration error.\nAttempting to continue.\nFailed units will now be displayed (systemctl list-units --failed):");
-
-                            Helpers.Chain ("nsenter",
+                        Helpers.Chain ("nsenter",
                             new string[] {"-t", systemdPid.ToString(), "-m", "-p", "systemctl", "list-units", "--failed"},
                             "running command failed; nsenter for systemctl list-units --failed");
-                        }
-
-                        break;
                     }
 
-                } while ( runningYet != 0);
+                    break;
+                }
 
-                inProcess.ReleaseMutex();
-            }
-            else
+            } while ( runningYet != 0);
+
+            FlagFiles.RunFile = true;
+            FlagFiles.StartupFile = false;
+
+            Console.WriteLine();
+        }
+
+        // Do the work of shutting down the bottle.
+        public static void StopBottle (bool verbose)
+        {
+            FlagFiles.ShutdownFile = true;
+            FlagFiles.RunFile = false;      
+
+            if (verbose)
+                Console.WriteLine ("genie: running systemctl poweroff within bottle");
+
+            var systemdPid = Helpers.GetSystemdPid();
+            var sd = Process.GetProcessById (systemdPid);
+
+            Helpers.Chain ("nsenter",
+                new string[] {"-t", systemdPid.ToString(), "-m", "-p", "systemctl", "poweroff"},
+                "running command failed; nsenter");
+
+            // Wait for systemd to exit.
+            Console.Write ("Waiting for systemd exit...");
+
+            int timeout = Config.SystemdStartupTimeout;
+
+            while (!sd.WaitForExit(1000))
             {
-                Console.WriteLine ("genie: bottle initializing elsewhere; please wait...");
-                
-                var result = inProcess.WaitOne(1000 * Config.SystemdStartupTimeout);
+                Console.Write (".");
+                timeout--;
 
-                // Release immediately on acquisition.
-                if (result)
-                    inProcess.ReleaseMutex();
+                if (timeout < 0)
+                {
+                    Console.WriteLine("\n\nTimed out waiting for systemd to exit.\nThis may indicate a systemd configuration error.\nAttempting to continue.");
+                    break;
+                }
             }
 
             Console.WriteLine();
 
+            // We reverse the processes we performed to pre-startup the bottle as the post-shutdown, in reverse order.
+            if (Config.AppArmorNamespace)
+                UnconfigureAppArmorNamespace (verbose);
+
+            RemountBinfmts (verbose);
+
+            if (Config.ResolvedStub)
+                Helpers.RemoveResolvSymlink (verbose);
+
+            if (Config.UpdateHostname)
+            {
+                Thread.Sleep (500);
+                Helpers.DropHostname (verbose);
+            }
+
+            FlagFiles.ShutdownFile = false;
         }
 
-        // Do the work of running a command inside the bottle.
+        #endregion Bottle startup and shutdown
+
+        #region Run inside bottle
+
+        // Start a user session with the default shell inside the bottle.
+        private static void StartShell (bool verbose)
+        {
+            if (verbose)
+                Console.WriteLine ("genie: starting shell");
+
+            Helpers.Chain ("machinectl",
+                new string[] {"shell", "-q", $"{realUserName}@.host"},
+                "starting shell failed; machinectl shell");
+        }
+
+        // Start a user session with a login prompt inside the bottle.
+        private static void StartLogin (bool verbose)
+        {
+            if (verbose)
+                Console.WriteLine ("genie: starting login");
+
+            Helpers.Chain ("machinectl",
+                new string[] {"login", ".host"},
+                "starting login failed; machinectl login");
+        }
+
+        // Run a command in a user session inside the bottle.
         private static void RunCommand (bool verbose, string[] commandLine)
         {
             if (verbose)
@@ -604,28 +435,379 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 "running command failed; machinectl shell");
         }
 
-        // Start a user session with a login prompt inside the bottle.
-        private static void StartLogin (bool verbose)
-        {
-            if (verbose)
-                Console.WriteLine ("genie: starting login");
+        #endregion
 
-            Helpers.Chain ("machinectl",
-                new string[] {"login", ".host"},
-                "starting login failed; machinectl login");
+        #region Command handlers
+
+        // Handle the case where genie is invoked without a command specified.
+        public static int RootHandler (bool verbose)
+        {
+            Console.WriteLine("genie: one of the commands -i, -s, -l, -c, -r or -b must be supplied.");
+            return 0;
         }
 
-        // Do the work of starting a shell inside the bottle.
-        private static void StartShell (bool verbose)
+        // // Initialize the bottle (if necessary) only
+        public static int InitializeHandler (bool verbose)
         {
-            if (verbose)
-                Console.WriteLine ("genie: starting shell");
+            // Get the bottle state.
+            var state = new BottleStatus (verbose);
 
-            Helpers.Chain ("machinectl",
-                new string[] {"shell", "-q", $"{realUserName}@.host"},
-                "starting shell failed; machinectl shell");
+            // If a bottle exists, we have succeeded already. Exit and report success.
+            if (state.Status != Status.NoBottlePresent)
+            {
+                if (verbose)
+                    Console.WriteLine ("genie: bottle already exists (no need to initialize).");
+
+                return 0;
+            }
+
+            // Daemonize expects real uid root as well as effective uid root.
+            using (var r = new RootPrivilege())
+            {
+                // Init the bottle.
+                StartBottle(verbose);
+            }
+
+            return 0;
         }
 
-        #endregion Implementation methods
+        // Start a shell inside the bottle, initializing it if necessary.
+        public static int ShellHandler (bool verbose)
+        {
+            // Get the bottle state.
+            var state = new BottleStatus (verbose);
+
+            // If inside bottle, cannot start shell.
+            if (state.StartedWithinBottle)
+            {
+                Console.WriteLine ("genie: already inside the bottle; cannot start shell!");
+                return EINVAL;
+            }
+
+            // If shutting down, display error and exit.
+            if (state.BottleClosingDown)
+            {
+                Console.WriteLine ("genie: bottle is stopping, cannot start shell!");
+                return ECANCELED;
+            }
+
+            // If bottle does not exist, initialize it.
+            if (!state.BottleExistsInContext && !state.BottleStartingUp)
+            {
+                // Daemonize expects real uid root as well as effective uid root.
+                using (var r = new RootPrivilege())
+                {
+                    // Init the bottle.
+                    StartBottle(verbose);
+                }
+            }
+
+            // If bottle is starting up, wait for it.
+            if (state.BottleStartingUp)
+            {
+                Console.Write ("genie: bottle is starting in another session, please wait");
+
+                do
+                {
+                    Thread.Sleep (1000);
+                    Console.Write (".");
+
+                    state = new BottleStatus (verbose);
+                } while (!state.BottleExistsInContext);
+
+                Console.WriteLine();
+            }
+
+            using (var r = new RootPrivilege())
+            {
+                // At this point, we should be outside an existing bottle, one way or another.
+
+                // It shouldn't matter whether we have setuid here, since we start the shell with
+                // machinectl, which reassigns uid appropriately as login(1).
+                StartShell (verbose);
+            }
+
+            return 0;
+        }
+
+        // Start a login prompt inside the bottle, initializing it if necessary.
+        public static int LoginHandler (bool verbose)
+        {
+            // Get the bottle state.
+            var state = new BottleStatus (verbose);
+
+            // If inside bottle, cannot start shell.
+            if (state.StartedWithinBottle)
+            {
+                Console.WriteLine ("genie: already inside the bottle; cannot start login prompt!");
+                return EINVAL;
+            }
+
+            // If shutting down, display error and exit.
+            if (state.BottleClosingDown)
+            {
+                Console.WriteLine ("genie: bottle is stopping, cannot start login prompt!");
+                return ECANCELED;
+            }
+
+            // If bottle does not exist, initialize it.
+            if (!state.BottleExistsInContext && !state.BottleStartingUp)
+            {
+                // Daemonize expects real uid root as well as effective uid root.
+                using (var r = new RootPrivilege())
+                {
+                    // Init the bottle.
+                    StartBottle(verbose);
+                }
+            }
+
+            // If bottle is starting up, wait for it.
+            if (state.BottleStartingUp)
+            {
+                Console.Write ("genie: bottle is starting in another session, please wait");
+
+                do
+                {
+                    Thread.Sleep (1000);
+                    Console.Write (".");
+
+                    state = new BottleStatus (verbose);
+                } while (!state.BottleExistsInContext);
+
+                Console.WriteLine();
+            }
+
+            using (var r = new RootPrivilege())
+            {
+                // At this point, we should be outside an existing bottle, one way or another.
+
+                // It shouldn't matter whether we have setuid here, since we start the shell with
+                // a login prompt, which reassigns uid appropriately as login(1).
+                StartLogin (verbose);
+            }
+
+            return 0;
+        }
+
+        // Run a command inside the bottle, initializing it if necessary.
+        public static int ExecHandler (bool verbose, IEnumerable<string> command)
+        {
+            // Get the bottle state.
+            var state = new BottleStatus (verbose);
+
+            // If inside bottle, just execute the command.
+            if (state.StartedWithinBottle)
+                return Helpers.RunAndWait (command.First(), command.Skip(1).ToArray());
+
+            // If shutting down, display error and exit.
+            if (state.BottleClosingDown)
+            {
+                Console.WriteLine ("genie: bottle is stopping, cannot run command!");
+                return ECANCELED;
+            }
+
+            // If bottle does not exist, initialize it.
+            if (!state.BottleExistsInContext && !state.BottleStartingUp)
+            {
+                // Daemonize expects real uid root as well as effective uid root.
+                using (var r = new RootPrivilege())
+                {
+                    // Init the bottle.
+                    StartBottle(verbose);
+                }
+            }
+
+            // If bottle is starting up, wait for it.
+            if (state.BottleStartingUp)
+            {
+                Console.Write ("genie: bottle is starting in another session, please wait");
+
+                do
+                {
+                    Thread.Sleep (1000);
+                    Console.Write (".");
+
+                    state = new BottleStatus (verbose);
+                } while (!state.BottleExistsInContext);
+
+                Console.WriteLine();
+            }
+
+            using (var r = new RootPrivilege())
+            {
+                // At this point, we should be inside an existing bottle, one way or another.
+
+                RunCommand (verbose, command.ToArray());
+            }
+
+            return 0;
+        }
+
+        // Shut down the bottle and clean up.
+        public static int ShutdownHandler (bool verbose)
+        {
+            // Get the bottle state.
+            var state = new BottleStatus (verbose);
+
+            if (state.Status == Status.NoBottlePresent)
+            {
+                Console.WriteLine ("genie: no bottle exists.");
+                return EINVAL;
+            }
+
+            if (state.StartedWithinBottle)
+            {
+                Console.WriteLine ("genie: cannot shut down bottle from inside bottle; exiting.");
+                return EINVAL;
+            }
+
+            if (state.BottleWillExist || state.BottleClosingDown)
+            {
+                Console.WriteLine ("genie: bottle in transitional state; please wait until this is complete.");
+            }
+
+            using (var r = new RootPrivilege())
+            {
+                StopBottle (verbose);
+            }
+
+            return 0;
+        }
+
+        // Check whether systemd has been started by genie, or not.
+        public static int IsRunningHandler (bool verbose)
+        {
+            // Get the bottle state.
+            var state = new BottleStatus (verbose);
+
+            if (state.BottleExists)
+            {
+                Console.WriteLine ("running");
+                return 0;
+            }
+            else if (state.BottleWillExist)
+            {
+                Console.WriteLine ("starting");
+                return 2;
+            }
+            else if (state.BottleClosingDown)
+            {
+                Console.WriteLine ("stopping");
+                return 3;
+            }
+
+            Console.WriteLine ("stopped");
+            return 1;
+        }
+
+        // Check whether currently executing within the genie bottle, or not.
+        public static int IsInsideHandler (bool verbose)
+        {
+            // Get the bottle state.
+            var state = new BottleStatus (verbose);
+
+            if (state.StartedWithinBottle)
+            {
+                Console.WriteLine ("inside");
+                return 0;
+            }
+            else if (!(state.Status == Status.NoBottlePresent))
+            {
+                Console.WriteLine("outside");
+                return 1;
+            }
+
+            Console.WriteLine("no-bottle");
+            return 2;
+        }
+
+        #endregion Command handlers
+
+        // Configuration for genie.
+        internal static GenieConfig Config { get; } = new GenieConfig();
+
+        // User name of the real user running genie.
+        public static string realUserName { get; set;}
+
+        // Entrypoint.
+        public static int Main (string[] args)
+        {
+            // *** PRELAUNCH CHECKS
+            // Check that we are, in fact, running on Linux/WSL.
+            if (!PlatformChecks.IsLinux)
+            {
+                Console.WriteLine ("genie: not executing on the Linux platform - how did we get here?");
+                return EBADF;
+            }
+
+            if (PlatformChecks.IsWsl1)
+            {
+                Console.WriteLine ("genie: systemd is not supported under WSL 1.");
+                return EPERM;
+            }
+
+            if (!PlatformChecks.IsWsl2)
+            {
+                Console.WriteLine ("genie: not executing under WSL 2 - how did we get here?");
+                return EBADF;
+            }
+
+            if (!UidChecks.IsEffectivelyRoot)
+            {
+                Console.WriteLine ("genie: must execute as root - has the setuid bit gone astray?");
+                return EPERM;
+            }
+
+            // Store the name of the real user.
+            realUserName = Helpers.GetLoginName();
+
+            // Mutual exclusion - don't run any genie commands simultaneously, to prevent assorted bad messing.
+            // The only one that should take a lot of time is waiting for the bottle to initialize, and that's
+            // something we want to wait for to allow multiple startups.
+            Mutex inGenieUs = null;
+            
+            try
+            {
+                inGenieUs = new Mutex (false, "inGenieUs");
+
+                // Try to gain control of the mutex. We wait, if need be, for a mutex timeout period equivalent to the
+                // configured systemd startup timeout period, plus a 10% margin.
+                int timeout;
+
+                try
+                {
+                    timeout = 1100 * Config.SystemdStartupTimeout;
+                }
+                catch (OverflowException)
+                {
+                    timeout = int.MaxValue;
+                }
+
+                if (inGenieUs.WaitOne(timeout))
+                {
+                    // We have acquired the single-execution mutex.
+                    // Parse the command-line arguments and invoke the proper command.
+                    var result = GetCommandLineParser().InvokeAsync(args).Result;
+
+                    // Release the mutex.
+                    inGenieUs.ReleaseMutex();
+
+                    // Return the result code.
+                    return result;
+                }
+                else
+                {
+                    // Could not acquire the single-execution mutex, even after waiting.
+                    Console.WriteLine ("genie: could not acquire single-execution mutex; aborting.");
+                    return EACCES;
+                }
+            }
+            finally
+            {
+                // Dispose of the mutex.
+                if (inGenieUs != null)
+                    inGenieUs.Dispose();
+            }
+        }
     }
 }

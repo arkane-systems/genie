@@ -90,6 +90,28 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
         #endregion Subprocesses
 
+        #region Systemd state
+
+        internal static bool IsSystemdRunning (int systemdPid)
+        {
+            string[] args;
+
+            if (systemdPid == 1)
+            {
+                args = new string[] {"-c", $"systemctl is-system-running -q 2> /dev/null"};
+            }
+            else
+            {
+                args = new string[] {"-c", $"nsenter -t {systemdPid} -m -p systemctl is-system-running -q 2> /dev/null"};
+            }
+
+            var retval = Helpers.RunAndWait ("sh", args);
+
+            return (retval == 0);
+        }
+
+        #endregion Systemd state
+
         #region Hostname management
 
         // Add the "-wsl" suffix to the system hostname, and update the hosts file accordingly.
@@ -244,5 +266,31 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         }
 
         #endregion Resolved symlink
+
+        #region User identities
+
+        internal static string GetLoginName ()
+        {
+            unsafe
+            {
+                byte[] bytes = new byte[64];
+
+                fixed (byte* buffer = bytes)
+                {
+                    int gls = getlogin_r(buffer, 64);
+
+                    if (gls == 0)
+                        return Encoding.UTF8.GetString (bytes);
+                    else
+                    {
+                        Console.WriteLine ($"genie: error retrieving login name gls={gls}, using fallback");
+                        return Environment.GetEnvironmentVariable ("LOGNAME");
+                        // throw new InvalidOperationException ("genie: Could not retrieve real user name.");
+                    }
+                }
+            }
+        }
+
+        #endregion User identities
     }
 }
