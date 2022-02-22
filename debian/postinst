@@ -1,0 +1,2 @@
+#! /bin/sh
+/usr/bin/pip install -r /usr/lib/genie/requirements.txt

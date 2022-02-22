@@ -33,28 +33,12 @@ default:
 # Targets: individual end-product build.
 #
 
-# clean: clean-local clean-tar clean-debian clean-arch clean-fedora
+# clean: clean-debian
 clean:
 	make -C binsrc clean
 	rm -rf out
 
 # package: package-tar package-debian
-
-# Local installation
-
-# install-local:
-# 	make -C package/local package
-
-# clean-local:
-# 	make -C package/local clean
-
-# Tarball
-
-# package-tar: make-output-directory
-# 	make -C package/tar package
-
-# clean-tar:
-# 	make -C package/tar clean
 
 #
 # Debian packaging
@@ -85,7 +69,11 @@ internal-debian-package:
 	# Binaries.
 	mkdir -p "$(BINDIR)"
 	install -Dm 4755 -o root "binsrc/genie-wrapper/genie" -t "$(BINDIR)"
-# 	install -Dm 0755 -o root "binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl" -t "$(INSTALLDIR)"
+	install -Dm 0755 -o root "binsrc/genie/genie" -t "$(INSTALLDIR)"
+	install -Dm 0755 -o root "binsrc/genie/runinwsl" -t "$(INSTALLDIR)"
+
+	# Requirements
+	install -Dm 0644 -o root "binsrc/genie/requirements.txt" -t "$(INSTALLDIR)"
 
 	# Environment generator.
 	install -Dm 0755 -o root "othersrc/scripts/80-genie-envar.sh" -t "$(INSTALLDIR)"
@@ -119,18 +107,3 @@ make-output-directory:
 build-binaries:
 	make -C binsrc
 
-#
-# Altpacking
-#
-
-# package-arch: make-output-directory
-# 	make -C package/arch package
-
-# clean-arch:
-# 	make -C package/arch clean
-
-# package-fedora: make-output-directory # build-binaries
-# 	make -C package/fedora package
-
-# clean-fedora:
-# 	make -C package/fedora clean
