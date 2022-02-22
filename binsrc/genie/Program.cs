@@ -336,8 +336,8 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                     {
                         Console.WriteLine("\n\nTimed out waiting for systemd to enter running state.\nThis may indicate a systemd configuration error.\nAttempting to continue.\nFailed units will now be displayed (systemctl list-units --failed):");
 
-                        Helpers.Chain ("nsenter",
-                            new string[] {"-t", systemdPid.ToString(), "-m", "-p", "systemctl", "list-units", "--failed"},
+                        Helpers.ChainInside (systemdPid,
+                            new string[] {"systemctl", "list-units", "--failed"},
                             "running command failed; nsenter for systemctl list-units --failed");
 
                         Console.WriteLine("Information on known-problematic units may be found at\nhttps://github.com/arkane-systems/genie/wiki/Systemd-units-known-to-be-problematic-under-WSL\n");
@@ -366,9 +366,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             var systemdPid = Helpers.GetSystemdPid();
             var sd = Process.GetProcessById (systemdPid);
 
-            Helpers.Chain ("nsenter",
-                new string[] {"-t", systemdPid.ToString(), "-m", "-p", "systemctl", "poweroff"},
-                "running command failed; nsenter");
+            Helpers.ChainInside (systemdPid,
+                new string[] {"systemctl", "poweroff"},
+                "running command failed; nsenter systemctl poweroff");
 
             // Wait for systemd to exit.
             Console.Write ("Waiting for systemd exit...");
@@ -412,39 +412,39 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         #region Run inside bottle
 
         // Start a user session with the default shell inside the bottle.
-        private static void StartShell (bool verbose)
+        private static void StartShell (bool verbose, int systemdPid)
         {
             if (verbose)
                 Console.WriteLine ("genie: starting shell");
 
-            Helpers.Chain ("machinectl",
-                new string[] {"shell", "-q", $"{realUserName}@.host"},
+            Helpers.ChainInside (systemdPid,
+                new string[] {"machinectl", "shell", "-q", $"{realUserName}@.host"},
                 "starting shell failed; machinectl shell");
         }
 
         // Start a user session with a login prompt inside the bottle.
-        private static void StartLogin (bool verbose)
+        private static void StartLogin (bool verbose, int systemdPid)
         {
             if (verbose)
                 Console.WriteLine ("genie: starting login");
 
-            Helpers.Chain ("machinectl",
-                new string[] {"login", ".host"},
+            Helpers.ChainInside (systemdPid,
+                new string[] {"machinectl", "login", ".host"},
                 "starting login failed; machinectl login");
         }
 
         // Run a command in a user session inside the bottle.
-        private static void RunCommand (bool verbose, string[] commandLine)
+        private static void RunCommand (bool verbose, int systemdPid, string[] commandLine)
         {
             if (verbose)
                 Console.WriteLine ($"genie: running command '{string.Join(' ', commandLine)}'");
 
-            var commandPrefix = new string[] {"shell", "-q", $"{realUserName}@.host", Config.GetPrefixedPath ("lib/genie/runinwsl"),
+            var commandPrefix = new string[] {"machinectl", "shell", "-q", $"{realUserName}@.host", Config.GetPrefixedPath ("lib/genie/runinwsl"),
                     Environment.CurrentDirectory };
 
             var command = commandPrefix.Concat(commandLine);
 
-            Helpers.Chain ("machinectl",
+            Helpers.ChainInside (systemdPid,
                 command.ToArray(),
                 "running command failed; machinectl shell");
         }
@@ -543,7 +543,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
                 // It shouldn't matter whether we have setuid here, since we start the shell with
                 // machinectl, which reassigns uid appropriately as login(1).
-                StartShell (verbose);
+                StartShell (verbose, Helpers.GetSystemdPid());
             }
 
             return 0;
@@ -607,7 +607,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
                 // It shouldn't matter whether we have setuid here, since we start the shell with
                 // a login prompt, which reassigns uid appropriately as login(1).
-                StartLogin (verbose);
+                StartLogin (verbose, Helpers.GetSystemdPid());
             }
 
             return 0;
@@ -666,7 +666,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             {
                 // At this point, we should be inside an existing bottle, one way or another.
 
-                RunCommand (verbose, command.ToArray());
+                RunCommand (verbose, Helpers.GetSystemdPid(), command.ToArray());
             }
 
             return 0;
@@ -831,53 +831,10 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             // Store the name of the real user.
             realUserName = Helpers.GetLoginName();
 
-            // Mutual exclusion - don't run any genie commands simultaneously, to prevent assorted bad messing.
-            // The only one that should take a lot of time is waiting for the bottle to initialize, and that's
-            // something we want to wait for to allow multiple startups.
-            Mutex inGenieUs = null;
-            
-            try
-            {
-                inGenieUs = new Mutex (false, "inGenieUs");
+            // Parse the command-line arguments and invoke the proper command.
+            var result = GetCommandLineParser().InvokeAsync(args).Result;
 
-                // Try to gain control of the mutex. We wait, if need be, for a mutex timeout period equivalent to the
-                // configured systemd startup timeout period, plus a 10% margin.
-                int timeout;
-
-                try
-                {
-                    timeout = 1100 * Config.SystemdStartupTimeout;
-                }
-                catch (OverflowException)
-                {
-                    timeout = int.MaxValue;
-                }
-
-                if (inGenieUs.WaitOne(timeout))
-                {
-                    // We have acquired the single-execution mutex.
-                    // Parse the command-line arguments and invoke the proper command.
-                    var result = GetCommandLineParser().InvokeAsync(args).Result;
-
-                    // Release the mutex.
-                    inGenieUs.ReleaseMutex();
-
-                    // Return the result code.
-                    return result;
-                }
-                else
-                {
-                    // Could not acquire the single-execution mutex, even after waiting.
-                    Console.WriteLine ("genie: could not acquire single-execution mutex; aborting.");
-                    return EACCES;
-                }
-            }
-            finally
-            {
-                // Dispose of the mutex.
-                if (inGenieUs != null)
-                    inGenieUs.Dispose();
-            }
+            return result;
         }
     }
 }

@@ -88,6 +88,19 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
             }
         }
 
+        // Run a subprocess inside the bottle, and wait for it to exit, erroring out if it does not return success.
+        internal static void ChainInside (int nsPid, string [] commandArgs, string onError = "command execution failed;")
+        {
+            string [] nsenterArgs = new string [] { "-t", nsPid.ToString(), "-m", "-p" };
+
+            string [] realArgs = nsenterArgs.Concat(commandArgs).ToArray();
+
+            using (var r = new RootPrivilege())
+            {
+                Helpers.Chain ("nsenter", realArgs, onError);
+            }
+        }
+
         #endregion Subprocesses
 
         #region Systemd state
@@ -95,6 +108,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         internal static bool IsSystemdRunning (int systemdPid)
         {
             string[] args;
+            int retval;
 
             if (systemdPid == 1)
             {
@@ -105,7 +119,12 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                 args = new string[] {"-c", $"nsenter -t {systemdPid} -m -p systemctl is-system-running -q 2> /dev/null"};
             }
 
-            var retval = Helpers.RunAndWait ("sh", args);
+            using (var r = new RootPrivilege())
+            {
+                retval = Helpers.RunAndWait ("sh", args);
+            }
+
+            // Console.WriteLine ($"debug is-system-running = {retval}");
 
             return (retval == 0);
         }
@@ -282,7 +301,9 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
             //     fixed (byte* buffer = bytes)
             //     {
-            //         int gls = getlogin_r(buffer, 64);
+            //         int gls;
+
+            //         gls = getlogin_r(buffer, 64);
 
             //         if (gls == 0)
             //             return Encoding.UTF8.GetString (bytes);

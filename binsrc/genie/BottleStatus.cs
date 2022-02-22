@@ -16,11 +16,13 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
         // Current status of the bottle.
         internal Status Status { get; init; }
 
+        internal int SystemdPid { get; init;}
+
         internal BottleStatus (bool verbose)
         {
-            var systemdPid = Helpers.GetSystemdPid();
+            SystemdPid = Helpers.GetSystemdPid();
 
-            switch (systemdPid)
+            switch (SystemdPid)
             {
                 case 0:
                     // No systemd is running. The only possibility is that there
@@ -32,7 +34,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
                     // systemd is running as pid 1. This means we are inside the
                     // bottle. Check systemd status for more information.
 
-                    if (Helpers.IsSystemdRunning(systemdPid))
+                    if (Helpers.IsSystemdRunning(SystemdPid))
                         this.Status = Status.InsideBottle;
                     else
                         this.Status = Status.InsideBottleNotReady;
@@ -58,7 +60,7 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
                     if (FlagFiles.RunFile)
                     {
-                        if (Helpers.IsSystemdRunning (systemdPid))
+                        if (Helpers.IsSystemdRunning (SystemdPid))
                             this.Status = Status.BottleStarted;
                         else
                             this.Status = Status.BottleStartedNotReady;
