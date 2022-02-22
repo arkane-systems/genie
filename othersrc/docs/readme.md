@@ -1,6 +1,6 @@
 <p align="center"><img src="./othersrc/docs/wslgenie.png"/></p>
 
-# genie
+<!-- # genie
 
 [ ![ci](https://github.com/arkane-systems/genie/workflows/ci/badge.svg?branch=master) ](https://github.com/arkane-systems/genie/actions?query=workflow%3Aci+branch%3Amaster)
 
@@ -195,4 +195,4 @@ Further tips on usage from other genie users can be found on the wiki for this r
 
 2. genie is not idempotent; i.e., it is possible that changes made by genie or by systemd inside the bottle will not be perfectly reverted when the genie bottle is shut down with _genie -u_ . (Linux pid/mount namespaces aren't perfect containers, and systemd units and other actions inside the bottle can and will change things that affect the outside of the bottle, possibly even across distros. And note that _genie -u_ calls _systemctl poweroff_ which believes that it is shutting down the entire machine; the in-bottle systemd is a full systemd installation, not a cut-down container install.) As such, it is **strongly recommended** that you terminate the entire wsl session with _wsl -t <distro>_ or _wsl --shutdown_ in between stopping and restarting the bottle, or errors may occur; we cannot support such scenarios.
 
-3. As of 1.38, while WSLg operates correctly with _genie_ and GUI apps can be run from inside the bottle, Linux GUI apps started from the Windows Start Menu items created by WSLg will run outside the bottle. This is being worked on.
+3. As of 1.38, while WSLg operates correctly with _genie_ and GUI apps can be run from inside the bottle, Linux GUI apps started from the Windows Start Menu items created by WSLg will run outside the bottle. This is being worked on. -->
