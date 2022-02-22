@@ -21,6 +21,39 @@ lockfile_fp = None
 
 ### Helper functions
 
+def binfmts_umount():
+    """Unmount the binfmts filesystem, if it is mounted."""
+    if os.path.exists ('/proc/sys/fs/binfmt_misc'):
+
+        if verbose:
+            print ("genie: unmounting binfmt_misc filesystem before proceeding")
+
+        sp = subprocess.run (['umount', '/proc/sys/fs/binfmt_misc'])
+
+        if sp.returncode != 0:
+            print ("genie: failed to unmount binfmt_misc filesystem; attempting to continue")
+        
+    else:
+        if verbose:
+            print ("no binfmt_misc filesystem present")
+
+def binfmts_mount():
+    """Mount the binfmt_misc filesystem, if it is not mounted."""
+
+    # Having unmounted the binfmts fs before starting systemd, we remount it as
+    # a courtesy. But remember, genie is not guaranteed to be idempotent, so don't
+    # rely on this, for the love of Thompson and Ritchie!
+
+    if not os.path.exists ('/proc/sys/fs/binfmt_misc'):
+
+        if verbose:
+            print ("genie: remounting binfmt_misc filesystem as a courtesy")
+
+        sp = subprocess.run (['mount', '-t', 'binfmt_misc', 'binfmt_misc', '/proc/sys/fs/binfmt_misc'])
+
+        if sp.returncode != 0:
+            print ("genie: failed to remount binfmt_misc filesystem; attempting to continue")
+
 def bottle_init_lock():
     """Lock the bottle init process to one instance only."""
     global lockfile_fp
@@ -241,6 +274,10 @@ def do_initialize():
     set_secure_path()
     stash_environment()
 
+    # Unmount the binfmts fs before starting systemd, so systemd can mount it
+    # again with all the trimmings.
+    binfmts_umount()
+
     # Define systemd startup chain.
     startupChain = ["daemonize", get_unshare_path(), "-fp", "--propagation", "shared", "--mount-proc", "--"]
 
@@ -443,7 +480,6 @@ def do_shutdown():
 
 def do_is_running():
     print ('todo: is_running command')
-    print (config_clone_path())
 
 #         // Check whether systemd has been started by genie, or not.
 #         public static int IsRunningHandler (bool verbose)
@@ -610,54 +646,8 @@ entrypoint()
 
 #         #endregion AppArmor
 
-#         #region Binfmts
-
-#         // Unmount the binfmts fs.
-#         private static void UnmountBinfmts (bool verbose)
-#         {
-#             if (Directory.Exists("/proc/sys/fs/binfmt_misc"))
-#             {
-#                 if (verbose)
-#                     Console.WriteLine ("genie: unmounting binfmt_misc filesystem before proceeding");
-
-#                 if (!MountHelpers.UnMount ("/proc/sys/fs/binfmt_misc"))
-#                 {
-#                     Console.WriteLine ("genie: failed to unmount binfmt_misc filesystem; attempting to continue");
-#                 }
-#             }
-#             else
-#             {
-#                 if (verbose)
-#                     Console.WriteLine ("genie: no binfmt_misc filesystem present");
-#             }
-#         }
-
-#         // Having unmounted the binfmts fs before starting systemd, we remount it now as
-#         // a courtesy. But remember, genie is not guaranteed to be idempotent, so don't
-#         // rely on this, for the love of Thompson and Ritchie!
-#         private static void RemountBinfmts (bool verbose)
-#         {
-#             if (!Directory.Exists("/proc/sys/fs/binfmt_misc"))
-#             {
-#                 if (verbose)
-#                     Console.WriteLine ("genie: remounting binfmt_misc filesystem as a courtesy");
-
-#                 if (!MountHelpers.Mount("binfmt_misc", "/proc/sys/fs/binfmt_misc", FsType.BinaryFormats))
-#                 {
-#                     Console.WriteLine ("genie: failed to remount binfmt_misc filesystem; attempting to continue");
-#                 }
-#             }
-#         }
-
-#         #endregion Helper methods
 
 #         #region Bottle startup and shutdown
-
-#         // Do the work of initializing the bottle.
-#         public static void StartBottle (bool verbose)
-#         {
-#             SetUpSecurePath();
-#             StashEnvironment();
 
 #             // Check and warn if not multi-user.target
 #             if (Config.TargetWarning)
@@ -676,19 +666,6 @@ entrypoint()
 #             if (Config.ResolvedStub)
 #                 Helpers.CreateResolvSymlink (verbose);
 
-#             // Unmount the binfmts fs before starting systemd, so systemd can mount it
-#             // again with all the trimmings.
-#             UnmountBinfmts (verbose);
-
-#             // Define systemd startup chain - command string to pass to daemonize
-#             string [] startupChain = new string[] {Config.PathToUnshare, "-fp", "--propagation", "shared", "--mount-proc", "--"};
-
 #             // If requested, configure AppArmor namespace.
 #             if (Config.AppArmorNamespace)
 #                 ConfigureAppArmorNamespace (ref startupChain, verbose);
-
-#             // Now that systemd exists, write out its (external) PID.
-#             // We do not need to store the inside-bottle PID anywhere for obvious reasons.
-#             // Create the path file.
-#             File.WriteAllText("/run/genie.systemd.pid", systemdPid.ToString());
-
