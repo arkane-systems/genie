@@ -11,7 +11,7 @@ default:
 	#
 	# Build binaries only.
 	# 
-	# ? make build-binaries
+	# make build-binaries
 	#
 	# Install locally
 	#
@@ -34,8 +34,9 @@ default:
 #
 
 # clean: clean-local clean-tar clean-debian clean-arch clean-fedora
-# 	make -C binsrc clean
-# 	rm -rf out
+clean:
+	make -C binsrc clean
+	rm -rf out
 
 # package: package-tar package-debian
 
@@ -61,13 +62,13 @@ default:
 
 # Debian installation locations
 
-# DESTDIR=debian/systemd-genie
+DESTDIR=debian/systemd-genie
 
-# INSTALLDIR = $(DESTDIR)/usr/lib/genie
-# BINDIR = $(DESTDIR)/usr/bin
-# ETCDIR = $(DESTDIR)/etc
-# SVCDIR = $(DESTDIR)/usr/lib/systemd/system
-# USRLIBDIR = $(DESTDIR)/usr/lib
+INSTALLDIR = $(DESTDIR)/usr/lib/genie
+BINDIR = $(DESTDIR)/usr/bin
+ETCDIR = $(DESTDIR)/etc
+SVCDIR = $(DESTDIR)/usr/lib/systemd/system
+USRLIBDIR = $(DESTDIR)/usr/lib
 
 # package-debian: make-output-directory
 # 	mkdir -p out/debian
@@ -79,47 +80,44 @@ default:
 
 # Debian internal functions
 
-# internal-debian-package:
+internal-debian-package:
 
-# 	# Binaries.
-# 	mkdir -p "$(BINDIR)"
-# 	install -Dm 4755 -o root "binsrc/genie/bin/Release/net5.0/linux-x64/publish/genie" -t "$(INSTALLDIR)"
+	# Binaries.
+	mkdir -p "$(BINDIR)"
+	install -Dm 4755 -o root "binsrc/genie-wrapper/genie" -t "$(BINDIR)"
 # 	install -Dm 0755 -o root "binsrc/runinwsl/bin/Release/net5.0/linux-x64/publish/runinwsl" -t "$(INSTALLDIR)"
 
-# 	# Environment generator.
-# 	install -Dm 0755 -o root "othersrc/scripts/80-genie-envar.sh" -t "$(INSTALLDIR)"
+	# Environment generator.
+	install -Dm 0755 -o root "othersrc/scripts/80-genie-envar.sh" -t "$(INSTALLDIR)"
 
-# 	# Runtime dir mapping
-# 	install -Dm 0755 -o root "othersrc/scripts/map-user-runtime-dir.sh" -t "$(INSTALLDIR)"
-# 	install -Dm 0755 -o root "othersrc/scripts/unmap-user-runtime-dir.sh" -t "$(INSTALLDIR)"
+	# Runtime dir mapping
+	install -Dm 0755 -o root "othersrc/scripts/map-user-runtime-dir.sh" -t "$(INSTALLDIR)"
+	install -Dm 0755 -o root "othersrc/scripts/unmap-user-runtime-dir.sh" -t "$(INSTALLDIR)"
 
-# 	# Target check
-# 	install -Dm 0755 -o root "othersrc/scripts/check-default-target.sh" -t "$(INSTALLDIR)"
+	# Configuration file.
+	install -Dm 0644 -o root "othersrc/etc/genie.ini" -t "$(ETCDIR)"
 
-# 	# Configuration file.
-# 	install -Dm 0644 -o root "othersrc/etc/genie.ini" -t "$(ETCDIR)"
+	# Unit files.
+	install -Dm 0644 -o root "othersrc/lib-systemd-system/wslg-xwayland.service" -t "$(SVCDIR)"
+	install -Dm 0644 -o root "othersrc/lib-systemd-system/wslg-xwayland.socket" -t "$(SVCDIR)"
 
-# 	# Unit files.
-# 	install -Dm 0644 -o root "othersrc/lib-systemd-system/wslg-xwayland.service" -t "$(SVCDIR)"
-# 	install -Dm 0644 -o root "othersrc/lib-systemd-system/wslg-xwayland.socket" -t "$(SVCDIR)"
+	install -Dm 0644 -o root "othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf" -t "$(SVCDIR)/user-runtime-dir@.service.d"
 
-# 	install -Dm 0644 -o root "othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf" -t "$(SVCDIR)/user-runtime-dir@.service.d"
+	# binfmt.d
+	install -Dm 0644 -o root "othersrc/usr-lib/binfmt.d/WSLInterop.conf" -t "$(USRLIBDIR)/binfmt.d"
 
-# 	# binfmt.d
-# 	install -Dm 0644 -o root "othersrc/usr-lib/binfmt.d/WSLInterop.conf" -t "$(USRLIBDIR)/binfmt.d"
-
-# internal-debian-clean:
-# 	make -C binsrc clean
+internal-debian-clean:
+	make -C binsrc clean
 
 #
 # Helpers: intermediate build stages.
 #
 
-# make-output-directory:
-# 	mkdir -p out
+make-output-directory:
+	mkdir -p out
 
-# build-binaries:
-# 	make -C binsrc
+build-binaries:
+	make -C binsrc
 
 #
 # Altpacking
