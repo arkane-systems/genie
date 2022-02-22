@@ -4,6 +4,7 @@ import argparse
 import configparser
 import fcntl
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -46,6 +47,17 @@ def bottle_init_unlock():
 
     os.remove ("/run/genie.init.lock")
 
+def config_clone_path():
+    """Do we clone the outside-bottle path, or not?"""
+    return config.getboolean ('genie', 'clone-path', fallback=False)
+
+def config_secure_path():
+    """Get the configured secure path."""
+    return config.get ('genie', 'secure-path', fallback='/lib/systemd:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin')
+
+def config_system_timeout():
+    """Return the configured timeout for systemd startup."""
+    return config.getint ('genie', 'systemd-timeout', fallback=240)
 
 def find_systemd():
     """Find the running systemd process and return its pid."""
@@ -64,6 +76,10 @@ def get_systemd_state(sdp):
     with nsenter.Namespace (sdp, 'pid'):
         sc = subprocess.run (["systemctl", "is-system-running"], capture_output=True, text=True)
         return sc.stdout.rstrip()
+
+def get_unshare_path():
+    """Find the path to the unshare utility."""
+    return shutil.which ('unshare')
 
 def load_configuration():
     """Load the configuration from the config file ('/etc/genie.ini')."""
@@ -169,6 +185,40 @@ def pre_systemd_action_checks(sdp):
 #                 Console.WriteLine();
 #             }
 
+def set_secure_path():
+    """Set up secure path, saving original if specified."""
+    # Default original path.
+    # TODO: Should reference system drive by letter
+    originalPath = '/mnt/c/Windows/System32'
+
+    if config_clone_path():
+        originalPath = os.environ['PATH']
+
+    # Set the local path
+    os.environ['PATH'] = config_secure_path()
+
+    # Create the path file
+    with open ('/run/genie.path', 'w') as pathfile:
+        print (originalPath, file=pathfile)
+        pathfile.close()
+
+def stash_environment():
+    """Save a copy of the original environment (specified variables only)."""
+    # Get variables to stash
+    names = (config.get ('genie', 'clone-env', fallback='WSL_DISTRO_NAME,WSL_INTEROP,WSLENV,DISPLAY,WAYLAND_DISPLAY,PULSE_SERVER')).split(',')
+
+    # Do the stashing.
+    with open ('/run/genie.env', 'w') as envfile:
+
+        # Start with the flag variable that's always added.
+        print ("INSIDE_GENIE=yes", file=envfile)
+        
+        for n in names:
+            if n in os.environ:
+                print (f"{n}={os.environ[n]}", file=envfile)
+
+        envfile.close()
+
 ### Commands
 
 def do_initialize():
@@ -187,10 +237,12 @@ def do_initialize():
     if sdp != 0:
         sys.exit ("genie: bottle is already established (systemd running)")
 
-    # TODO: super-minimal for now
+    # Set secure path, and stash original environment.
+    set_secure_path()
+    stash_environment()
 
     # Define systemd startup chain.
-    startupChain = ["daemonize", "/usr/bin/unshare", "-fp", "--propagation", "shared", "--mount-proc", "--"]
+    startupChain = ["daemonize", get_unshare_path(), "-fp", "--propagation", "shared", "--mount-proc", "--"]
 
     # Update startup chain with systemd command.
     startupChain.append ("systemd")
@@ -222,10 +274,11 @@ def do_initialize():
     # We do not need to store the inside-bottle pid anywhere for obvious reasons.
     with open ('/run/genie.systemd.pid', 'w') as pidfile:
       print (sdp, file=pidfile)
+      pidfile.close()
 
     # Wait for systemd to be in running state.
     state = 'initializing'
-    timeout = config.getint ('genie', 'systemd-timeout', fallback=240))
+    timeout = config_system_timeout()
 
     while (not 'running' in state) and timeout > 0:
         time.sleep (1)
@@ -390,6 +443,7 @@ def do_shutdown():
 
 def do_is_running():
     print ('todo: is_running command')
+    print (config_clone_path())
 
 #         // Check whether systemd has been started by genie, or not.
 #         public static int IsRunningHandler (bool verbose)
@@ -593,38 +647,6 @@ entrypoint()
 #                     Console.WriteLine ("genie: failed to remount binfmt_misc filesystem; attempting to continue");
 #                 }
 #             }
-#         }
-
-#         // Set up secure path, saving original if specified.
-#         private static void SetUpSecurePath()
-#         {
-#             string originalPath;
-
-#             if (Config.ClonePath)
-#                 originalPath = Environment.GetEnvironmentVariable("PATH");
-#             else
-#                 // TODO: Should reference system drive by letter
-#                 originalPath = @"/mnt/c/Windows/System32";
-
-#             Environment.SetEnvironmentVariable ("PATH", Config.SecurePath);
-
-#             // Create the path file.
-#             File.WriteAllText("/run/genie.path", originalPath);
-#         }
-
-#         // Stash original environment (specified variables only).
-#         private static void StashEnvironment()
-#         {
-#             string[] clonedVariables;
-
-#             clonedVariables = GenieConfig.DefaultVariables
-#                 .Union (from DictionaryEntry de in Environment.GetEnvironmentVariables()
-#                         where Config.CloneEnv.Contains (de.Key)
-#                         select $"{de.Key}={de.Value}")
-#                 .ToArray();
-
-#             // Create the env file.
-#             File.WriteAllLines("/run/genie.env", clonedVariables);
 #         }
 
 #         #endregion Helper methods

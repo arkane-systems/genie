@@ -12,7 +12,7 @@ int main(int argc, char ** argv)
         setreuid(geteuid(), geteuid());
 
         /* Attempt to execute script */
-        execv("/usr/lib/genie", argv);
+        execv("/usr/lib/genie/genie", argv);
 
         /* Reach here if execv failed */
         perror("genie-wrapper");

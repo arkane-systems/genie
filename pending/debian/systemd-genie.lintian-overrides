@@ -1,6 +1,0 @@
-# Needed for systemd
-breakout-link usr/lib/systemd/system-environment-generators/80-genie-envar.sh -> usr/lib/genie/80-genie-envar.sh
-breakout-link usr/lib/systemd/user-environment-generators/80-genie-envar.sh -> usr/lib/genie/80-genie-envar.sh
-
-# Must be setuid
-setuid-binary usr/lib/genie/genie 4755 root/root

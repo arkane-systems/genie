@@ -13,32 +13,27 @@ default:
 	# 
 	# make build-binaries
 	#
-	# Install locally
-	#
-	# ? make install-local
-	#
 	# Package (native)
 	#
-	# ? make package
-	# ? make package-debian
+	# make package
+	# make package-debian
 	# ? make package-tar
 	#
 	# Clean up
 	#
-	# ? make clean (does not clean altpacking by default)
-	# ? make clean-debian
+	# make clean (does not clean altpacking by default)
+	# make clean-debian
 	# ? make clean-tar
 
 #
 # Targets: individual end-product build.
 #
 
-# clean: clean-debian
-clean:
+clean: clean-debian
 	make -C binsrc clean
 	rm -rf out
 
-# package: package-tar package-debian
+package: package-debian
 
 #
 # Debian packaging
@@ -54,13 +49,13 @@ ETCDIR = $(DESTDIR)/etc
 SVCDIR = $(DESTDIR)/usr/lib/systemd/system
 USRLIBDIR = $(DESTDIR)/usr/lib
 
-# package-debian: make-output-directory
-# 	mkdir -p out/debian
-# 	debuild
-# 	mv ../systemd-genie_* out/debian
+package-debian: make-output-directory
+	mkdir -p out/debian
+	debuild
+	mv ../systemd-genie_* out/debian
 
-# clean-debian:
-# 	debuild -- clean
+clean-debian:
+	debuild -- clean
 
 # Debian internal functions
 

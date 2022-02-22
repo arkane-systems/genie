@@ -6,7 +6,6 @@ export DH_OPTIONS=-v
 
 # see FEATURE AREAS in dpkg-buildflags(1)
 #export DEB_BUILD_MAINT_OPTIONS = hardening=+all
-export DEB_BUILD_OPTIONS = nostrip
 
 %:
 	dh $@
@@ -24,5 +23,5 @@ override_dh_auto_clean:
 override_dh_fixperms:
 	dh_fixperms -Xgenie
 
-override_dh_shlibdeps:
-	dh_shlibdeps -- -xlibgcc-s1
+override_dh_strip:
+	dh_strip --no-automatic-dbgsym

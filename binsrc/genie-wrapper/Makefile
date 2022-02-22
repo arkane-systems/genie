@@ -14,4 +14,4 @@ all:
 #
 
 clean:
-	rm genie
+	# rm genie
