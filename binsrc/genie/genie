@@ -296,35 +296,155 @@ def do_command(commandline):
 
     sdp = find_systemd()
 
-    command = ["machinectl", "shell", "-q", login + "@.host"] + commandline
+    command = ["machinectl", "shell", "-q", login + "@.host", "/usr/lib/runinwsl", os.getcwd()] + commandline
 
     with nsenter.Namespace (sdp, 'pid'):
-        # TODO: fix with runinwsl
         subprocess.run (' '.join(command), shell=True)
-
-#         #region Run inside bottle
-
-#             var commandPrefix = new string[] {"machinectl", "shell", "-q", $"{realUserName}@.host", Config.GetPrefixedPath ("lib/genie/runinwsl"),
-#                     Environment.CurrentDirectory };
-
-#             var command = commandPrefix.Concat(commandLine);
-
-#             Helpers.ChainInside (systemdPid,
-#                 command.ToArray(),
-#                 "running command failed; machinectl shell");
-#         }
-
-#         #endregion
 
 def do_shutdown():
     print ('todo: shutdown command')
 
+#         // Shut down the bottle and clean up.
+#         public static int ShutdownHandler (bool verbose)
+#         {
+#             // Get the bottle state.
+#             var state = new BottleStatus (verbose);
+
+#             if (state.Status == Status.NoBottlePresent)
+#             {
+#                 Console.WriteLine ("genie: no bottle exists.");
+#                 return EINVAL;
+#             }
+
+#             if (state.StartedWithinBottle)
+#             {
+#                 Console.WriteLine ("genie: cannot shut down bottle from inside bottle; exiting.");
+#                 return EINVAL;
+#             }
+
+#             if (state.BottleWillExist || state.BottleClosingDown)
+#             {
+#                 Console.WriteLine ("genie: bottle in transitional state; please wait until this is complete.");
+#             }
+
+#             using (var r = new RootPrivilege())
+#             {
+#                 StopBottle (verbose);
+#             }
+
+#             return 0;
+#         }
+
+#         // Do the work of shutting down the bottle.
+#         public static void StopBottle (bool verbose)
+#         {
+#             FlagFiles.ShutdownFile = true;
+#             FlagFiles.RunFile = false;
+
+#             if (verbose)
+#                 Console.WriteLine ("genie: running systemctl poweroff within bottle");
+
+#             var systemdPid = Helpers.GetSystemdPid();
+#             var sd = Process.GetProcessById (systemdPid);
+
+#             Helpers.ChainInside (systemdPid,
+#                 new string[] {"systemctl", "poweroff"},
+#                 "running command failed; nsenter systemctl poweroff");
+
+#             // Wait for systemd to exit.
+#             Console.Write ("Waiting for systemd exit...");
+
+#             int timeout = Config.SystemdStartupTimeout;
+
+#             while (!sd.WaitForExit(1000))
+#             {
+#                 Console.Write (".");
+#                 timeout--;
+
+#                 if (timeout < 0)
+#                 {
+#                     Console.WriteLine("\n\nTimed out waiting for systemd to exit.\nThis may indicate a systemd configuration error.\nAttempting to continue.");
+#                     break;
+#                 }
+#             }
+
+#             Console.WriteLine();
+
+#             // We reverse the processes we performed to pre-startup the bottle as the post-shutdown, in reverse order.
+#             if (Config.AppArmorNamespace)
+#                 UnconfigureAppArmorNamespace (verbose);
+
+#             RemountBinfmts (verbose);
+
+#             if (Config.ResolvedStub)
+#                 Helpers.RemoveResolvSymlink (verbose);
+
+#             if (Config.UpdateHostname)
+#             {
+#                 Thread.Sleep (500);
+#                 Helpers.DropHostname (verbose);
+#             }
+
+#             FlagFiles.ShutdownFile = false;
+#         }
+
 def do_is_running():
     print ('todo: is_running command')
-    print (config['genie']['secure-path'])
+
+#         // Check whether systemd has been started by genie, or not.
+#         public static int IsRunningHandler (bool verbose)
+#         {
+#             // Get the bottle state.
+#             var state = new BottleStatus (verbose);
+
+#             if (state.BottleExists && !state.BottleError)
+#             {
+#                 Console.WriteLine ("running");
+#                 return 0;
+#             }
+#             else if (state.BottleWillExist)
+#             {
+#                 Console.WriteLine ("starting");
+#                 return 2;
+#             }
+#             else if (state.BottleClosingDown)
+#             {
+#                 Console.WriteLine ("stopping");
+#                 return 3;
+#             }
+#             else if (state.BottleError)
+#             {
+#                 Console.WriteLine ("running (systemd errors)");
+#                 return 4;
+#             }
+
+#             Console.WriteLine ("stopped");
+#             return 1;
+#         }
 
 def do_is_in_bottle():
     print ('todo: is_in_bottle command')
+
+#         // Check whether currently executing within the genie bottle, or not.
+#         public static int IsInsideHandler (bool verbose)
+#         {
+#             // Get the bottle state.
+#             var state = new BottleStatus (verbose);
+
+#             if (state.StartedWithinBottle)
+#             {
+#                 Console.WriteLine ("inside");
+#                 return 0;
+#             }
+#             else if (!(state.Status == Status.NoBottlePresent))
+#             {
+#                 Console.WriteLine("outside");
+#                 return 1;
+#             }
+
+#             Console.WriteLine("no-bottle");
+#             return 2;
+#         }
 
 ### Entrypoint
 def entrypoint():
@@ -550,335 +670,3 @@ entrypoint()
 #             // Create the path file.
 #             File.WriteAllText("/run/genie.systemd.pid", systemdPid.ToString());
 
-#         // Do the work of shutting down the bottle.
-#         public static void StopBottle (bool verbose)
-#         {
-#             FlagFiles.ShutdownFile = true;
-#             FlagFiles.RunFile = false;
-
-#             if (verbose)
-#                 Console.WriteLine ("genie: running systemctl poweroff within bottle");
-
-#             var systemdPid = Helpers.GetSystemdPid();
-#             var sd = Process.GetProcessById (systemdPid);
-
-#             Helpers.ChainInside (systemdPid,
-#                 new string[] {"systemctl", "poweroff"},
-#                 "running command failed; nsenter systemctl poweroff");
-
-#             // Wait for systemd to exit.
-#             Console.Write ("Waiting for systemd exit...");
-
-#             int timeout = Config.SystemdStartupTimeout;
-
-#             while (!sd.WaitForExit(1000))
-#             {
-#                 Console.Write (".");
-#                 timeout--;
-
-#                 if (timeout < 0)
-#                 {
-#                     Console.WriteLine("\n\nTimed out waiting for systemd to exit.\nThis may indicate a systemd configuration error.\nAttempting to continue.");
-#                     break;
-#                 }
-#             }
-
-#             Console.WriteLine();
-
-#             // We reverse the processes we performed to pre-startup the bottle as the post-shutdown, in reverse order.
-#             if (Config.AppArmorNamespace)
-#                 UnconfigureAppArmorNamespace (verbose);
-
-#             RemountBinfmts (verbose);
-
-#             if (Config.ResolvedStub)
-#                 Helpers.RemoveResolvSymlink (verbose);
-
-#             if (Config.UpdateHostname)
-#             {
-#                 Thread.Sleep (500);
-#                 Helpers.DropHostname (verbose);
-#             }
-
-#             FlagFiles.ShutdownFile = false;
-#         }
-
-#         #endregion Bottle startup and shutdown
-
-#         // // Initialize the bottle (if necessary) only
-#         public static int InitializeHandler (bool verbose)
-#         {
-#             // Get the bottle state.
-#             var state = new BottleStatus (verbose);
-
-#             // If a bottle exists, we have succeeded already. Exit and report success.
-#             if (state.Status != Status.NoBottlePresent)
-#             {
-#                 if (verbose)
-#                     Console.WriteLine ("genie: bottle already exists (no need to initialize).");
-
-#                 return 0;
-#             }
-
-#             // Daemonize expects real uid root as well as effective uid root.
-#             using (var r = new RootPrivilege())
-#             {
-#                 // Init the bottle.
-#                 StartBottle(verbose);
-#             }
-
-#             return 0;
-#         }
-
-#         // Start a login prompt inside the bottle, initializing it if necessary.
-#         public static int LoginHandler (bool verbose)
-#         {
-#             // Get the bottle state.
-#             var state = new BottleStatus (verbose);
-
-#             // If inside bottle, cannot start shell.
-#             if (state.StartedWithinBottle)
-#             {
-#                 Console.WriteLine ("genie: already inside the bottle; cannot start login prompt!");
-#                 return EINVAL;
-#             }
-
-#             // If shutting down, display error and exit.
-#             if (state.BottleClosingDown)
-#             {
-#                 Console.WriteLine ("genie: bottle is stopping, cannot start login prompt!");
-#                 return ECANCELED;
-#             }
-
-#             // If bottle does not exist, initialize it.
-#             if (!state.BottleExistsInContext && !state.BottleStartingUp)
-#             {
-#                 // Daemonize expects real uid root as well as effective uid root.
-#                 using (var r = new RootPrivilege())
-#                 {
-#                     // Init the bottle.
-#                     StartBottle(verbose);
-#                 }
-#             }
-
-#             // If bottle is starting up, wait for it.
-#             if (state.BottleStartingUp)
-#             {
-#                 Console.Write ("genie: bottle is starting in another session, please wait");
-
-#                 do
-#                 {
-#                     Thread.Sleep (1000);
-#                     Console.Write (".");
-
-#                     state = new BottleStatus (verbose);
-#                 } while (!state.BottleExistsInContext);
-
-#                 Console.WriteLine();
-#             }
-
-#             if (state.BottleError)
-#             {
-#                 Console.WriteLine ("* WARNING: Bottled systemd is not in running state; errors may occur");
-#             }
-
-#             using (var r = new RootPrivilege())
-#             {
-#                 // At this point, we should be outside an existing bottle, one way or another.
-
-#                 // It shouldn't matter whether we have setuid here, since we start the shell with
-#                 // a login prompt, which reassigns uid appropriately as login(1).
-#                 StartLogin (verbose, Helpers.GetSystemdPid());
-#             }
-
-#             return 0;
-#         }
-
-#         // Run a command inside the bottle, initializing it if necessary.
-#         public static int ExecHandler (bool verbose, IEnumerable<string> command)
-#         {
-#             // Get the bottle state.
-#             var state = new BottleStatus (verbose);
-
-#             // If inside bottle, just execute the command.
-#             if (state.StartedWithinBottle)
-#                 return Helpers.RunAndWait (command.First(), command.Skip(1).ToArray());
-
-#             // If shutting down, display error and exit.
-#             if (state.BottleClosingDown)
-#             {
-#                 Console.WriteLine ("genie: bottle is stopping, cannot run command!");
-#                 return ECANCELED;
-#             }
-
-#             // If bottle does not exist, initialize it.
-#             if (!state.BottleExistsInContext && !state.BottleStartingUp)
-#             {
-#                 // Daemonize expects real uid root as well as effective uid root.
-#                 using (var r = new RootPrivilege())
-#                 {
-#                     // Init the bottle.
-#                     StartBottle(verbose);
-#                 }
-#             }
-
-#             // If bottle is starting up, wait for it.
-#             if (state.BottleStartingUp)
-#             {
-#                 Console.Write ("genie: bottle is starting in another session, please wait");
-
-#                 do
-#                 {
-#                     Thread.Sleep (1000);
-#                     Console.Write (".");
-
-#                     state = new BottleStatus (verbose);
-#                 } while (!state.BottleExistsInContext);
-
-#                 Console.WriteLine();
-#             }
-
-#             if (state.BottleError)
-#             {
-#                 Console.WriteLine ("* WARNING: Bottled systemd is not in running state; errors may occur");
-#             }
-
-#             using (var r = new RootPrivilege())
-#             {
-#                 // At this point, we should be inside an existing bottle, one way or another.
-
-#                 RunCommand (verbose, Helpers.GetSystemdPid(), command.ToArray());
-#             }
-
-#             return 0;
-#         }
-
-#         // Shut down the bottle and clean up.
-#         public static int ShutdownHandler (bool verbose)
-#         {
-#             // Get the bottle state.
-#             var state = new BottleStatus (verbose);
-
-#             if (state.Status == Status.NoBottlePresent)
-#             {
-#                 Console.WriteLine ("genie: no bottle exists.");
-#                 return EINVAL;
-#             }
-
-#             if (state.StartedWithinBottle)
-#             {
-#                 Console.WriteLine ("genie: cannot shut down bottle from inside bottle; exiting.");
-#                 return EINVAL;
-#             }
-
-#             if (state.BottleWillExist || state.BottleClosingDown)
-#             {
-#                 Console.WriteLine ("genie: bottle in transitional state; please wait until this is complete.");
-#             }
-
-#             using (var r = new RootPrivilege())
-#             {
-#                 StopBottle (verbose);
-#             }
-
-#             return 0;
-#         }
-
-#         // Check whether systemd has been started by genie, or not.
-#         public static int IsRunningHandler (bool verbose)
-#         {
-#             // Get the bottle state.
-#             var state = new BottleStatus (verbose);
-
-#             if (state.BottleExists && !state.BottleError)
-#             {
-#                 Console.WriteLine ("running");
-#                 return 0;
-#             }
-#             else if (state.BottleWillExist)
-#             {
-#                 Console.WriteLine ("starting");
-#                 return 2;
-#             }
-#             else if (state.BottleClosingDown)
-#             {
-#                 Console.WriteLine ("stopping");
-#                 return 3;
-#             }
-#             else if (state.BottleError)
-#             {
-#                 Console.WriteLine ("running (systemd errors)");
-#                 return 4;
-#             }
-
-#             Console.WriteLine ("stopped");
-#             return 1;
-#         }
-
-#         // Check whether currently executing within the genie bottle, or not.
-#         public static int IsInsideHandler (bool verbose)
-#         {
-#             // Get the bottle state.
-#             var state = new BottleStatus (verbose);
-
-#             if (state.StartedWithinBottle)
-#             {
-#                 Console.WriteLine ("inside");
-#                 return 0;
-#             }
-#             else if (!(state.Status == Status.NoBottlePresent))
-#             {
-#                 Console.WriteLine("outside");
-#                 return 1;
-#             }
-
-#             Console.WriteLine("no-bottle");
-#             return 2;
-#         }
-
-#         // Cleanup leftover genie files
-#         public static int CleanupHandler (bool verbose)
-#         {
-#             string[] files = {
-#                 "/run/genie.startup",
-#                 "/run/genie.shutdown",
-#                 "/run/genie.up",
-#                 "/run/genie.env",
-#                 "/run/genie.path",
-#                 "/run/genie.systemd.pid",
-#                 "/run/hostname-wsl"
-#             };
-
-#             // Get the bottle state.
-#             var state = new BottleStatus (verbose);
-
-#             if (state.Status != Status.NoBottlePresent)
-#             {
-#                 Console.WriteLine ("genie: cannot clean up while bottle exists.");
-#                 return EINVAL;
-#             }
-
-#             foreach (string s in files)
-#             {
-#                 if (File.Exists (s))
-#                 {
-#                     if (verbose)
-#                         Console.WriteLine ($"genie: deleting leftover file {s}");
-
-#                     File.Delete (s);
-#                 }
-#             }
-
-#             return 0;
-#         }
-
-#         #endregion Command handlers
-
-#         // Configuration for genie.
-#         internal static GenieConfig Config { get; } = new GenieConfig();
-
-#         // User name of the real user running genie.
-#         public static string realUserName { get; set;}
-
-#     }
-# }
