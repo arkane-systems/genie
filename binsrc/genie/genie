@@ -13,6 +13,8 @@ import nsenter
 import psutil
 
 ### Global variables
+version = "2.0"
+
 verbose = False
 login = None
 config = None
@@ -244,7 +246,7 @@ def parse_command_line():
         epilog = "For more information, see https://github.com/arkane-systems/genie/")
 
     # Version command
-    parser.add_argument ('-V', '--version', action='version', version='%(prog)s 2.0')
+    parser.add_argument ('-V', '--version', action='version', version='%(prog)s ' + version)
 
     # Verbose option
     parser.add_argument ('-v', '--verbose', action='store_true', help="display verbose progress messages")
