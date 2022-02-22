@@ -21,6 +21,50 @@ lockfile_fp = None
 
 ### Helper functions
 
+def apparmor_configure():
+    """Configure an AppArmor namespace for the genie bottle."""
+    
+    # If the AppArmor filesystem is not mounted, mount it.
+    if not os.path.exists ('/sys/kernel/security/apparmor'):
+        if verbose:
+            print ("genie: mounting AppArmor filesystem")
+
+        sp = subprocess.run (['mount', '-t', 'securityfs', 'securityfs', '/sys/kernel/security'])
+        if sp.returncode != 0:
+            print ("genie: failed to mount AppArmor filesystem; attempting to continue without AppArmor")
+            return None
+
+    # Create AppArmor namespace for genie bottle.
+    nsName = 'genie-' + get_wsl_distro_name()
+
+    if verbose:
+        print (f"genie: creating AppArmor namespace '{nsName}'")
+    
+    if not os.path.exists ('/sys/kernel/security/apparmor/policy/namespaces'):
+        print ("genie: could not find AppArmor filesystem; attempting to continue without AppArmor")
+        return None
+
+    os.mkdir ('/sys/kernel/security/apparmor/policy/namespaces/' + nsName)
+    
+    return nsName
+
+def apparmor_unconfigure():
+    """Clean up the AppArmor namespace when the bottle is stopped."""
+
+    nsName = 'genie-' + get_wsl_distro_name()
+
+    if verbose:
+        print (f"genie: deleting AppArmor namespace '{nsName}'")
+
+    if os.path.exists ('/sys/kernel/security/apparmor/policy/namespaces/' + nsName):
+        try:
+            os.rmdir ('/sys/kernel/security/apparmor/policy/namespaces/' + nsName)
+        except OSError as e:
+            print (f"genie: failed to delete AppArmor namespace; attempting to continue; {e.strerror}" + e.strerror)
+    else:
+        if verbose:
+            print ("genie: no AppArmor namespace to delete")
+
 def binfmts_umount():
     """Unmount the binfmts filesystem, if it is mounted."""
     if os.path.exists ('/proc/sys/fs/binfmt_misc'):
@@ -84,6 +128,10 @@ def config_clone_path():
     """Do we clone the outside-bottle path, or not?"""
     return config.getboolean ('genie', 'clone-path', fallback=False)
 
+def config_resolved_stub():
+    """Do we make the systemd-resolved stub, or not?"""
+    return config.getboolean ('genie', 'resolved-stub', fallback=False)
+
 def config_secure_path():
     """Get the configured secure path."""
     return config.get ('genie', 'secure-path', fallback='/lib/systemd:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin')
@@ -91,6 +139,18 @@ def config_secure_path():
 def config_system_timeout():
     """Return the configured timeout for systemd startup."""
     return config.getint ('genie', 'systemd-timeout', fallback=240)
+
+def config_target_warning():
+    """Warn when the systemd target is not set to 'multi-user.target'."""
+    return config.getboolean ('genie', 'target-warning', fallback=True)
+
+def config_update_hostname():
+    """Update the hostname in the config file."""
+    return config.getboolean ('genie', 'update-hostname', fallback=True)
+
+def config_update_hostname_suffix():
+    """Update the hostname suffix in the config file."""
+    return config.get ('genie', 'update-hostname-suffix', fallback='-wsl')
 
 def find_systemd():
     """Find the running systemd process and return its pid."""
@@ -110,9 +170,65 @@ def get_systemd_state(sdp):
         sc = subprocess.run (["systemctl", "is-system-running"], capture_output=True, text=True)
         return sc.stdout.rstrip()
 
+def get_systemd_target():
+    """Get the default systemd target."""
+    return os.path.basename (os.path.realpath ('/etc/systemd/system/default.target'))
+
 def get_unshare_path():
     """Find the path to the unshare utility."""
     return shutil.which ('unshare')
+
+def get_wsl_distro_name():
+    """Get the WSL distribution name."""
+    return os.environ['WSL_DISTRO_NAME']
+
+def hostname_update():
+    """Update the hostname and mount over previous hostname."""
+    if verbose:
+        print ("genie: generating new hostname")
+
+    external_hostname = os.uname().nodename
+
+    if verbose:
+        print (f"genie: external hostname is {external_hostname}")
+
+    internal_hostname = external_hostname + config_update_hostname_suffix()
+
+    # Create the hostname file
+    with open ('/run/genie.hostname', 'w') as hostfile:
+        print (internal_hostname, file=hostfile)
+        hostfile.close()
+
+    os.chmod ('/run/genie.hostname', 0o644)
+
+    # TODO: update hosts file (remove old hostname, add new hostname)
+
+    # Mount the hostname file
+    if verbose:
+        print (f"genie: setting new hostname to {internal_hostname}")
+
+    sp = subprocess.run (['mount', '--bind', '/run/genie.hostname', '/etc/hostname'])
+    
+    if sp.returncode != 0:
+        print ("genie: failed to bind hostname file; attempting to continue")
+
+def hostname_restore():
+    """Restore the hostname."""
+    if verbose:
+        print ("genie: dropping in-bottle hostname");
+    
+    # Drop the in-bottle hostname mount
+    sp = subprocess.run (['umount', '/etc/hostname'])
+
+    if sp.returncode != 0:
+        print ("genie: failed to unmount hostname file; attempting to continue")
+        return
+
+    # Remove the hostname file
+    os.remove ('/run/genie.hostname')
+
+    # Reset hostname
+    subprocess.run (['hostname', '-F', '/etc/hostname'])
 
 def load_configuration():
     """Load the configuration from the config file ('/etc/genie.ini')."""
@@ -218,6 +334,57 @@ def pre_systemd_action_checks(sdp):
 #                 Console.WriteLine();
 #             }
 
+def resolved_configure():
+    """Replace resolv.conf with the required stub symlink for systemd-resolved."""
+    # We cannot check if the target (/run/systemd/resolve/stub-resolv.conf) exists,
+    # since it will not be created until after systemd-resolved starts up. So we're
+    # going to have to live with that uncertainty.
+
+    # Check if source file (/etc/resolv.conf) exists
+    if os.path.lexists ('/etc/resolv.conf'):
+        # If so, move it to the backup file (/etc/resolv.conf.wsl)
+        if verbose:
+            print ("genie: backing up /etc/resolv.conf to /etc/resolv.conf.wsl")
+
+        if os.path.exists ('/etc/resolv.conf.wsl'):
+            os.remove ('/etc/resolv.conf.wsl')
+
+        os.rename ('/etc/resolv.conf', '/etc/resolv.conf.wsl')
+    
+    # Create symlink from /etc/resolv.conf to /run/systemd/resolve/stub-resolv.conf
+    if verbose:
+        print ("genie: creating symlink /etc/resolv.conf -> /run/systemd/resolve/stub-resolv.conf")
+
+    os.symlink ('/run/systemd/resolve/stub-resolv.conf', '/etc/resolv.conf')
+
+def resolved_unconfigure():
+    """Restore original resolv.conf."""
+    # Check if /etc/resolv.conf exists, and if so, if it is a symlink
+    if os.path.exists ('/etc/resolv.conf'):
+        if os.path.islink ('/etc/resolv.conf'):
+            # If so, remove it
+            if verbose:
+                print ("genie: removing symlink /etc/resolv.conf")
+
+            os.remove ('/etc/resolv.conf')
+
+            # Check if /etc/resolv.conf.wsl exists
+            if os.path.exists ('/etc/resolv.conf.wsl'):
+                # If so, move it to /etc/resolv.conf
+                if verbose:
+                    print ("genie: restoring /etc/resolv.conf from /etc/resolv.conf.wsl")
+                
+                os.rename ('/etc/resolv.conf.wsl', '/etc/resolv.conf')
+            else:
+                # If not, warn the user
+                print ("genie: WARNING: /etc/resolv.conf.wsl does not exist; please restore /etc/resolv.conf manually")
+
+        else:
+            print ("genie: WARNING: /etc/resolv.conf is not a symlink")
+
+    else:
+        print ("genie: WARNING: /etc/resolv.conf does not exist")
+
 def set_secure_path():
     """Set up secure path, saving original if specified."""
     # Default original path.
@@ -274,12 +441,46 @@ def do_initialize():
     set_secure_path()
     stash_environment()
 
+    # Check and warn if not multi-user.target.
+    if config_target_warning():
+        target = get_systemd_target()
+
+        if target != 'multi-user.target':
+            print (f"genie: WARNING: systemd default target is {target}; targets other than multi-user.target may not work")
+            print ("genie: WARNING: if you wish to use a different target, this warning can be disabled in the config file")
+            print ("genie: WARNING: if you experience problems, please change the target to multi-user.target")
+
+    # Now that the WSL hostname can be set via .wslconfig, we're going to make changing
+    # it automatically in genie an option, enable/disable in genie.ini. Defaults to on
+    # for backwards compatibility and because not doing so when using bridged networking is
+    # a Bad Idea.
+    if config_update_hostname():
+        hostname_update()
+
+    # If configured to, create the resolv.conf symlink for systemd-resolved.
+    if config_resolved_stub():
+        resolved_configure()
+
     # Unmount the binfmts fs before starting systemd, so systemd can mount it
     # again with all the trimmings.
     binfmts_umount()
 
     # Define systemd startup chain.
     startupChain = ["daemonize", get_unshare_path(), "-fp", "--propagation", "shared", "--mount-proc", "--"]
+
+    # Check whether AppArmor is available in the kernel.
+    if os.path.exists('/sys/module/apparmor'):
+
+        # If so, configure AppArmor.
+        nsName = apparmor_configure()
+
+        # Add AppArmor to the startup chain.
+        if nsName is not None:
+            startupChain = startupChain + ["aa-exec", "-n", nsName, "-p", "unconfined", "--"]
+
+    else:
+        if verbose:
+            print ("genie: AppArmor not available in kernel; attempting to continue without AppArmor namespace");
 
     # Update startup chain with systemd command.
     startupChain.append ("systemd")
@@ -289,13 +490,17 @@ def do_initialize():
         print ("genie: starting systemd with command line: ")
         print (' '.join(startupChain))
 
-    # Daemonize requires real UID root as well as effective UID root
+    # This requires real UID/GID root as well as effective UID/GID root
     suid = os.getuid()
+    sgid = os.getgid()
+
     os.setuid(0)
+    os.setgid(0)
 
     subprocess.run (startupChain)
 
     os.setuid(suid)
+    os.setgid(sgid)
 
     # Wait for systemd to be up (polling, sigh.)
     sdp = 0
@@ -326,6 +531,15 @@ def do_initialize():
         timeout -= 1
 
     print ("")
+
+    if not 'running' in state:
+        print (f"genie: systemd did not enter running state ({state}) after {config_system_timeout()} seconds")
+        print ("genie: this may be due to a problem with your systemd configuration")
+        print ("genie: information on problematic units is available at https://github.com/arkane-systems/genie/wiki/Systemd-units-known-to-be-problematic-under-WSL")
+        print ("genie: a list of failed units follows:\n")
+
+        with nsenter.Namespace (sdp, 'pid'):
+            subprocess.run(["systemctl", "--failed"])
 
     # Unlock the init lock
     bottle_init_unlock()
@@ -386,10 +600,11 @@ def do_command(commandline):
 
     sdp = find_systemd()
 
-    command = ["machinectl", "shell", "-q", login + "@.host", "/usr/lib/runinwsl", os.getcwd()] + commandline
+    command = ["machinectl", "shell", "-q", login + "@.host", "/usr/lib/genie/runinwsl", os.getcwd()] + commandline
 
     with nsenter.Namespace (sdp, 'pid'):
-        subprocess.run (' '.join(command), shell=True)
+        sp = subprocess.run (' '.join(command), shell=True)
+        return sp
 
 def do_shutdown():
     print ('todo: shutdown command')
@@ -570,102 +785,4 @@ def entrypoint():
 
 entrypoint()
 
-### End
-
-# old code
-
-# namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
-# {
-#     public static class Program
-#     {
-#         #region Helper methods
-
-#         #region AppArmor
-
-#         private static void ConfigureAppArmorNamespace (ref string[] startupChain, bool verbose)
-#         {
-#             // Check whether AppArmor is available in the kernel.
-#             if (Directory.Exists("/sys/module/apparmor"))
-#             {
-#                 // If the AppArmor filesystem is not mounted, mount it.
-#                 if (!Directory.Exists("/sys/kernel/security/apparmor"))
-#                 {
-#                     // Mount AppArmor filesystem.
-#                     if (!MountHelpers.Mount ("securityfs", "/sys/kernel/security", "securityfs"))
-#                     {
-#                         Console.WriteLine ("genie: could not mount AppArmor filesystem; attempting to continue without AppArmor namespace");
-#                         return;
-#                     }
-#                 }
-
-#                 // Create AppArmor namespace for genie bottle.
-#                 string nsName = $"genie-{Helpers.WslDistroName}";
-
-#                 if (verbose)
-#                    Console.WriteLine ($"genie: creating AppArmor namespace {nsName}");
-
-#                 if (!Directory.Exists("/sys/kernel/security/apparmor/policy/namespaces"))
-#                 {
-#                     Console.WriteLine ("genie: could not find AppArmor filesystem; attempting to continue without AppArmor namespace");
-#                     return;
-#                 }
-
-#                 Directory.CreateDirectory ($"/sys/kernel/security/apparmor/policy/namespaces/{nsName}");
-
-#                 // Update startup chain with aa-exec command.
-#                 startupChain = startupChain.Concat(new string[] {"aa-exec", "-n", $"{nsName}", "-p", "unconfined", "--"}).ToArray();
-#             }
-#             else
-#             {
-#                 Console.WriteLine ("genie: AppArmor not available in kernel; attempting to continue without AppArmor namespace");
-#             }
-#         }
-
-#         // Now we have exited the bottle, clean up the AppArmor namespace.
-#         private static void UnconfigureAppArmorNamespace (bool verbose)
-#         {
-#             string nsName = $"genie-{Helpers.WslDistroName}";
-
-#             if (verbose)
-#                 Console.WriteLine ($"genie: deleting AppArmor namespace {nsName}");
-
-#             if (Directory.Exists($"/sys/kernel/security/apparmor/policy/namespaces/{nsName}"))
-#             {
-#                 try
-#                 {
-#                     Directory.Delete($"/sys/kernel/security/apparmor/policy/namespaces/{nsName}");
-#                 }
-#                 catch (Exception ex)
-#                 {
-#                     Console.WriteLine ($"genie: could not delete AppArmor namespace; {ex.Message}");
-#                 }
-#             }
-#             else
-#                 Console.WriteLine ("genie: no AppArmor namespace to delete");
-#         }
-
-#         #endregion AppArmor
-
-
-#         #region Bottle startup and shutdown
-
-#             // Check and warn if not multi-user.target
-#             if (Config.TargetWarning)
-#             {
-#                 Helpers.RunAndWait ("sh", new string[] { Config.GetPrefixedPath ("lib/genie/check-default-target.sh") });
-#             }
-
-#             // Now that the WSL hostname can be set via .wslconfig, we're going to make changing
-#             // it automatically in genie an option, enable/disable in genie.ini. Defaults to on
-#             // for backwards compatibility and because turning off when using bridged networking is
-#             // a Bad Idea.
-#             if (Config.UpdateHostname)
-#                 Helpers.UpdateHostname (Config.HostnameSuffix, verbose);
-
-#             // If configured to, create the resolv.conf symlink.
-#             if (Config.ResolvedStub)
-#                 Helpers.CreateResolvSymlink (verbose);
-
-#             // If requested, configure AppArmor namespace.
-#             if (Config.AppArmorNamespace)
-#                 ConfigureAppArmorNamespace (ref startupChain, verbose);
+### End of file
