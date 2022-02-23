@@ -717,62 +717,48 @@ def do_shutdown():
 #         }
 
 def do_is_running():
-    print ('todo: is_running command')
+    """Display whether the bottle is running or not."""
+    sdp = find_systemd()
 
-#         // Check whether systemd has been started by genie, or not.
-#         public static int IsRunningHandler (bool verbose)
-#         {
-#             // Get the bottle state.
-#             var state = new BottleStatus (verbose);
+    if sdp == 0:
+        print ("stopped")
+        return 1;
 
-#             if (state.BottleExists && !state.BottleError)
-#             {
-#                 Console.WriteLine ("running");
-#                 return 0;
-#             }
-#             else if (state.BottleWillExist)
-#             {
-#                 Console.WriteLine ("starting");
-#                 return 2;
-#             }
-#             else if (state.BottleClosingDown)
-#             {
-#                 Console.WriteLine ("stopping");
-#                 return 3;
-#             }
-#             else if (state.BottleError)
-#             {
-#                 Console.WriteLine ("running (systemd errors)");
-#                 return 4;
-#             }
+    state = get_systemd_state(sdp)
 
-#             Console.WriteLine ("stopped");
-#             return 1;
-#         }
+    if 'running' in state:
+        print ("running")
+        return 0
+
+    if 'initializing' in state or 'starting' in state:
+        print ("starting")
+        return 2
+
+    if 'stopping' in state:
+        print ("stopping")
+        return 3
+
+    if 'degraded' in state:
+        print ("running (systemd errors)")
+        return 4
+
+    print (f"unknown {state}")
+    return 5
 
 def do_is_in_bottle():
-    print ('todo: is_in_bottle command')
+    """Display whether we are currently executing within or without the genie bottle."""
+    sdp = find_systemd()
 
-#         // Check whether currently executing within the genie bottle, or not.
-#         public static int IsInsideHandler (bool verbose)
-#         {
-#             // Get the bottle state.
-#             var state = new BottleStatus (verbose);
+    if sdp == 1:
+        print ("inside")
+        return 0
 
-#             if (state.StartedWithinBottle)
-#             {
-#                 Console.WriteLine ("inside");
-#                 return 0;
-#             }
-#             else if (!(state.Status == Status.NoBottlePresent))
-#             {
-#                 Console.WriteLine("outside");
-#                 return 1;
-#             }
+    if sdp == 0:
+        print ("no-bottle")
+        return 2
 
-#             Console.WriteLine("no-bottle");
-#             return 2;
-#         }
+    print ("outside")
+    return 1
 
 ### Entrypoint
 def entrypoint():
