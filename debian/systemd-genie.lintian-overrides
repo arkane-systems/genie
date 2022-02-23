@@ -6,5 +6,5 @@
 elevated-privileges usr/bin/genie 6755 root/root
 
 # Python should be more usual
-unusual-interpreter /usr/bin/python [usr/lib/genie/genie]
-unusual-interpreter /usr/bin/python [usr/lib/genie/runinwsl]
+unusual-interpreter /usr/bin/python3 [usr/lib/genie/genie]
+unusual-interpreter /usr/bin/python3 [usr/lib/genie/runinwsl]
