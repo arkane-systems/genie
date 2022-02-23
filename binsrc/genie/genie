@@ -311,30 +311,28 @@ def pre_systemd_action_checks(sdp):
 
     if 'initializing' in state or 'starting' in state:
         # wait for it
-        # TODO
-        return
+        print ("genie: systemd is starting up, please wait...", end="", flush=True)
+
+        timeout = config_system_timeout()
+
+        while (not 'running' in state) and timeout > 0:
+            time.sleep (1)
+            state = get_systemd_state (sdp)
+
+            print (".", end="", flush=True)
+
+        timeout -= 1
+
+        print ("")
+
+        if timeout <= 0:
+            print ("genie: WARNING: timeout waiting for bottle to start")
 
     if 'degraded' in state:
         print ('genie: WARNING: systemd is in degraded state, issues may occur!')
 
     if not ('running' in state or 'degraded' in state):
         sys.exit ("genie: systemd in unsupported state '" + state + "'; cannot proceed")
-
-#             // If bottle is starting up, wait for it.
-#             if (state.BottleStartingUp)
-#             {
-#                 Console.Write ("genie: bottle is starting in another session, please wait");
-
-#                 do
-#                 {
-#                     Thread.Sleep (1000);
-#                     Console.Write (".");
-
-#                     state = new BottleStatus (verbose);
-#                 } while (!state.BottleExistsInContext);
-
-#                 Console.WriteLine();
-#             }
 
 def resolved_configure():
     """Replace resolv.conf with the required stub symlink for systemd-resolved."""
@@ -431,13 +429,36 @@ def do_initialize():
     # Secure the bottle init lock
     running = bottle_init_lock()
     if running:
-      # TODO: make wait instead
-      sys.exit (f"genie: already initializing, pid={running}")
+        # Wait for other process to have started the bottle
+        # The last step is the pid file being created, so we wait
+        # for that, then return.
+        if verbose:
+            print (f"genie: already initializing, pid={running}, waiting...", end="", flush=True)
+        
+        # Allow 10% startup margin
+        timeout = config_system_timeout() * 1.1
+
+        while not os.path.exists ('/run/genie.systemd.pid') and timeout > 0:
+            time.sleep (1)
+            print (".", end="", flush=True)
+            timeout -= 1
+
+        print ("")
+    
+        if timeout <= 0:
+            print ("genie: WARNING: timeout waiting for bottle to start")
+
+        return
 
     sdp = find_systemd()
 
     if sdp != 0:
         sys.exit ("genie: bottle is already established (systemd running)")
+
+    # FIRST: As a first step in initing systemd, delete any old runtime pid file
+    # if such exists.
+    if os.path.exists ('/run/genie.systemd.pid'):
+        os.remove ('/run/genie.systemd.pid')
 
     # Set secure path, and stash original environment.
     set_secure_path()
@@ -514,12 +535,6 @@ def do_initialize():
 
         print (".", end="", flush=True)
 
-    # Now that systemd exists, write out its (external) pid.
-    # We do not need to store the inside-bottle pid anywhere for obvious reasons.
-    with open ('/run/genie.systemd.pid', 'w') as pidfile:
-      print (sdp, file=pidfile)
-      pidfile.close()
-
     # Wait for systemd to be in running state.
     state = 'initializing'
     timeout = config_system_timeout()
@@ -542,6 +557,12 @@ def do_initialize():
 
         with nsenter.Namespace (sdp, 'pid'):
             subprocess.run(["systemctl", "--failed"])
+
+    # LAST: Now that systemd exists, write out its (external) pid.
+    # We do not need to store the inside-bottle pid anywhere for obvious reasons.
+    with open ('/run/genie.systemd.pid', 'w') as pidfile:
+        print (sdp, file=pidfile)
+        pidfile.close()
 
     # Unlock the init lock
     bottle_init_unlock()
