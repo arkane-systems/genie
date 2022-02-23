@@ -630,91 +630,53 @@ def do_command(commandline):
         return sp
 
 def do_shutdown():
-    print ('todo: shutdown command')
+    """Shutdown the genie bottle and clean up."""
+    sdp = find_systemd()
 
-#         // Shut down the bottle and clean up.
-#         public static int ShutdownHandler (bool verbose)
-#         {
-#             // Get the bottle state.
-#             var state = new BottleStatus (verbose);
+    if sdp == 0:
+        sys.exit ("genie: no bottle exists")
 
-#             if (state.Status == Status.NoBottlePresent)
-#             {
-#                 Console.WriteLine ("genie: no bottle exists.");
-#                 return EINVAL;
-#             }
+    if sdp == 1:
+        sys.exit ("genie: cannot shut down bottle from inside bottle")
 
-#             if (state.StartedWithinBottle)
-#             {
-#                 Console.WriteLine ("genie: cannot shut down bottle from inside bottle; exiting.");
-#                 return EINVAL;
-#             }
+    state = get_systemd_state (sdp)
 
-#             if (state.BottleWillExist || state.BottleClosingDown)
-#             {
-#                 Console.WriteLine ("genie: bottle in transitional state; please wait until this is complete.");
-#             }
+    if 'starting' in state or 'stopping' in state:
+        sys.exit (f"genie: bottle is currently {state}; please wait until it is in a stable state")
 
-#             using (var r = new RootPrivilege())
-#             {
-#                 StopBottle (verbose);
-#             }
+    if verbose:
+        print ("genie: running systemctl poweroff within bottle")
 
-#             return 0;
-#         }
+    with nsenter.Namespace (sdp, 'pid'):
+        subprocess.run (["systemctl", "poweroff"])
 
-#         // Do the work of shutting down the bottle.
-#         public static void StopBottle (bool verbose)
-#         {
-#             FlagFiles.ShutdownFile = true;
-#             FlagFiles.RunFile = false;
+    # Wait for systemd to exit.
+    print ("Waiting for systemd to exit...", end="", flush=True)
 
-#             if (verbose)
-#                 Console.WriteLine ("genie: running systemctl poweroff within bottle");
+    timeout = config_system_timeout()
 
-#             var systemdPid = Helpers.GetSystemdPid();
-#             var sd = Process.GetProcessById (systemdPid);
+    while find_systemd() != 0 and timeout > 0:
+        time.sleep (1)
+        print (".", end="", flush=True)
 
-#             Helpers.ChainInside (systemdPid,
-#                 new string[] {"systemctl", "poweroff"},
-#                 "running command failed; nsenter systemctl poweroff");
+        timeout -= 1
 
-#             // Wait for systemd to exit.
-#             Console.Write ("Waiting for systemd exit...");
+    print ("")
 
-#             int timeout = Config.SystemdStartupTimeout;
+    if (timeout <= 0):
+        print ("genie: systemd did not exit after {config_system_timeout()} seconds")
+        print ("genie: this may be due to a problem with your systemd configuration")
+        print ("genie: attempting to continue")
 
-#             while (!sd.WaitForExit(1000))
-#             {
-#                 Console.Write (".");
-#                 timeout--;
+    # Reverse the processes we performed to prepare the bottle as the post-shutdown
+    # cleanup, only in reverse.
+    if os.path.exists('/sys/module/apparmor'):
+        apparmor_unconfigure()
 
-#                 if (timeout < 0)
-#                 {
-#                     Console.WriteLine("\n\nTimed out waiting for systemd to exit.\nThis may indicate a systemd configuration error.\nAttempting to continue.");
-#                     break;
-#                 }
-#             }
+    binfmts_mount()
 
-#             Console.WriteLine();
-
-#             // We reverse the processes we performed to pre-startup the bottle as the post-shutdown, in reverse order.
-#             if (Config.AppArmorNamespace)
-#                 UnconfigureAppArmorNamespace (verbose);
-
-#             RemountBinfmts (verbose);
-
-#             if (Config.ResolvedStub)
-#                 Helpers.RemoveResolvSymlink (verbose);
-
-#             if (Config.UpdateHostname)
-#             {
-#                 Thread.Sleep (500);
-#                 Helpers.DropHostname (verbose);
-#             }
-
-#             FlagFiles.ShutdownFile = false;
-#         }
+    if config_update_hostname():
+        hostname_restore()    
 
 def do_is_running():
     """Display whether the bottle is running or not."""
