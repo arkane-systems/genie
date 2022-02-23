@@ -1,11 +1,12 @@
-systemd-genie (2.0) buster bullseye bookworm sid focal bionic; urgency=medium
+systemd-genie (2.0b) buster bullseye bookworm sid focal bionic; urgency=medium
 
+        * Major rewrite in Python, eliminating .NET dependency.
         * Moved executables from /usr/libexec/genie to /usr/lib/genie.
         * Allow configuration of hostname suffix.
-        * Improved Arch PKGBUILD file.
         * Support for AppArmor namespaces.
-        * Add flag files to prevent race conditions.
-        * Major code reorganization.
+        * Work to better handle simultaneity.
+        * Extra warnings for problematic states.
+        * Miscellaneous fixes.
 
  -- Alistair Young <avatar@arkane-systems.net>  Tue, 22 Feb 2022 16:40:00 -0500
 
