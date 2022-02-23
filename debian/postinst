@@ -25,7 +25,7 @@ case "$1" in
     configure)
         # postinst called for configuring
         # add our needed python packages
-        pip install -r /usr/lib/genie/requirements.txt
+        pip3 install -r /usr/lib/genie/requirements.txt
         ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
