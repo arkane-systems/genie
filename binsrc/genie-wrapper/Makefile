@@ -7,20 +7,11 @@
 #
 
 all:
-	dotnet publish -c Release -r linux-x64
-
-#
-# local: build for /usr/local
-#
-
-local:
-	dotnet publish -c ReleaseLocal -r linux-x64
+	gcc genie.c -o genie
 
 #
 # clean: delete the package interim files
 #
 
 clean:
-	rm -rf bin
-	rm -rf obj
-
+	# rm genie

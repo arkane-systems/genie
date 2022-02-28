@@ -1,123 +1,229 @@
-.TH GENIE 8 2020-08-12 Linux "WSL Utilities"
-.SH NAME
-genie \- start up, enter into, or shut down a systemd "bottle" under Windows Subsystem for Linux.
-.SH SYNOPSIS
-.nf
-.B genie -h
-.B genie \fR[\fB-v\fR]\fB -i \fR|\fB -s \fR|\fB -u \fR|\fB -r \fR|\fB -b
-.B genie \fR[\fB-v\fR]\fB -c \fIcommand\fR
-.fi
-.SH DESCRIPTION
-\fBgenie\fR provides a means of running systemd(8) as pid 1, with all the trimmings, within a WSL 2 distribution. It does this by creating a pid namespace, the eponymous poor-man's-container "bottle", starting up systemd(1) within the bottle, and providing helpful shortcuts to start up, enter, run commands within, and shut down the bottle.
-.SH OPTIONS
-.TP
-.BR \-c "\fR, \fB" \-\-command " " \fIcommand\fR
-Sets up the bottle and systemd(1) if they are not already initialized, runs \fIcommand\fR inside the bottle, and then exits. In this case, the return code of \fBgenie\fR is the return code of the command.
-.RS
-.P
-It follows sudo(8) semantics, and so does preserve the current working directory.
-.RE
-.TP
-.BR \-h "\fR, \fB" \-\-help
-Print a short help text and exit.
-.TP
-.BR \-i "\fR, \fB" \-\-initialize
-Sets up the bottle and systemd(1) if they are not already initialized, and then exits. This is intended for use, for example, if you wish to run services without needing a shell, or to preinitialize the bottle to avoid startup delays later. It is intended for use with Task Scheduler, to be run on Windows logon.
-.TP
-.BR \-s "\fR, \fB" \-\-shell
-Sets up the bottle and systemd(1) if they are not already initialized, and then runs your login shell inside the bottle. It is intended as the standard way to start a shell within a distribution configured with \fBgenie\fR.
-.RS
-.P
-It follows login semantics, and as such does not preserve the current working directory.
-.RE
-.TP
-.BR \-l "\fR, \fB" \-\-login
-Sets up the bottle and systemd(1) if they are not already initialized, and then opens a login session within the bottle. This permits you to log in to the WSL distribution as any user. The login prompt will return when you log out; to terminate the session, press ^] three times within one second.
-.RS
-.P
-It follows login semantics, and as such does not preserve the current working directory.
-.RE
-.TP
-.BR \-u "\fR, \fB" \-\-shutdown
-Shuts down systemd(1) cleanly and exits the bottle. This uses the \fBsystemctl poweroff\fR command to simulate a normal Linux system shutting down. It is suggested that this be used before shutting down the Windows machine or restarting the Linux distribution to ensure a clean shutdown of systemd services.
-.RS
-.P
-While not compulsory, it is recommended that you shut down and restart the WSL distribution before using \fBgenie\fR again after you have used \fBgenie -u\fR. See BUGS, below, for more details.
-.RE
-.TP
-.BR \-r "\fR, \fB" \-\-is\-running
-Checks whether \fBgenie\fR (and an associated systemd(1) instance) is currently running. Returns the string "running" and exit code 0 if one is found; returns the string "stopped" and exit code 1 if one is not.
-.RE
-.TP
-.BR \-b "\fR, \fB" \-\-is\-in\-bottle
-Checks whether the current command is executing inside the bottle. Returns the string "inside" and exit code 0 if so; returns the string "outside" and exit code 1 if one is not. If no bottle exists, returns the string "no-bottle" and exit code 2.
-.RE
-.TP
-.BR \-v "\fR, \fB" \-\-verbose
-When used in conjunction with a \fBgenie\fR command, prints verbose progress messages illustrating \fBgenie\fR's progress through the various stages of executing that command.
-.TP
-.BR \-\-version
-Print a short version string and exit.
-.SH ENVIRONMENT
-.TP
-\fBINSIDE_GENIE\fR
-INSIDE_GENIE should not be set by the user. \fBgenie\fR sets INSIDE_GENIE, such that user scripts can detect its presence to determine whether or not they are running inside the bottle.
-.SH EXIT STATUS
-\fBgenie\fR has the following exit status values:
-.TP
-0
-success
-.TP
-1
-negative answer (when queried)
-.TP
-2
-bottle does not exist (when queried)
-.TP
-EBADF
-not executing under WSL, or on Linux
-.TP
-EINVAL
-there was no bottle when one was expected, or a command was run inside the bottle
-.TP
-EPERM
-\fBgenie\fR was invoked under WSL 1, or not invoked as root
-.TP
-127
-error executing a command used internally; check the secure-path setting in \fB/etc/genie.ini\fR
-.TP
-130
-error updating \fB/etc/hosts\fR with new hostname
-.SH FILES
-.TP
-\fI/etc/genie.ini\fR
-Configuration file for \fBgenie\fR. This contains two configuration paths: the secure path which \fBgenie\fR uses when searching for executables used internally; and the specific path to the unshare(1) binary. In a typical Linux installation, there should be no need to modify either of these. Other settings affecting \fBgenie\fR's behavior include \fBupdate-hostname\fR, which controls whether \fBgenie\fR updates the hostname within the bottle, or not (defaults on); \fBclone-path\fR, which controls whether \fBgenie\fR clones the outside-bottle PATH to inside the bottle (defaults off); \fBclone-env\fR, which lists the environment variables to be copied from inside to outside the bottle; \fBsystemd-timeout\fR, which sets the length of time in seconds \fBgenie\fR will wait for systemd(1) to reach the running state; and \fBresolved-stub\fR, which determined whether or not \fBgenie\fR will create the symlink needed to run systemd-resolved in stub mode.
-.TP
-\fI/run/genie.env\fR
-Contains certain environment variables required for proper functioning copied from outside the bottle, used internally by \fBgenie\fR to restore them within the bottle.
-.TP
-\fI/run/genie.path\fR
-Contains the system PATH copied from outside the bottle, used internally by \fBgenie\fR to restore the directories therein within the bottle.
-.TP
-\fI/run/genie.systemd.pid\fR
-Contains the external PID of the systemd(1) instance created by \fBgenie\fR. Not used by \fBgenie\fR itself; this PID is recorded as a convenience for the user. No analogous file exists containing the internal PID, for obvious reasons.
-.TP
-\fI/run/hostname-wsl\fR
-Contains the modified hostname used by the WSL distribution (see NOTES). This file is bind mounted over /etc/hostname when the bottle is started up, and unbound at shutdown.
-.SH NOTES
-\fBgenie\fR can only be used within a WSL 2 distribution, since systemd can only be run within a WSL 2 distribution. WSL 1 does not implement the system calls required to support it.
-.P
-\fBgenie\fR serves no purpose on Linux running outside of the WSL environment, or within other containers. Its behavior if run in such environments is undefined.
-.P
+.Dd 02/23/22
+.Dt genie 8
+.Os Linux
+.Sh NAME
+.Nm genie
+.Nd start up, enter into, or shut down a systemd "bottle" under Windows
+Subsystem for Linux.
+.Sh SYNOPSIS
+.Nm
+.Op -h
+.Op -V
+.Op -v
+.Op -i
+.Op -b
+.Op -r
+.Op -s
+.Op -l
+.Op -c
+.Ar command...
+.Sh DESCRIPTION
+.Nm
+provides a means of running
+.Xr systemd 1
+as pid 1, with all the trimmings, within a WSL 2 distribution. It does this by
+creating a pid and mount namespace, the eponymous poor-man's container
+"bottle", starting up
+.Xr systemd 1
+within the bottle, and providing helpful shortcuts to start, enter, run
+commands within, and shut down the bottle.
+.Pp
+.Bl -tag -width "-c ..., --command ..."
+.It Fl -h, --help
+Prints a short help text and exits.
+.It Fl -V, --version
+Prints the installed genie version and exits.
+.It Fl v, --verbose
+Causes any other command to print the details of the operations it is
+performing as it goes along. Useful mostly for debugging.
+.It Fl i, --initialize
+Sets up the bottle and
+.Xr systemd 1
+if they are not already initialized, and then exists. This is intended, for
+use, for example, if you wish to run services without needing a shell, or to
+preinitialize the bottle to avoid startup delays later. This latter can be used
+with Task Scheduler, to be run on Windows logon.
+.It Fl s, --shell
+Sets up the bottle and
+.Xr systemd 1
+if they are not already initialized, and then runs your login shell within the
+bottle. It is intended as the standard way to start a shell within a
+distribution with
+.Nm
+installed.
+.Pp
+This follows login semantics, and as such does not preserve the current working
+directory.
+.It Fl l, --login
+Sets up the bottle and
+.Xr systemd 1
+if they are not already initialized, and then opens a login session within the
+bottle. This permits you to log in to the WSL distribution as any user. The
+login prompt will return when you log out; to terminate the session, press ^]
+three times within one second.
+.Pp
+This follows login semantics, and as such does not preserve the current working
+directory.
+.It Fl u, --shutdown
+Shuts down
+.Xr systemd 1
+cleanly and exits the bottle. This uses the
+.Ar systemctl poweroff
+command to simulate a normal Linux system shutting down. It is suggested that
+this be used before shutting down the Windows machine or restarting the Linux
+distribution to ensure a clean shutdown of systemd services.
+.Pp
+While not compulsory, it is recommended that you shut down and restart the WSL
+distribution before using
+.Nm
+again after you have used
+.Ar genie -u.
+See BUGS, below, for more details.
+.It Fl r, --is-running
+Checks whether
+.Nm
+and an associated
+.Xr systemd 1
+are currently running. Returns
+.Ar running
+and exit code 0 if so. Other possible return values include
+.Ar stopped
+and exit code 1 if they are not;
+.Ar starting
+and exit code 2 and
+.Ar stopping
+and exit code 3 if they are currently transitioning between states;
+.Ar running (systemd errors)
+and exit code 4 if there is a problem with systemd services; and
+.Ar unknown
+and exit code 5 otherwise.
+.It Fl b --is-in-bottle
+Checks whether the current command is executing inside the bottle. Returns
+.Ar inside
+and exit code 0 if so; returns
+.Ar outside
+and exit code 1 if not. If no bottle exists, returns
+.Ar no-bottle
+and exit code 2.
+.El
+.Sh ENVIRONMENT
+.Bl -tag -width "INSIDE_GENIE"
+.It Ev INSIDE_GENIE
+INSIDE_GENIE should not be set by the user.
+.Nm
+sets INSIDE_GENIE to the string "yes", such that user scripts can detect its
+presence to determine whether or not they are running inside the bottle.
+.El
+.Sh EXIT STATUS
+Other than the special exit codes listed under the
+.Ar -b
+and
+.Ar -r
+options above,
+.Nm
+maintains a policy of returning zero on success, and non-zero when an error
+occurs.
+.Sh FILES
+.Bl -tag -width "/run/genie.systemd.pid" -compact
+.It Pa /etc/genie.ini
+Configuration file for 
+.Nm 
+This contains the secure path which 
+.Nm
+uses when searching for executables used internally. In a typical Linux
+installation, there should be no need to modify this. Other settings affecting
+.Nm
+behavior include
+.Ar update-hostname
+and
+.Ar update-hostname-suffix
+which control whether
+.Nm updates the hostname within the bottle, or not (defaults on);
+.Ar clone-path,
+which controls whether
+.Nm
+clones the outside-bottle PATH to inside the bottle (defaults off);
+.Ar clone-env,
+which lists the environment variables to be copied from outside to inside the
+bottle;
+.Ar systemd-timeout,
+which sets the length of time in seconds
+.Nm
+will wait for 
+.Xr systemd 1
+to reach the running state;
+.Ar resolved-stub,
+which determines whether or not
+.Nm
+will create the symlink needed to run
+.Xr systemd-resolved 8
+in stub mode; and
+.Ar target-warning
+which can be used to disable the warning if the default target is set to
+something other than
+.Ar multi-user.target.
+.It Pa /run/genie.env
+Contains certain environment variables required for proper functioning copied
+from outside the bottle, used internally by
+.Nm
+to restore them within the bottle.
+.It Pa /run/genie.hostname
+Contains the modified hostname used by the WSL distribution (see NOTES). This
+file is bind mounted over 
+.Ar /etc/hostname
+when the bottle is started up, and unbound at shutdown.
+.It Pa /run/genie.path
+Contains the system PATH copied from outside the bottle, used internally by
+.Nm
+to restore the directories therein within the bottle.
+.It Pa /run/genie.systemd.pid
+Contains the external PID of the systemd(1) instance created by
+.Nm
+Not used by
+.Nm
+itself; this PID is recorded as a convenience for the user. No analogous file
+exists containing the internal PID, for obvious reasons.
+.El
+.Sh NOTES
+.Nm
+can only be used within a WSL 2 distribution, since
+.Xr systemd 1
+can only be run within a WSL 2 distribution. WSL 1 does not implement the
+system calls required to support it.
+.Pp
+.Nm
+serves no purpose on Linux running outside of the WSL environment, or within
+other containers. Its behavior if run in such environments is undefined.
+.Pp
 When setting up the bottle:
-.IP \(bu
-If configured, the hostname of the WSL session is changed from the default (the hostname of the Windows machine) by suffixing -wsl, to distinguish it from the Windows host. The hosts file is updated accordingly.
-.IP \(bu
-The bottle uses pid and mount namespaces. Other namespaces remain shared with the parent (outside bottle). The mount propagation flag is set to shared.
-.SH BUGS
-.IP \(bu
-\fBgenie\fR is not idempotent; i.e., it is possible that changes made by \fBgenie\fR or by systemd(1) inside the bottle will not be perfectly reverted when the genie bottle is shut down with \fBgenie -u\fR. As such, it is recommended that you terminate the entire wsl session with \fBwsl -t\fR or \fBwsl --shutdown\fR in between stopping and restarting the bottle, or errors may occur.
-.P
-If you feel you have found a bug in \fBgenie\fR, please submit a bug report at \fIhttp://github.com/arkane-systems/genie/issues\fR.
-.SH SEE ALSO
-systemctl(1), systemd(1), bootup(7)
+.Pp
+If configured, the hostname of the WSL session is changed from the default (the
+hostname of the Windows machine) by suffixing -wsl, to distinguish it from the
+Windows host.
+.Pp
+The bottle uses pid and mount namespaces. Other namespaces remain shared with
+the parent (outside bottle). The mount propagation flag is set to shared.
+.Sh SEE ALSO
+.Xr systemctl 1 ,
+.Xr systemd 1 ,
+.Xr bootup 7 ,
+.Xr namespaces 7 ,
+.Xr systemd-machined 8 ,
+.Xr systemd-resolved 8
+.Sh BUGS
+.Nm
+is not idempotent; i.e., it is possible that changes made by
+.Nm
+or by
+.Xr systemd 1
+inside the bottle will not be perfectly reverted when the bottle is shut down
+with
+.Ar genie -u.
+As such, it is recommended that you terminate the entire wsl session with
+.Ar wsl -t
+or 
+.Ar wsl --shutdown
+in between stopping and restarting the bottle, or errors may occur.
+.Pp
+If you feel you have found a bug in \fBgenie\fR, please submit a bug report at
+.Ar http://github.com/arkane-systems/genie/issues
