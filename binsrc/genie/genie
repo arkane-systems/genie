@@ -11,6 +11,7 @@ import time
 
 import nsenter
 import psutil
+from python_hosts import Hosts, HostsEntry
 
 ### Global variables
 version = "2.0"
@@ -203,8 +204,6 @@ def hostname_update():
 
     os.chmod ('/run/genie.hostname', 0o644)
 
-    # TODO: update hosts file (remove old hostname, add new hostname)
-
     # Mount the hostname file
     if verbose:
         print (f"genie: setting new hostname to {internal_hostname}")
@@ -213,9 +212,18 @@ def hostname_update():
     
     if sp.returncode != 0:
         print ("genie: failed to bind hostname file; attempting to continue")
+        return
+
+    if verbose:
+        print ("genie: updating hosts file")
+
+    # Update hosts file (remove old hostname, add new hostname)
+    modify_hosts_file_entries(external_hostname, internal_hostname)
 
 def hostname_restore():
     """Restore the hostname."""
+    internal_hostname = os.uname().nodename
+
     if verbose:
         print ("genie: dropping in-bottle hostname");
     
@@ -232,12 +240,38 @@ def hostname_restore():
     # Reset hostname
     subprocess.run (['hostname', '-F', '/etc/hostname'])
 
+    external_hostname = os.uname().hostname
+
+    # Update hosts file (remove new hostname, add old hostname)
+    modify_hosts_file_entries(internal_hostname, external_hostname)
+
 def load_configuration():
     """Load the configuration from the config file ('/etc/genie.ini')."""
     global config
 
     config = configparser.ConfigParser()
     config.read ('/etc/genie.ini')
+
+def modify_hosts_file_entries(old_name, new_name):
+    """Modify the hosts file to replace old_name with new_name."""
+    hosts = Hosts()
+
+    entries = hosts.find_all_matching (name = old_name)
+
+    # Iterate through all relevant entries
+    for e in entries:
+        # Iterate through all names
+        new_names = []
+        for n in e.names:
+            # Modify name
+            new_names.append (n.replace (old_name, new_name))
+        new_entry = HostsEntry (entry_type= e.entry_type, address = e.address, names = new_names, comment = e.comment)
+
+        # Replace old entry
+        hosts.add (new_entry, force=True)
+
+    hosts.write()
+
 
 def parse_command_line():
     """Create the command-line option parser and parse arguments."""
