@@ -240,7 +240,7 @@ def hostname_restore():
     # Reset hostname
     subprocess.run (['hostname', '-F', '/etc/hostname'])
 
-    external_hostname = os.uname().hostname
+    external_hostname = os.uname().nodename
 
     # Update hosts file (remove new hostname, add old hostname)
     modify_hosts_file_entries(internal_hostname, external_hostname)
@@ -268,7 +268,7 @@ def modify_hosts_file_entries(old_name, new_name):
         new_entry = HostsEntry (entry_type= e.entry_type, address = e.address, names = new_names, comment = e.comment)
 
         # Replace old entry
-        hosts.add (new_entry, force=True)
+        hosts.add ([new_entry], force=True)
 
     hosts.write()
 
