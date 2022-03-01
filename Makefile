@@ -64,11 +64,8 @@ internal-debian-package:
 	# Binaries.
 	mkdir -p "$(BINDIR)"
 	install -Dm 6755 -o root "binsrc/genie-wrapper/genie" -t "$(BINDIR)"
-	install -Dm 0755 -o root "binsrc/genie/genie" -t "$(INSTALLDIR)"
-	install -Dm 0755 -o root "binsrc/genie/runinwsl" -t "$(INSTALLDIR)"
-
-	# Requirements
-	install -Dm 0644 -o root "binsrc/genie/requirements.txt" -t "$(INSTALLDIR)"
+	install -Dm 0755 -o root "binsrc/out/genie" -t "$(INSTALLDIR)"
+	install -Dm 0755 -o root "binsrc/out/runinwsl" -t "$(INSTALLDIR)"
 
 	# Environment generator.
 	install -Dm 0755 -o root "othersrc/scripts/80-genie-envar.sh" -t "$(INSTALLDIR)"

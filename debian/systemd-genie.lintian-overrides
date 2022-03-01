@@ -1,10 +1,2 @@
-# Needed for systemd
-# breakout-link usr/lib/systemd/system-environment-generators/80-genie-envar.sh -> usr/lib/genie/80-genie-envar.sh
-# breakout-link usr/lib/systemd/user-environment-generators/80-genie-envar.sh -> usr/lib/genie/80-genie-envar.sh
-
 # Must be setuid
 elevated-privileges usr/bin/genie 6755 root/root
-
-# Python should be more usual
-unusual-interpreter /usr/bin/python3 [usr/lib/genie/genie]
-unusual-interpreter /usr/bin/python3 [usr/lib/genie/runinwsl]

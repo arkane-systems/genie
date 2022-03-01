@@ -1,3 +1,3 @@
 nsenter>=0.2
-psutil>=5.9.0
+# psutil>=5.9.0 (should be handled by apt package)
 python_hosts>=0.3.2

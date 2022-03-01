@@ -4,6 +4,14 @@ out/
 
 # Genie wrapper
 binsrc/genie-wrapper/genie
+binsrc/genie/*.dist-info
+binsrc/genie/argparse.py
+binsrc/genie/bin/
+binsrc/genie/contextlib2/
+binsrc/genie/nsenter/
+binsrc/genie/pathlib.py
+binsrc/genie/python_hosts/
+binsrc/out
 
 # Debian build intermediates
 
