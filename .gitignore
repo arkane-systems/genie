@@ -4,10 +4,14 @@ out/
 
 # Genie wrapper
 binsrc/genie-wrapper/genie
+
+# Genie python modules
 binsrc/genie/*.dist-info
 binsrc/genie/bin/
 binsrc/genie/nsenter/
 binsrc/genie/python_hosts/
+
+# Built binaries
 binsrc/out
 
 # Debian build intermediates
@@ -20,12 +24,10 @@ debian/systemd-genie.debhelper.log
 debian/systemd-genie.substvars
 debian/genie-*
 
-# Arch build intermediates
-
-package/arch/src/
-package/arch/pkg/
-
 # Tar build intermediates
-package/tar/tarball
+tarball
 
-
+# Arch build intermediates
+# 
+# package/arch/src/
+# package/arch/pkg/
