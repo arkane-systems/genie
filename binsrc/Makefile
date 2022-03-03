@@ -14,7 +14,7 @@ build-runinwsl:
 	python -m zipapp -o out/runinwsl -p "/usr/bin/env python3" -c runinwsl
 
 build-genie:
-	python -m pip install -r genie/requirements.txt --target genie
+	python -m pip install -r genie/requirements.txt --target genie --upgrade
 	python -m zipapp -o out/genie -p "/usr/bin/env python3" -c genie
 
 #
