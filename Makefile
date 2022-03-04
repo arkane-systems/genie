@@ -92,6 +92,7 @@ package-arch:
 	mv *.zst out/arch
 
 clean-arch:
+	rm -rf $(PWD)/genie
 	rm -rf out/arch
 
 # Internal packaging functions
