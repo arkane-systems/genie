@@ -60,11 +60,13 @@ An Arch package (.zst) can be downloaded from the releases, to right. Install it
 
 A Fedora package (.rpm) can be downloaded from the releases, to right. Install it manually, using `dnf install <file>`.
 
+-->
+
 ### Other Distros
 
 If your distribution supports any of the package formats available, you may wish to try downloading the relevant format and giving it a try. This will almost certainly need some tweaking to work properly.
 
-Debian is the "native" distribution for _genie_ , for which read, "what the author uses". Specifically, Debian stretch+, with _usrmerge_ installed. If you're using anything else, you may need to tweak the configuration file (see below) accordingly.
+Debian is the "native" distribution for _genie_ , for which read, "what the author uses". Specifically, Debian buster+, with _usrmerge_ installed. If you're using anything else, you may need to tweak the configuration file (see below) accordingly.
 
 #### TAR
 
@@ -77,26 +79,6 @@ If you install from the tarball, you will need to enable the _wslg-xwayland.serv
 We're actively looking for maintainers for everything that doesn't have a specific package. If you have the time, please contribute.
 
 _I am unable to support distributions which there are not prebuilt packages for. I am actively seeking maintainers for these packages._
-
-### ...OR BUILD IT YOURSELF
-
-It is possible to build your own version of genie and install it locally. To do so, you will require _build-essential_ and _dotnet-sdk-5.0_ in addition to the other dependencies, all of which must be installed manually.
-
-After cloning the repository, run
-
-```
-sudo make install-local
-```
-
-This will build genie and install it under _/usr/local_ .
-
-After installing locally and starting genie and systemd for the first time, you will need to enable the _wslg-xwayland.socket_ systemd units manually:
-
-```
-systemctl enable wslg-xwayland.socket
-```
-
--->
 
 ## CONFIGURATION FILE
 
