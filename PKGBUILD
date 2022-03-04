@@ -17,9 +17,9 @@ source=("git+https://github.com/arkane-systems/genie.git")
 sha256sums=('SKIP')
 backup=('etc/genie.ini')
 
-# pkgver() {
-#  git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//g'
-#}
+pkgver() {
+    git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//g'
+}
 
 build() {
     cd genie
