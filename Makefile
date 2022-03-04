@@ -33,23 +33,25 @@ default:
 	# 
 	# make build-binaries
 	#
-	# Package (native)
+	# Package
 	#
 	# make package
 	# make package-debian
 	# make package-tar
+        # make package-arch (requires Arch packaging environment)
 	#
 	# Clean up
 	#
-	# make clean (does not clean altpacking by default)
+	# make clean
 	# make clean-debian
 	# make clean-tar
+        # make clean-arch
 
 #
 # Targets: individual end-product build.
 #
 
-clean: clean-debian clean-tar
+clean: clean-debian clean-tar clean-arch
 	make -C binsrc clean
 	rm -rf out
 
@@ -58,8 +60,6 @@ package: package-debian
 #
 # Debian packaging
 #
-
-# Debian installation locations
 
 package-debian: make-output-directory
 	mkdir -p out/debian
@@ -76,12 +76,30 @@ package-tar: make-output-directory build-binaries
 	fakeroot $(MAKE) -f $(THIS_FILE) DESTDIR=tarball internal-package
 
 	# Do the things that TAR needs that debuild would otherwise do
-	fakeroot $(MAKE) -f $(THIS_FILE) DESTDIR=tarball internal-tar-supplement
+	fakeroot $(MAKE) -f $(THIS_FILE) DESTDIR=tarball internal-supplement
+	fakeroot $(MAKE) -f $(THIS_FILE) DESTDIR=tarball internal-tar
 
 	mv genie-systemd-*.tar.gz out/tar
 
 clean-tar:
 	rm -rf tarball
+
+package-arch:
+	updpkgsums
+	makepkg
+
+clean-arch:
+
+package:
+        # Packaging for Arch.
+        updpkgsums
+        makepkg
+        mkdir -p ../../out/arch
+        mv genie* ../../out/arch
+
+clean:
+        rm -rf src
+        rm -rf pkg
 
 # Internal packaging functions
 
@@ -122,7 +140,7 @@ internal-package:
 internal-clean:
 	make -C binsrc clean
 
-internal-tar-supplement:
+internal-supplement:
 	# Fixup symbolic links
 	mkdir -p $(ENVGENDIR)
 	mkdir -p $(USRENVGENDIR)
@@ -138,6 +156,7 @@ internal-tar-supplement:
 	gzip -9 "/tmp/genie.8"
 	install -Dm 0644 -o root "/tmp/genie.8.gz" -t "$(MAN8DIR)"
 
+internal-tar:
 	# tar it up
 	tar zcvf genie-systemd-$(GENIEVERSION).tar.gz tarball/* --transform='s/^tarball//'
 
