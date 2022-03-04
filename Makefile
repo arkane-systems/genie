@@ -85,21 +85,14 @@ clean-tar:
 	rm -rf tarball
 
 package-arch:
+	# echo $(PWD)
+	mkdir -p out/arch
 	updpkgsums
-	makepkg
+	BUILDDIR=/tmp PKDEST=$(PWD)/out/arch makepkg
+	rm -rf $(PWD)/genie
 
 clean-arch:
-
-package:
-        # Packaging for Arch.
-        updpkgsums
-        makepkg
-        mkdir -p ../../out/arch
-        mv genie* ../../out/arch
-
-clean:
-        rm -rf src
-        rm -rf pkg
+	rm -rf out/arch
 
 # Internal packaging functions
 
