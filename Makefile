@@ -85,11 +85,11 @@ clean-tar:
 	rm -rf tarball
 
 package-arch:
-	# echo $(PWD)
 	mkdir -p out/arch
 	updpkgsums
 	BUILDDIR=/tmp PKDEST=$(PWD)/out/arch makepkg
 	rm -rf $(PWD)/genie
+	mv *.zst out/arch
 
 clean-arch:
 	rm -rf out/arch
