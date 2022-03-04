@@ -13,7 +13,7 @@ license=('Unlicense')
 depends=('daemonize' 'python' 'python-psutil' 'systemd')
 makedepends=('git' 'python-pip')
 options=(!strip)
-source=("git+https://github.com/arkane-systems/genie.git#branch=dev-2.2")
+source=("git+https://github.com/arkane-systems/genie.git")
 sha256sums=('SKIP')
 backup=('etc/genie.ini')
 

@@ -50,11 +50,11 @@ sudo apt install -y systemd-genie
 
 Use the above Debian package. For current Ubuntu releases and the timing-out problem, see the problematic units listed on [the genie wiki](https://github.com/arkane-systems/genie/wiki).
 
-<!--
-
 ### Arch
 
 An Arch package (.zst) can be downloaded from the releases, to right. Install it manually, using `pacman -U <file>`.
+
+<!--
 
 ### Fedora
 
