@@ -5,7 +5,6 @@
 .Nm genie
 .Nd start up, enter into, or shut down a systemd "bottle" under Windows
 Subsystem for Linux.
-
 .Sh SYNOPSIS
 .Nm
 .Op -h
@@ -18,7 +17,6 @@ Subsystem for Linux.
 .Op -l
 .Op -c
 .Ar command...
-
 .Sh DESCRIPTION
 .Nm
 provides a means of running
@@ -30,19 +28,14 @@ creating a pid and mount namespace, the eponymous poor-man's container
 within the bottle, and providing helpful shortcuts to start, enter, run
 commands within, and shut down the bottle.
 .Pp
-
 .Bl -tag -width "-c ..., --command ..."
-
 .It Fl -h, --help
 Prints a short help text and exits.
-
 .It Fl -V, --version
 Prints the installed genie version and exits.
-
 .It Fl v, --verbose
 Causes any other command to print the details of the operations it is
 performing as it goes along. Useful mostly for debugging.
-
 .It Fl i, --initialize
 Sets up the bottle and
 .Xr systemd 1
@@ -50,7 +43,6 @@ if they are not already initialized, and then exists. This is intended, for
 use, for example, if you wish to run services without needing a shell, or to
 preinitialize the bottle to avoid startup delays later. This latter can be used
 with Task Scheduler, to be run on Windows logon.
-
 .It Fl s, --shell
 Sets up the bottle and
 .Xr systemd 1
@@ -62,7 +54,6 @@ installed.
 .Pp
 This follows login semantics, and as such does not preserve the current working
 directory.
-
 .It Fl l, --login
 Sets up the bottle and
 .Xr systemd 1
@@ -73,7 +64,6 @@ three times within one second.
 .Pp
 This follows login semantics, and as such does not preserve the current working
 directory.
-
 .It Fl c, --command
 Sets up the bottle and
 .Xr systemd 1
@@ -84,7 +74,6 @@ distribution with
 installed.
 .Pp
 Unlike the other options, this preserves the current working directory.
-
 .It Fl u, --shutdown
 Shuts down
 .Xr systemd 1
@@ -100,7 +89,6 @@ distribution before using
 again after you have used
 .Ar genie -u.
 See BUGS, below, for more details.
-
 .It Fl r, --is-running
 Checks whether
 .Nm
@@ -119,7 +107,6 @@ and exit code 3 if they are currently transitioning between states;
 and exit code 4 if there is a problem with systemd services; and
 .Ar unknown
 and exit code 5 otherwise.
-
 .It Fl b --is-in-bottle
 Checks whether the current command is executing inside the bottle. Returns
 .Ar inside
@@ -128,21 +115,15 @@ and exit code 0 if so; returns
 and exit code 1 if not. If no bottle exists, returns
 .Ar no-bottle
 and exit code 2.
-
 .El
-
 .Sh ENVIRONMENT
-
 .Bl -tag -width "INSIDE_GENIE"
-
 .It Ev INSIDE_GENIE
 INSIDE_GENIE should not be set by the user.
 .Nm
 sets INSIDE_GENIE to the string "yes", such that user scripts can detect its
 presence to determine whether or not they are running inside the bottle.
-
 .El
-
 .Sh EXIT STATUS
 Other than the special exit codes listed under the
 .Ar -b
@@ -152,10 +133,8 @@ options above,
 .Nm
 maintains a policy of returning zero on success, and non-zero when an error
 occurs.
-
 .Sh FILES
 .Bl -tag -width "/run/genie.systemd.pid" -compact
-
 .It Pa /etc/genie.ini
 Configuration file for 
 .Nm 
@@ -193,24 +172,20 @@ in stub mode; and
 which can be used to disable the warning if the default target is set to
 something other than
 .Ar multi-user.target.
-
 .It Pa /run/genie.env
 Contains certain environment variables required for proper functioning copied
 from outside the bottle, used internally by
 .Nm
 to restore them within the bottle.
-
 .It Pa /run/genie.hostname
 Contains the modified hostname used by the WSL distribution (see NOTES). This
 file is bind mounted over 
 .Ar /etc/hostname
 when the bottle is started up, and unbound at shutdown.
-
 .It Pa /run/genie.path
 Contains the system PATH copied from outside the bottle, used internally by
 .Nm
 to restore the directories therein within the bottle.
-
 .It Pa /run/genie.systemd.pid
 Contains the external PID of the systemd(1) instance created by
 .Nm
@@ -218,9 +193,7 @@ Not used by
 .Nm
 itself; this PID is recorded as a convenience for the user. No analogous file
 exists containing the internal PID, for obvious reasons.
-
 .El
-
 .Sh NOTES
 .Nm
 can only be used within a WSL 2 distribution, since
@@ -240,7 +213,6 @@ Windows host.
 .Pp
 The bottle uses pid and mount namespaces. Other namespaces remain shared with
 the parent (outside bottle). The mount propagation flag is set to shared.
-
 .Sh SEE ALSO
 .Xr systemctl 1 ,
 .Xr systemd 1 ,
@@ -248,7 +220,6 @@ the parent (outside bottle). The mount propagation flag is set to shared.
 .Xr namespaces 7 ,
 .Xr systemd-machined 8 ,
 .Xr systemd-resolved 8
-
 .Sh BUGS
 .Nm
 is not idempotent; i.e., it is possible that changes made by
