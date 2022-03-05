@@ -95,6 +95,19 @@ clean-arch:
 	rm -rf $(PWD)/genie
 	rm -rf out/arch
 
+package-fedora: genie_version := $(shell rpmspec -q --qf %{Version} --srpm genie.spec)
+
+package-fedora:
+	rpmdev-setuptree
+	tar zcvf $(shell rpm --eval '%{_sourcedir}')/genie-${genie_version}.tar.gz * --dereference --transform='s/^/genie-${genie_version}\//'
+	fakeroot rpmbuild -ba -v genie.spec
+	mkdir -p out/fedora
+	mv $(shell rpm --eval '%{_rpmdir}')/x86_64/genie* out/fedora
+
+clean-fedora:
+	rpmdev-wipetree
+	rm -rf out/fedora
+
 # Internal packaging functions
 
 internal-debian-package:
@@ -138,8 +151,9 @@ internal-supplement:
 	# Fixup symbolic links
 	mkdir -p $(ENVGENDIR)
 	mkdir -p $(USRENVGENDIR)
-	ln -s $(INSTALLDIR)/80-genie-envar.sh $(ENVGENDIR)/80-genie-envar.sh
-	ln -s $(INSTALLDIR)/80-genie-envar.sh $(USRENVGENDIR)/80-genie-envar.sh
+	ln -sr $(INSTALLDIR)/80-genie-envar.sh $(ENVGENDIR)/80-genie-envar.sh
+	ln -sr $(INSTALLDIR)/80-genie-envar.sh $(USRENVGENDIR)/80-genie-envar.sh
+	ln -sr $(SVCDIR)/wslg-xwayland.socket $(SVCDIR)/sockets.target.wants/wslg-xwayland.socket
 
 	# Man page.
 	# Make sure directory exists.

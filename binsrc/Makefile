@@ -13,12 +13,12 @@ build-wrapper:
 
 build-runinwsl:
 	mkdir -p out
-	python -m zipapp -o out/runinwsl -p "/usr/bin/env python3" -c runinwsl
+	python3 -m zipapp -o out/runinwsl -p "/usr/bin/env python3" -c runinwsl
 
 build-genie:
 	mkdir -p out
-	python -m pip install -r genie/requirements.txt --target genie --upgrade
-	python -m zipapp -o out/genie -p "/usr/bin/env python3" -c genie
+	python3 -m pip install -r genie/requirements.txt --target genie --upgrade
+	python3 -m zipapp -o out/genie -p "/usr/bin/env python3" -c genie
 
 #
 # clean: clean up after a build/package
