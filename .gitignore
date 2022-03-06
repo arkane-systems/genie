@@ -28,6 +28,6 @@ debian/genie-*
 tarball
 
 # Arch build intermediates
-# 
-# package/arch/src/
-# package/arch/pkg/
+
+genie/
+

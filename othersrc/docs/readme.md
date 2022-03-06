@@ -56,13 +56,10 @@ An Arch package (.zst) can be downloaded from the releases, to right. Install it
 
 An unofficial package is also available on the AUR as genie-systemd-git ( https://aur.archlinux.org/packages/genie-systemd-git ).
 
-<!--
 
 ### Fedora
 
 A Fedora package (.rpm) can be downloaded from the releases, to right. Install it manually, using `dnf install <file>`.
-
--->
 
 ### Other Distros
 
