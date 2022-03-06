@@ -87,7 +87,7 @@ rm -rf %{buildroot}
 %doc %{_mandir}/man8/genie.8.gz
 
 %changelog
-* Mon Feb 28 2022 Alistair Young <avatar@arkane-systems.net> 2.2-1
+* Sun Mar 06 2022 Alistair Young <avatar@arkane-systems.net> 2.2-1
 - Single-file package python scripts.
 - Man page fixes.
 - Fixed building on Python 3.10.

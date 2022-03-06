@@ -5,7 +5,7 @@ systemd-genie (2.2) buster bullseye bookworm sid focal bionic; urgency=medium
         * Fixed building on Python 3.10.
         * Dropped the "local" install option (little used; use tarball instead).
 
- -- Alistair Young <avatar@arkane-systems.net>  Mon, 28 Feb 2022 18:30:00 -0500
+ -- Alistair Young <avatar@arkane-systems.net>  Sun, 06 Mar 2022 13:30:00 -0500
 
 systemd-genie (2.1) buster bullseye bookworm sid focal bionic; urgency=medium
 

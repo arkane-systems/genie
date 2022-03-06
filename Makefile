@@ -30,7 +30,7 @@ default:
 	# Build options include:
 	#
 	# Build binaries only.
-	# 
+	#
 	# make build-binaries
 	#
 	# Package
@@ -38,14 +38,16 @@ default:
 	# make package
 	# make package-debian
 	# make package-tar
-        # make package-arch (requires Arch packaging environment)
+	# make package-arch (requires Arch packaging environment)
+	# make package-fedora (requires Fedora packaging environment)
 	#
 	# Clean up
 	#
 	# make clean
 	# make clean-debian
 	# make clean-tar
-        # make clean-arch
+	# make clean-arch
+	# make clean-fedora (requires Fedora packaging environment)
 
 #
 # Targets: individual end-product build.
@@ -153,6 +155,7 @@ internal-supplement:
 	mkdir -p $(USRENVGENDIR)
 	ln -sr $(INSTALLDIR)/80-genie-envar.sh $(ENVGENDIR)/80-genie-envar.sh
 	ln -sr $(INSTALLDIR)/80-genie-envar.sh $(USRENVGENDIR)/80-genie-envar.sh
+	mkdir -p $(SVCDIR)/sockets.target.wants
 	ln -sr $(SVCDIR)/wslg-xwayland.socket $(SVCDIR)/sockets.target.wants/wslg-xwayland.socket
 
 	# Man page.
