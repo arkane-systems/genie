@@ -64,6 +64,16 @@ three times within one second.
 .Pp
 This follows login semantics, and as such does not preserve the current working
 directory.
+.It Fl c, --command
+Sets up the bottle and
+.Xr systemd 1
+if they are not already initialized, and then runs the specified command within the
+bottle. It is intended as the standard way to run arbitrary commands within a
+distribution with
+.Nm
+installed.
+.Pp
+Unlike the other options, this preserves the current working directory.
 .It Fl u, --shutdown
 Shuts down
 .Xr systemd 1

@@ -2,6 +2,26 @@
 # This Makefile builds and packages genie by invoking relevant sub-makefiles.
 #
 
+# Genie version
+GENIEVERSION = 2.2
+
+# Determine this makefile's path.
+# Be sure to place this BEFORE `include` directives, if any.
+THIS_FILE := $(lastword $(MAKEFILE_LIST))
+
+# The values of these variables depend upon DESTDIR, set in the recursive call to
+# the internal-package target.
+INSTALLDIR = $(DESTDIR)/usr/lib/genie
+BINDIR = $(DESTDIR)/usr/bin
+ETCDIR = $(DESTDIR)/etc
+SVCDIR = $(DESTDIR)/usr/lib/systemd/system
+USRLIBDIR = $(DESTDIR)/usr/lib
+
+# used only by TAR installer
+ENVGENDIR = $(DESTDIR)/usr/lib/systemd/system-environment-generators
+USRENVGENDIR = $(DESTDIR)/usr/lib/systemd/user-environment-generators
+MAN8DIR = $(DESTDIR)/usr/share/man/man8
+
 #
 # Default target: list options
 #
@@ -13,23 +33,25 @@ default:
 	# 
 	# make build-binaries
 	#
-	# Package (native)
+	# Package
 	#
 	# make package
 	# make package-debian
-	# ? make package-tar
+	# make package-tar
+        # make package-arch (requires Arch packaging environment)
 	#
 	# Clean up
 	#
-	# make clean (does not clean altpacking by default)
+	# make clean
 	# make clean-debian
-	# ? make clean-tar
+	# make clean-tar
+        # make clean-arch
 
 #
 # Targets: individual end-product build.
 #
 
-clean: clean-debian
+clean: clean-debian clean-tar clean-arch
 	make -C binsrc clean
 	rm -rf out
 
@@ -39,16 +61,6 @@ package: package-debian
 # Debian packaging
 #
 
-# Debian installation locations
-
-DESTDIR=debian/systemd-genie
-
-INSTALLDIR = $(DESTDIR)/usr/lib/genie
-BINDIR = $(DESTDIR)/usr/bin
-ETCDIR = $(DESTDIR)/etc
-SVCDIR = $(DESTDIR)/usr/lib/systemd/system
-USRLIBDIR = $(DESTDIR)/usr/lib
-
 package-debian: make-output-directory
 	mkdir -p out/debian
 	debuild
@@ -57,9 +69,55 @@ package-debian: make-output-directory
 clean-debian:
 	debuild -- clean
 
-# Debian internal functions
+package-tar: make-output-directory build-binaries
+	mkdir -p out/tar
+	mkdir -p tarball
+
+	fakeroot $(MAKE) -f $(THIS_FILE) DESTDIR=tarball internal-package
+
+	# Do the things that TAR needs that debuild would otherwise do
+	fakeroot $(MAKE) -f $(THIS_FILE) DESTDIR=tarball internal-supplement
+	fakeroot $(MAKE) -f $(THIS_FILE) DESTDIR=tarball internal-tar
+
+	mv genie-systemd-*.tar.gz out/tar
+
+clean-tar:
+	rm -rf tarball
+
+package-arch:
+	mkdir -p out/arch
+	updpkgsums
+	BUILDDIR=/tmp PKDEST=$(PWD)/out/arch makepkg
+	rm -rf $(PWD)/genie
+	mv *.zst out/arch
+
+clean-arch:
+	rm -rf $(PWD)/genie
+	rm -rf out/arch
+
+package-fedora: genie_version := $(shell rpmspec -q --qf %{Version} --srpm genie.spec)
+
+package-fedora:
+	rpmdev-setuptree
+	tar zcvf $(shell rpm --eval '%{_sourcedir}')/genie-${genie_version}.tar.gz * --dereference --transform='s/^/genie-${genie_version}\//'
+	fakeroot rpmbuild -ba -v genie.spec
+	mkdir -p out/fedora
+	mv $(shell rpm --eval '%{_rpmdir}')/x86_64/genie* out/fedora
+
+clean-fedora:
+	rpmdev-wipetree
+	rm -rf out/fedora
+
+# Internal packaging functions
 
 internal-debian-package:
+
+	mkdir -p debian/systemd-genie
+	@$(MAKE) -f $(THIS_FILE) DESTDIR=debian/systemd-genie internal-package
+
+# We can assume DESTDIR is set, due to how the following are called.
+
+internal-package:
 
 	# Binaries.
 	mkdir -p "$(BINDIR)"
@@ -86,8 +144,29 @@ internal-debian-package:
 	# binfmt.d
 	install -Dm 0644 -o root "othersrc/usr-lib/binfmt.d/WSLInterop.conf" -t "$(USRLIBDIR)/binfmt.d"
 
-internal-debian-clean:
+internal-clean:
 	make -C binsrc clean
+
+internal-supplement:
+	# Fixup symbolic links
+	mkdir -p $(ENVGENDIR)
+	mkdir -p $(USRENVGENDIR)
+	ln -sr $(INSTALLDIR)/80-genie-envar.sh $(ENVGENDIR)/80-genie-envar.sh
+	ln -sr $(INSTALLDIR)/80-genie-envar.sh $(USRENVGENDIR)/80-genie-envar.sh
+	ln -sr $(SVCDIR)/wslg-xwayland.socket $(SVCDIR)/sockets.target.wants/wslg-xwayland.socket
+
+	# Man page.
+	# Make sure directory exists.
+	mkdir -p "$(MAN8DIR)"
+
+ 	# this bit would ordinarily be handed by debuild, etc.
+	cp "othersrc/docs/genie.8" /tmp/genie.8
+	gzip -9 "/tmp/genie.8"
+	install -Dm 0644 -o root "/tmp/genie.8.gz" -t "$(MAN8DIR)"
+
+internal-tar:
+	# tar it up
+	tar zcvf genie-systemd-$(GENIEVERSION).tar.gz tarball/* --transform='s/^tarball//'
 
 #
 # Helpers: intermediate build stages.
