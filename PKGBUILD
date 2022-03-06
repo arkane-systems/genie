@@ -4,7 +4,7 @@
 # Contributor: facekapow, rayfalling, Ducksoft
 _pkgname=genie
 pkgname=${_pkgname}-systemd
-pkgver=2.1.r15.g379869a
+pkgver=2.2
 pkgrel=1
 pkgdesc="A quick way into a systemd \"bottle\" for WSL"
 arch=('x86_64')
