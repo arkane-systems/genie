@@ -3,7 +3,7 @@
 #
 
 # Genie version
-GENIEVERSION = 2.2
+GENIEVERSION = 2.3
 
 # Determine this makefile's path.
 # Be sure to place this BEFORE `include` directives, if any.
@@ -65,7 +65,7 @@ package: package-debian
 
 package-debian: make-output-directory
 	mkdir -p out/debian
-	debuild
+	if [ "${CI}" = "true" ]; then debuild -us -uc; else debuild; fi
 	mv ../systemd-genie_* out/debian
 
 clean-debian:

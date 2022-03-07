@@ -1,6 +1,7 @@
 systemd-genie (2.3) buster bullseye bookworm sid focal bionic; urgency=medium
 
         * Paths-containing-spaces fix (#240).
+        * Makefile updates for CI build.
         * Miscellaneous fixes.
 
  -- Alistair Young <avatar@arkane-systems.net>  Sun, 06 Mar 2022 13:30:00 -0500
