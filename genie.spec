@@ -1,5 +1,5 @@
 %global project https://github.com/arkane-systems/genie/
-%global version 2.2
+%global version 2.3
 
 %global debug_package %{nil}
 %global _enable_debug_package 0
@@ -87,6 +87,9 @@ rm -rf %{buildroot}
 %doc %{_mandir}/man8/genie.8.gz
 
 %changelog
+* Sun Mar 06 2022 Alistair Young <avatar@arkane-systems.net> 2.3-1
+- Miscellaneous fixes.
+
 * Sun Mar 06 2022 Alistair Young <avatar@arkane-systems.net> 2.2-1
 - Single-file package python scripts.
 - Man page fixes.

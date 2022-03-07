@@ -14,7 +14,7 @@ import psutil
 from python_hosts import Hosts, HostsEntry
 
 ### Global variables
-version = "2.0"
+version = "2.3"
 
 verbose = False
 login = None
