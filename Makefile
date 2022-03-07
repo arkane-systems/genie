@@ -65,7 +65,11 @@ package: package-debian
 
 package-debian: make-output-directory
 	mkdir -p out/debian
+	if [ $CI == true ] 
+	debuild -us -uc
+	else
 	debuild
+	fi
 	mv ../systemd-genie_* out/debian
 
 clean-debian:
