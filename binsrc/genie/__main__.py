@@ -660,7 +660,7 @@ def do_command(commandline):
     command = ["machinectl", "shell", "-q", login + "@.host", "/usr/lib/genie/runinwsl", os.getcwd()] + commandline
 
     with nsenter.Namespace (sdp, 'pid'):
-        sp = subprocess.run (' '.join(command), shell=True)
+        sp = subprocess.run (command)
         return sp
 
 def do_shutdown():
