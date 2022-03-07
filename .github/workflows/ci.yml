@@ -13,7 +13,7 @@ jobs:
     steps:
 
     - name: Install Packaging Tools
-      run: sudo apt install devscripts
+      run: sudo apt install devscripts debhelper
 
     - name: Checkout
       uses: actions/checkout@v2
