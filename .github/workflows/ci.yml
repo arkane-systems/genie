@@ -7,13 +7,16 @@ on:
   pull_request:
 
 jobs:
-  build-binaries:
+  build:
     runs-on: ubuntu-20.04
 
     steps:
-    
+
+    - name: Install Packaging Tools
+      run: sudo apt install devscripts debhelper
+
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Make Binaries
-      run: make build-binaries
+    - name: Build & Make Debian Package
+      run: make package-debian
