@@ -13,8 +13,10 @@ jobs:
     steps:
 
 
-    - name: Install Packaging Tools
+    - name: Update apt db
       run: sudo apt update
+
+    - name: Install Packagers & Cross-Compiler
       run: sudo apt install -y devscripts debhelper gcc-aarch64-linux-gnu
 
     - name: Checkout
