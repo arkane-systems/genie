@@ -4,6 +4,7 @@ out/
 
 # Genie wrapper
 binsrc/genie-wrapper/genie
+binsrc/genie-wrapper/genie-arm64
 
 # Genie python modules
 binsrc/genie/*.dist-info
