@@ -13,7 +13,7 @@ jobs:
     steps:
 
     - name: Install Packaging Tools
-      run: sudo apt install devscripts debhelper
+      run: sudo apt install -y devscripts debhelper gcc-aarch64-linux-gnu
 
     - name: Checkout
       uses: actions/checkout@v2
