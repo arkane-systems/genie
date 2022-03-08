@@ -24,3 +24,9 @@ jobs:
 
     - name: Build & Make Debian Package
       run: make package-debian
+
+    - name: Upload Results
+      uses: actions/upload-artifact@v3
+        with:
+          name: debpkg
+          path: out/debian/*
