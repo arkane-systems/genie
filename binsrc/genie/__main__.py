@@ -306,7 +306,7 @@ def prelaunch_checks():
         sys.exit("genie: not executing on the Linux platform - how did we get here?")
 
     # Is this WSL 1?
-    root_type = list(filter(lambda x: x.mountpoint == '/', psutil.disk_partitions()))[0].fstype
+    root_type = list(filter(lambda x: x.mountpoint == '/', psutil.disk_partitions(all=True)))[0].fstype
     if root_type == 'lxfs' or root_type == 'wslfs':
         sys.exit("genie: systemd is not supported under WSL 1.")
 
