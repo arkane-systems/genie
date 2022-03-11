@@ -90,6 +90,7 @@ rm -rf %{buildroot}
 * Sun Mar 06 2022 Alistair Young <avatar@arkane-systems.net> 2.3-1
 - Paths-containing-spaces fix (#240).
 - Makefile updates for CI build.
+- Fix WSL 1 detection.
 - Miscellaneous fixes.
 
 * Sun Mar 06 2022 Alistair Young <avatar@arkane-systems.net> 2.2-1
