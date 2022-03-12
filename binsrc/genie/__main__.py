@@ -4,10 +4,13 @@ import argparse
 import configparser
 import fcntl
 import os
+import pwd
 import shutil
 import subprocess
 import sys
 import time
+
+from setuptools import Command
 
 import nsenter
 import psutil
@@ -285,8 +288,12 @@ def parse_command_line():
     # Verbose option
     parser.add_argument ('-v', '--verbose', action='store_true', help="display verbose progress messages")
 
+    # Specify username option
+    parser.add_argument ('-a', '--as-user', action='store', help="specify user to run shell or command as (use with -s or -c)", dest='user')
+
     # Commands
-    group = parser.add_mutually_exclusive_group (required=True)
+    group2 = parser.add_argument_group ('commands')
+    group = group2.add_mutually_exclusive_group (required=True)
 
     group.add_argument('-i', '--initialize', action='store_true', help='initialize the bottle (if necessary) only')
     group.add_argument('-s', '--shell', action='store_true', help='initialize the bottle (if necessary), and run a shell in it')
@@ -295,6 +302,8 @@ def parse_command_line():
     group.add_argument('-u', '--shutdown', action='store_true', help='shut down systemd and exit the bottle')
     group.add_argument('-r', '--is-running', action='store_true', help='check whether systemd is running in genie, or not')
     group.add_argument('-b', '--is-in-bottle', action='store_true', help='check whether currently executing within the bottle, or not')
+
+    group.add_argument('-%', '--parser-test', action='store_true', help=argparse.SUPPRESS)
 
     return parser.parse_args()
 
@@ -454,6 +463,11 @@ def stash_environment():
         envfile.close()
 
 ### Commands
+
+def do_parser_test(arguments):
+    """Parser test option."""
+    print ("genie: congratulations! you found the hidden parser test option!")
+    print (arguments)
 
 def do_initialize():
     """Initialize the genie bottle."""
@@ -698,7 +712,7 @@ def do_shutdown():
     print ("")
 
     if (timeout <= 0):
-        print ("genie: systemd did not exit after {config_system_timeout()} seconds")
+        print (f"genie: systemd did not exit after {config_system_timeout()} seconds")
         print ("genie: this may be due to a problem with your systemd configuration")
         print ("genie: attempting to continue")
 
@@ -770,8 +784,28 @@ def entrypoint():
     verbose = arguments.verbose
     login = os.environ["LOGNAME"]
 
+    # Check user
+    if arguments.user is not None:
+
+        # Abort if user specified and not -c or -s
+        if not (arguments.shell or (not arguments.command is None)):
+            sys.exit ("genie: error: argument -a/--as-user can only be used with -c/--command or -s/--shell")
+
+        # Check if arguments.user is a real user
+        try:
+            pwd.getpwnam(arguments.user)
+        except KeyError:
+            sys.exit ("genie: specified user does not exist")
+        
+        login = arguments.user
+
+        if verbose:
+            print (f"genie: executing as user {login}")
+
     ## Decide what to do.
-    if arguments.initialize:
+    if arguments.parser_test:
+        do_parser_test(arguments)
+    elif arguments.initialize:
         do_initialize()
     elif arguments.shell:
         do_shell()

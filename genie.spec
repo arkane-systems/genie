@@ -91,6 +91,7 @@ rm -rf %{buildroot}
 - Paths-containing-spaces fix (#240).
 - Makefile updates for CI build.
 - Fix WSL 1 detection.
+- Added -a/--as-user option to allow shell/command as any user.
 - Miscellaneous fixes.
 
 * Sun Mar 06 2022 Alistair Young <avatar@arkane-systems.net> 2.2-1
