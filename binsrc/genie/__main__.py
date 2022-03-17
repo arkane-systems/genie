@@ -287,24 +287,29 @@ def load_configuration():
 
 def modify_hosts_file_entries(old_name, new_name):
     """Modify the hosts file to replace old_name with new_name."""
-    hosts = Hosts()
+    try:
+        hosts = Hosts()
 
-    entries = hosts.find_all_matching(name=old_name)
+        entries = hosts.find_all_matching(name=old_name)
 
-    # Iterate through all relevant entries
-    for e in entries:
-        # Iterate through all names
-        new_names = []
-        for n in e.names:
-            # Modify name
-            new_names.append(n.replace(old_name, new_name))
-        new_entry = HostsEntry(
-            entry_type=e.entry_type, address=e.address, names=new_names, comment=e.comment)
+        # Iterate through all relevant entries
+        for e in entries:
+            # Iterate through all names
+            new_names = []
+            for n in e.names:
+                # Modify name
+                new_names.append(n.replace(old_name, new_name))
+                new_entry = HostsEntry(
+                    entry_type=e.entry_type, address=e.address, names=new_names, comment=e.comment)
 
-        # Replace old entry
-        hosts.add([new_entry], force=True)
+                # Replace old entry
+                hosts.add([new_entry], force=True)
 
-    hosts.write()
+        hosts.write()
+
+    except:  # noqa
+        print(f"genie: error occurred modifying hosts file ({sys.exc_info()[0]}); check format")
+        print("genie: attempting to continue anyway...")
 
 
 def parse_command_line():

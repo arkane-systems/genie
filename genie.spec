@@ -92,6 +92,8 @@ rm -rf %{buildroot}
 - Makefile updates for CI build.
 - Fix WSL 1 detection.
 - Added -a/--as-user option to allow shell/command as any user.
+- Added support for Ubuntu 22.04 LTS (Jammy Jellyfish).
+- Greater robustness against misconfigured hosts files (fixes #247).
 - Miscellaneous fixes.
 
 * Sun Mar 06 2022 Alistair Young <avatar@arkane-systems.net> 2.2-1
