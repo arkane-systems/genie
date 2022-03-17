@@ -1,9 +1,10 @@
-systemd-genie (2.3) buster bullseye bookworm sid focal bionic; urgency=medium
+systemd-genie (2.3) buster bullseye bookworm sid bionic focal jammy; urgency=medium
 
         * Paths-containing-spaces fix (#240).
         * Makefile updates for CI build.
         * Fixed WSL 1 detection.
         * Added -a/--as-user option to allow shell/command as any user.
+        * Added support for Ubuntu 22.04 LTS (Jammy Jellyfish).
         * Miscellaneous fixes.
 
  -- Alistair Young <avatar@arkane-systems.net>  Sun, 06 Mar 2022 13:30:00 -0500
