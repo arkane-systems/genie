@@ -10,13 +10,11 @@ import subprocess
 import sys
 import time
 
-from setuptools import Command
-
 import nsenter
 import psutil
 from python_hosts import Hosts, HostsEntry
 
-### Global variables
+# Global variables
 version = "2.3"
 
 verbose = False
@@ -25,7 +23,7 @@ config = None
 
 lockfile_fp = None
 
-### Helper functions
+# Helper functions
 
 
 def apparmor_configure():
@@ -830,82 +828,6 @@ def do_is_running():
 
     print(f"unknown {state}")
     return 5
-
-
-def do_is_in_bottle():
-    """Display whether we are currently executing within or without the genie bottle."""
-    sdp = find_systemd()
-
-    if sdp == 1:
-        print("inside")
-        return 0
-
-    if sdp == 0:
-        print("no-bottle")
-        return 2
-
-    print("outside")
-    return 1
-
-### Entrypoint
-
-
-def entrypoint():
-    """Entrypoint of the application."""
-    global verbose
-    global login
-
-    prelaunch_checks()
-    load_configuration()
-    arguments = parse_command_line()
-
-    ## Set globals
-    verbose = arguments.verbose
-    login = os.environ["LOGNAME"]
-
-    # Check user
-    if arguments.user is not None:
-
-        # Abort if user specified and not -c or -s
-        if not (arguments.shell or (not arguments.command is None)):
-            sys.exit(
-                "genie: error: argument -a/--as-user can only be used with -c/--command or -s/--shell")
-
-        # Check if arguments.user is a real user
-        try:
-            pwd.getpwnam(arguments.user)
-        except KeyError:
-            sys.exit("genie: specified user does not exist")
-
-        login = arguments.user
-
-        if verbose:
-            print(f"genie: executing as user {login}")
-
-    ## Decide what to do.
-    if arguments.parser_test:
-        do_parser_test(arguments)
-    elif arguments.initialize:
-        do_initialize()
-    elif arguments.shell:
-        do_shell()
-    elif arguments.login:
-        do_login()
-    elif not arguments.command is None:
-        do_command(arguments.command)
-    elif arguments.shutdown:
-        do_shutdown()
-    elif arguments.is_running:
-        do_is_running()
-    elif arguments.is_in_bottle:
-        do_is_in_bottle()
-    else:
-        sys.exit("genie: impossible argument - how did we get here?")
-
-
-entrypoint()
-
-### End of file
 
 
 def do_is_in_bottle():
