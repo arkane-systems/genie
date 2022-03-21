@@ -14,6 +14,9 @@ Find this by running `winver`
 i.e. Debian bullseye, Ubuntu focal, etc.
 If your distro was not installed from the Microsoft Store, please indicate source and method of installation.
 
+**Kernel version:**
+The output of `cat /proc/sys/kernel/osrelease`
+
 **Genie version:**
 The output of `genie --version`
 

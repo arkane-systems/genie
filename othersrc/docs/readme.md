@@ -16,6 +16,8 @@ Well, this gives you a way to run systemd as pid 1, with all the trimmings, insi
 
 It is a good idea to set your systemd default target to _multi-user.target_ before installing genie. This is the target that genie is designed to work with, since the default _graphical.target_ used by many distributions includes services for the graphical desktop that would take, at minimum, considerable reconfiguration before operating properly under the WSL/WSLg environment.
 
+If you are using a custom kernel for WSL, it should comply with the suggested means of detecting WSL given in https://github.com/Microsoft/WSL/issues/423#issuecomment-221627364 - i.e., the strings "Microsoft" and/or "WSL" should be present in the kernel version string, which can be found in `/proc/sys/kernel/osrelease`. You can check this by running `systemd-detect-virt`; it should return "wsl".
+
 Also read the [WSLg FAQ](https://github.com/arkane-systems/genie/wiki/WSLg-FAQ) and the [known-problematic systemd units list](https://github.com/arkane-systems/genie/wiki/Systemd-units-known-to-be-problematic-under-WSL) for known problems and known solutions to them.
 
 More information, tips & tricks, etc. are available on [the genie wiki](https://github.com/arkane-systems/genie/wiki). Please consult it before opening an issue.
@@ -52,7 +54,6 @@ Use the above Debian package. For current Ubuntu releases and the timing-out pro
 An Arch package (.zst) can be downloaded from the releases, to right. Install it manually, using `pacman -U <file>`.
 
 An unofficial package is also available on the AUR as genie-systemd-git ( https://aur.archlinux.org/packages/genie-systemd-git ).
-
 
 ### Fedora
 
