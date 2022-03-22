@@ -7,7 +7,13 @@
 #
 
 all:
+ifeq ($(DEB_TARGET_ARCH),amd64)
 	gcc genie.c -o genie
+endif
+
+ifeq ($(DEB_TARGET_ARCH),arm64)
+	aarch64-linux-gnu-gcc genie.c -o genie
+endif
 
 #
 # clean: delete the package interim files

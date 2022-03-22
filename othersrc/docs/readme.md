@@ -2,10 +2,7 @@
 
  # genie
 
-<!--
 [ ![ci](https://github.com/arkane-systems/genie/workflows/ci/badge.svg?branch=master) ](https://github.com/arkane-systems/genie/actions?query=workflow%3Aci+branch%3Amaster)
-
--->
 
 ## A quick way into a systemd "bottle" for WSL
 
@@ -18,6 +15,8 @@ Well, this gives you a way to run systemd as pid 1, with all the trimmings, insi
 **NOTE:** Before you install _genie_ for the first time, read **ALL** of this page. This will save you a great deal of trouble later on. Especially, please note that on many distributions you **will** encounter the problem described under "Warning: Timing Out" below when you first run genie, and will need to resolve it before your system will operate correctly.
 
 It is a good idea to set your systemd default target to _multi-user.target_ before installing genie. This is the target that genie is designed to work with, since the default _graphical.target_ used by many distributions includes services for the graphical desktop that would take, at minimum, considerable reconfiguration before operating properly under the WSL/WSLg environment.
+
+If you are using a custom kernel for WSL, it should comply with the suggested means of detecting WSL given in https://github.com/Microsoft/WSL/issues/423#issuecomment-221627364 - i.e., the strings "Microsoft" and/or "WSL" should be present in the kernel version string, which can be found in `/proc/sys/kernel/osrelease`. You can check this by running `systemd-detect-virt`; it should return "wsl".
 
 Also read the [WSLg FAQ](https://github.com/arkane-systems/genie/wiki/WSLg-FAQ) and the [known-problematic systemd units list](https://github.com/arkane-systems/genie/wiki/Systemd-units-known-to-be-problematic-under-WSL) for known problems and known solutions to them.
 
@@ -55,7 +54,6 @@ Use the above Debian package. For current Ubuntu releases and the timing-out pro
 An Arch package (.zst) can be downloaded from the releases, to right. Install it manually, using `pacman -U <file>`.
 
 An unofficial package is also available on the AUR as genie-systemd-git ( https://aur.archlinux.org/packages/genie-systemd-git ).
-
 
 ### Fedora
 
@@ -120,7 +118,7 @@ _genie_ (1.39+) also installs a pair of systemd units (_wslg-xwayland.service_ a
 ## USAGE
 
 ```
-usage: genie [-h] [-V] [-v] (-i | -s | -l | -c ... | -u | -r | -b)
+usage: genie [-h] [-V] [-v] [-a USER] (-i | -s | -l | -c ... | -u | -r | -b)
 
 Handles transitions to the "bottle" namespace for systemd under WSL.
 
@@ -128,6 +126,10 @@ optional arguments:
   -h, --help            show this help message and exit
   -V, --version         show program's version number and exit
   -v, --verbose         display verbose progress messages
+  -a USER, --as-user USER
+                        specify user to run shell or command as (use with -s or -c)
+
+commands:
   -i, --initialize      initialize the bottle (if necessary) only
   -s, --shell           initialize the bottle (if necessary), and run a shell in it
   -l, --login           initialize the bottle (if necessary), and open a logon prompt in it
@@ -150,9 +152,11 @@ _genie -i_ will set up the bottle, run systemd, and then exit. This is intended 
 
 _genie -s_ runs your login shell inside the bottle; basically, Windows-side, _wsl genie -s_ is your substitute for just _wsl_ to get started, or for the shortcut you get to start a shell in the distro. It follows login semantics, and as such does not preserve the current working directory.
 
-_genie -l_ opens a login session within the bottle. This permits you to log in to the WSL distribution as any user. The login prompt will return when you log out; to terminate the session, press ^] three times within one second. It follows login semantics, and as such does not preserve the current working directory.
-
 _genie -c [command]_ runs _command_ inside the bottle, then exits. The return code is the return code of the command. It follows sudo semantics, and so does preserve the cwd.
+
+With either of the above, the _genie -a [user]_ option may be used to specify a particular user to start a shell for, or to run a command as, rather than using the currently logged-in user. For example, _genie -a bongo -s_ would start a shell as the user _bongo_ .
+
+_genie -l_ opens a login session within the bottle. This permits you to log in to the WSL distribution as any user. The login prompt will return when you log out; to terminate the session, press ^] three times within one second. It follows login semantics, and as such does not preserve the current working directory.
 
 Meanwhile, _genie -u_ , run from outside the bottle, will shut down systemd cleanly and exit the bottle. This uses the _systemctl poweroff_ command to simulate a normal Linux system shutting down. It is suggested that this be used before shutting down Windows or restarting the Linux distribution to ensure a clean shutdown of systemd services.
 

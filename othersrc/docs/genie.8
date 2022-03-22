@@ -10,6 +10,8 @@ Subsystem for Linux.
 .Op -h
 .Op -V
 .Op -v
+.Op -a
+.Ar user
 .Op -i
 .Op -b
 .Op -r
@@ -29,13 +31,16 @@ within the bottle, and providing helpful shortcuts to start, enter, run
 commands within, and shut down the bottle.
 .Pp
 .Bl -tag -width "-c ..., --command ..."
-.It Fl -h, --help
+.It Fl h, --help
 Prints a short help text and exits.
-.It Fl -V, --version
+.It Fl V, --version
 Prints the installed genie version and exits.
 .It Fl v, --verbose
 Causes any other command to print the details of the operations it is
 performing as it goes along. Useful mostly for debugging.
+.It Fl a, --as-user
+Permits a user to be specified (by name) to execute as when using the -c/--command
+or -s/--shell commands.
 .It Fl i, --initialize
 Sets up the bottle and
 .Xr systemd 1

@@ -3,7 +3,7 @@
 #
 
 # Genie version
-GENIEVERSION = 2.2
+GENIEVERSION = 2.3
 
 # Determine this makefile's path.
 # Be sure to place this BEFORE `include` directives, if any.
@@ -68,6 +68,11 @@ package-debian: make-output-directory
 	if [ "${CI}" = "true" ]; then debuild -us -uc; else debuild; fi
 	mv ../systemd-genie_* out/debian
 
+package-debian-arm64: make-output-directory
+	mkdir -p out/debian
+	debuild -aarm64
+	mv ../systemd-genie_* out/debian
+
 clean-debian:
 	debuild -- clean
 
@@ -113,7 +118,6 @@ clean-fedora:
 # Internal packaging functions
 
 internal-debian-package:
-
 	mkdir -p debian/systemd-genie
 	@$(MAKE) -f $(THIS_FILE) DESTDIR=debian/systemd-genie internal-package
 
@@ -180,4 +184,3 @@ make-output-directory:
 
 build-binaries:
 	make -C binsrc
-

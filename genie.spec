@@ -1,5 +1,5 @@
 %global project https://github.com/arkane-systems/genie/
-%global version 2.2
+%global version 2.3
 
 %global debug_package %{nil}
 %global _enable_debug_package 0
@@ -87,6 +87,15 @@ rm -rf %{buildroot}
 %doc %{_mandir}/man8/genie.8.gz
 
 %changelog
+* Tue Mar 22 2022 Alistair Young <avatar@arkane-systems.net> 2.3-1
+- Paths-containing-spaces fix (#240).
+- Makefile updates for CI build.
+- Fix WSL 1 detection.
+- Added -a/--as-user option to allow shell/command as any user.
+- Added support for Ubuntu 22.04 LTS (Jammy Jellyfish).
+- Greater robustness against misconfigured hosts files (fixes #247).
+- Miscellaneous fixes.
+
 * Sun Mar 06 2022 Alistair Young <avatar@arkane-systems.net> 2.2-1
 - Single-file package python scripts.
 - Man page fixes.
