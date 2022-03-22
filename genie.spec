@@ -1,5 +1,5 @@
 %global project https://github.com/arkane-systems/genie/
-%global version 2.3
+%global version 2.4
 
 %global debug_package %{nil}
 %global _enable_debug_package 0
@@ -87,6 +87,9 @@ rm -rf %{buildroot}
 %doc %{_mandir}/man8/genie.8.gz
 
 %changelog
+* Tue Mar 22 2022 Alistair Young <avatar@arkane-systems.net> 2.4-1
+- Miscellaneous fixes.
+
 * Tue Mar 22 2022 Alistair Young <avatar@arkane-systems.net> 2.3-1
 - Paths-containing-spaces fix (#240).
 - Makefile updates for CI build.

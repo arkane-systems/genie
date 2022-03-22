@@ -15,7 +15,7 @@ import psutil
 from python_hosts import Hosts, HostsEntry
 
 # Global variables
-version = "2.3"
+version = "2.4"
 
 verbose = False
 login = None
@@ -368,7 +368,7 @@ def prelaunch_checks():
 
     # Is this WSL 2?
     if not os.path.exists('/run/WSL'):
-        if not 'microsoft' in os.uname():
+        if 'microsoft' not in os.uname():
             sys.exit("genie: not executing under WSL 2 - how did we get here?")
 
     # Are we effectively root?
@@ -407,7 +407,7 @@ def pre_systemd_action_checks(sdp):
 
         timeout = config_system_timeout()
 
-        while (not 'running' in state) and timeout > 0:
+        while ('running' not in state) and timeout > 0:
             time.sleep(1)
             state = get_systemd_state(sdp)
 
@@ -518,7 +518,7 @@ def stash_environment():
 
         envfile.close()
 
-### Commands
+# Commands
 
 
 def do_parser_test(arguments):
@@ -651,7 +651,7 @@ def do_initialize():
     state = 'initializing'
     timeout = config_system_timeout()
 
-    while (not 'running' in state) and timeout > 0:
+    while ('running' not in state) and timeout > 0:
         time.sleep(1)
         state = get_systemd_state(sdp)
 
@@ -661,7 +661,7 @@ def do_initialize():
 
     print("")
 
-    if not 'running' in state:
+    if 'running' not in state:
         print(
             f"genie: systemd did not enter running state ({state}) after {config_system_timeout()} seconds")
         print("genie: this may be due to a problem with your systemd configuration")
@@ -680,7 +680,7 @@ def do_initialize():
     # Unlock the init lock
     bottle_init_unlock()
 
-## Run inside bottle.
+# Run inside bottle.
 
 
 def do_shell():
@@ -845,7 +845,7 @@ def do_is_in_bottle():
     print("outside")
     return 1
 
-### Entrypoint
+# Entrypoint
 
 
 def entrypoint():
@@ -857,7 +857,7 @@ def entrypoint():
     load_configuration()
     arguments = parse_command_line()
 
-    ## Set globals
+    # Set globals
     verbose = arguments.verbose
     login = os.environ["LOGNAME"]
 
@@ -865,7 +865,7 @@ def entrypoint():
     if arguments.user is not None:
 
         # Abort if user specified and not -c or -s
-        if not (arguments.shell or (not arguments.command is None)):
+        if not (arguments.shell or (arguments.command is not None)):
             sys.exit(
                 "genie: error: argument -a/--as-user can only be used with -c/--command or -s/--shell")
 
@@ -880,7 +880,7 @@ def entrypoint():
         if verbose:
             print(f"genie: executing as user {login}")
 
-    ## Decide what to do.
+    # Decide what to do.
     if arguments.parser_test:
         do_parser_test(arguments)
     elif arguments.initialize:
@@ -903,4 +903,4 @@ def entrypoint():
 
 entrypoint()
 
-### End of file
+# End of file

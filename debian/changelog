@@ -1,6 +1,7 @@
 systemd-genie (2.4) bullseye bookworm sid focal jammy; urgency=medium
 
         * Deprecated support for Debian buster and Ubuntu bionic.
+        * Miscellaneous fixes.
 
  -- Alistair Young <avatar@arkane-systems.net>  Tue, 22 Mar 2022 08:15:00 -0500
 
