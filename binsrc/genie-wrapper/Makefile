@@ -6,13 +6,14 @@
 # default target: build the executable
 #
 
-all: build-amd64 build-arm64
-
-build-amd64:
+all:
+ifeq ($(DEB_TARGET_ARCH),amd64)
 	gcc genie.c -o genie
+endif
 
-build-arm64:
-	aarch64-linux-gnu-gcc genie.c -o genie-arm64
+ifeq ($(DEB_TARGET_ARCH),arm64)
+	aarch64-linux-gnu-gcc genie.c -o genie
+endif
 
 #
 # clean: delete the package interim files
@@ -20,4 +21,3 @@ build-arm64:
 
 clean:
 	rm -f genie
-	rm -f genie-arm64

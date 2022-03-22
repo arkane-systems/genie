@@ -9,7 +9,7 @@ Vcs-Git: https://github.com/arkane-systems/genie.git
 Vcs-Browser: https://github.com/arkane-systems/genie
 
 Package: systemd-genie
-Architecture: amd64
+Architecture: amd64 arm64
 Depends: ${misc:Depends}, ${shlibs:Depends}, dbus, policykit-1, daemonize, systemd (>= 232-25), python3 (>= 3.7), python3-pip, python3-psutil, systemd-container (>= 232-25), gawk
 Description: quick way into a systemd "bottle" under Windows Subsystem for Linux
  Automates the process of starting up, entering into, and shutting down

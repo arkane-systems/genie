@@ -25,3 +25,8 @@ override_dh_fixperms:
 
 override_dh_strip:
 	dh_strip --no-automatic-dbgsym
+
+override_dh_shlibdeps:
+ifeq ($(DEB_TARGET_ARCH),amd64)
+	dh_shlibdeps
+endif
