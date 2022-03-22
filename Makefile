@@ -37,6 +37,7 @@ default:
 	#
 	# make package
 	# make package-debian
+	# make package-debian-arm64
 	# make package-tar
 	# make package-arch (requires Arch packaging environment)
 	# make package-fedora (requires Fedora packaging environment)
