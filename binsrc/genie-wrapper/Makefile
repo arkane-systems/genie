@@ -2,6 +2,9 @@
 # This Makefile produces and packages the genie-systemd program.
 #
 
+# default to amd64 build if not specified
+DEB_TARGET_ARCH ?= amd64
+
 #
 # default target: build the executable
 #
