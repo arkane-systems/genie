@@ -87,7 +87,7 @@ rm -rf %{buildroot}
 %doc %{_mandir}/man8/genie.8.gz
 
 %changelog
-* Sun Mar 06 2022 Alistair Young <avatar@arkane-systems.net> 2.3-1
+* Tue Mar 22 2022 Alistair Young <avatar@arkane-systems.net> 2.3-1
 - Paths-containing-spaces fix (#240).
 - Makefile updates for CI build.
 - Fix WSL 1 detection.

@@ -9,7 +9,7 @@ systemd-genie (2.3) buster bullseye bookworm sid bionic focal jammy; urgency=med
         * arm64 support.
         * Miscellaneous fixes.
 
- -- Alistair Young <avatar@arkane-systems.net>  Sun, 22 Mar 2022 13:30:00 -0500
+ -- Alistair Young <avatar@arkane-systems.net>  Tue, 22 Mar 2022 08:15:00 -0500
 
 systemd-genie (2.2) buster bullseye bookworm sid focal bionic; urgency=medium
 
