@@ -18,11 +18,11 @@ Requires:      daemonize
 Requires:      dbus
 Requires:      gawk
 Requires:      polkit
-Requires:      python3
+Requires:      python3 >= 3.7
 Requires:      python3-pip
 Requires:      python3-psutil
-Requires:      systemd
-Requires:      systemd-container
+Requires:      systemd >= 232.25
+Requires:      systemd-container >= 232.25
 # BuildRequires: git
 BuildRequires: make
 
@@ -88,6 +88,7 @@ rm -rf %{buildroot}
 
 %changelog
 * Tue Mar 22 2022 Alistair Young <avatar@arkane-systems.net> 2.4-1
+- Fixed missing dependency versions.
 - Miscellaneous fixes.
 
 * Tue Mar 22 2022 Alistair Young <avatar@arkane-systems.net> 2.3-1
