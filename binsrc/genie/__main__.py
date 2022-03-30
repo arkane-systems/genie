@@ -700,7 +700,8 @@ def do_shell():
     # At this point, we should be outside a bottle, one way or another.
     # Get the bottle namespace
     with nsenter.Namespace(sdp, 'pid'):
-        subprocess.run("machinectl shell -q " + login + "@.host", shell=True)
+        # subprocess.run("machinectl shell -q " + login + "@.host", shell=True)
+        subprocess.run("machinectl shell -q " + login + "@.host /bin/sh -c 'cd " + os.getcwd() + "; exec \"${SHELL:-sh}\"'", shell=True)
 
 
 def do_login():
