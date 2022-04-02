@@ -729,6 +729,9 @@ def do_command(commandline):
     if verbose:
         print("genie: running command " + ' '.join(commandline))
 
+    if len(commandline) == 0:
+        sys.exit("genie: no command specified")
+
     sdp = find_systemd()
 
     if sdp == 1:
