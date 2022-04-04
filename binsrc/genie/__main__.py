@@ -14,6 +14,11 @@ import nsenter
 import psutil
 from python_hosts import Hosts, HostsEntry
 
+import apparmor
+import binfmts
+import configuration
+import host
+
 # Global variables
 version = "2.4"
 

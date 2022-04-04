@@ -30,5 +30,4 @@ tarball
 
 # Arch build intermediates
 
-genie/
-
+/genie/
