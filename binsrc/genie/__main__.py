@@ -339,7 +339,7 @@ def parse_command_line():
     group.add_argument('-l', '--login', action='store_true',
                        help='initialize the bottle (if necessary), and open a logon prompt in it')
     group.add_argument(
-        '-c', '--command', help='initialize the bottle (if necessary), and run the specified command in it', nargs=argparse.REMAINDER)
+        '-c', '--command', help='initialize the bottle (if necessary), and run the specified command in it\n(preserves working directory)', nargs=argparse.REMAINDER)
     group.add_argument('-u', '--shutdown', action='store_true',
                        help='shut down systemd and exit the bottle')
     group.add_argument('-r', '--is-running', action='store_true',
@@ -892,7 +892,7 @@ def entrypoint():
         do_shell()
     elif arguments.login:
         do_login()
-    elif not arguments.command is None:
+    elif arguments.command is not None:
         do_command(arguments.command)
     elif arguments.shutdown:
         do_shutdown()
