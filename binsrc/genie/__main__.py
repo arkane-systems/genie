@@ -806,28 +806,28 @@ def do_is_running():
 
     if sdp == 0:
         print("stopped")
-        return 1
+        sys.exit(1)
 
     state = get_systemd_state(sdp)
 
     if 'running' in state:
         print("running")
-        return 0
+        sys.exit(0)
 
     if 'initializing' in state or 'starting' in state:
         print("starting")
-        return 2
+        sys.exit(2)
 
     if 'stopping' in state:
         print("stopping")
-        return 3
+        sys.exit(3)
 
     if 'degraded' in state:
         print("running (systemd errors)")
-        return 4
+        sys.exit(4)
 
     print(f"unknown {state}")
-    return 5
+    sys.exit(5)
 
 
 def do_is_in_bottle():
@@ -836,14 +836,14 @@ def do_is_in_bottle():
 
     if sdp == 1:
         print("inside")
-        return 0
+        sys.exit(0)
 
     if sdp == 0:
         print("no-bottle")
-        return 2
+        sys.exit(2)
 
     print("outside")
-    return 1
+    sys.exit(1)
 
 ### Entrypoint
 
