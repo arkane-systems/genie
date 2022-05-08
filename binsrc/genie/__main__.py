@@ -15,6 +15,7 @@ import psutil
 import apparmor
 import binfmts
 import configuration
+import helpers
 import host
 
 # Global variables
@@ -638,7 +639,7 @@ def entrypoint():
 
     # Set globals
     verbose = arguments.verbose
-    login = os.environ["LOGNAME"]
+    login = helpers.get_login_session_user()
 
     # Check user
     if arguments.user is not None:
