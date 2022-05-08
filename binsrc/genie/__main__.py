@@ -332,7 +332,7 @@ def do_initialize():
     # for backwards compatibility and because not doing so when using bridged networking is
     # a Bad Idea.
     if configuration.update_hostname():
-        host.update()
+        host.update(verbose)
 
     # If configured to, create the resolv.conf symlink for systemd-resolved.
     if configuration.resolved_stub():
@@ -545,7 +545,7 @@ def do_shutdown():
     binfmts.mount(verbose)
 
     if configuration.update_hostname():
-        host.restore()
+        host.restore(verbose)
 
 
 def do_is_running():

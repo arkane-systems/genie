@@ -19,8 +19,8 @@ def find_systemd():
 
 def get_login_session_user():
     """Get the user logged into the current session, pre-setuid."""
-    # return os.environ["LOGNAME"]
-    return os.getlogin()
+    # This environment variable is set by the setuid wrapper.
+    return os.environ["GENIE_LOGNAME"]
 
 
 def get_systemd_state(sdp):
