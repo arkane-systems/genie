@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 
 import argparse
-import configparser
 import fcntl
 import os
 import pwd
@@ -12,7 +11,6 @@ import time
 
 import nsenter
 import psutil
-from python_hosts import Hosts, HostsEntry
 
 import apparmor
 import binfmts
@@ -24,98 +22,10 @@ version = "2.4"
 
 verbose = False
 login = None
-config = None
 
 lockfile_fp = None
 
 # Helper functions
-
-
-def apparmor_configure():
-    """Configure an AppArmor namespace for the genie bottle."""
-
-    # If the AppArmor filesystem is not mounted, mount it.
-    if not os.path.exists('/sys/kernel/security/apparmor'):
-        if verbose:
-            print("genie: mounting AppArmor filesystem")
-
-        sp = subprocess.run(['mount', '-t', 'securityfs',
-                             'securityfs', '/sys/kernel/security'])
-        if sp.returncode != 0:
-            print(
-                "genie: failed to mount AppArmor filesystem; attempting to continue without AppArmor")
-            return None
-
-    # Create AppArmor namespace for genie bottle.
-    nsName = 'genie-' + get_wsl_distro_name()
-
-    if verbose:
-        print(f"genie: creating AppArmor namespace '{nsName}'")
-
-    if not os.path.exists('/sys/kernel/security/apparmor/policy/namespaces'):
-        print("genie: could not find AppArmor filesystem; attempting to continue without AppArmor")
-        return None
-
-    os.mkdir('/sys/kernel/security/apparmor/policy/namespaces/' + nsName)
-
-    return nsName
-
-
-def apparmor_unconfigure():
-    """Clean up the AppArmor namespace when the bottle is stopped."""
-
-    nsName = 'genie-' + get_wsl_distro_name()
-
-    if verbose:
-        print(f"genie: deleting AppArmor namespace '{nsName}'")
-
-    if os.path.exists('/sys/kernel/security/apparmor/policy/namespaces/' + nsName):
-        try:
-            os.rmdir('/sys/kernel/security/apparmor/policy/namespaces/' + nsName)
-        except OSError as e:
-            print(
-                f"genie: failed to delete AppArmor namespace; attempting to continue; {e.strerror}" + e.strerror)
-    else:
-        if verbose:
-            print("genie: no AppArmor namespace to delete")
-
-
-def binfmts_umount():
-    """Unmount the binfmts filesystem, if it is mounted."""
-    if os.path.exists('/proc/sys/fs/binfmt_misc'):
-
-        if verbose:
-            print("genie: unmounting binfmt_misc filesystem before proceeding")
-
-        sp = subprocess.run(['umount', '/proc/sys/fs/binfmt_misc'])
-
-        if sp.returncode != 0:
-            print(
-                "genie: failed to unmount binfmt_misc filesystem; attempting to continue")
-
-    else:
-        if verbose:
-            print("no binfmt_misc filesystem present")
-
-
-def binfmts_mount():
-    """Mount the binfmt_misc filesystem, if it is not mounted."""
-
-    # Having unmounted the binfmts fs before starting systemd, we remount it as
-    # a courtesy. But remember, genie is not guaranteed to be idempotent, so don't
-    # rely on this, for the love of Thompson and Ritchie!
-
-    if not os.path.exists('/proc/sys/fs/binfmt_misc'):
-
-        if verbose:
-            print("genie: remounting binfmt_misc filesystem as a courtesy")
-
-        sp = subprocess.run(['mount', '-t', 'binfmt_misc',
-                             'binfmt_misc', '/proc/sys/fs/binfmt_misc'])
-
-        if sp.returncode != 0:
-            print(
-                "genie: failed to remount binfmt_misc filesystem; attempting to continue")
 
 
 def bottle_init_lock():
@@ -144,41 +54,6 @@ def bottle_init_unlock():
     lockfile_fp.close()
 
     os.remove("/run/genie.init.lock")
-
-
-def config_clone_path():
-    """Do we clone the outside-bottle path, or not?"""
-    return config.getboolean('genie', 'clone-path', fallback=False)
-
-
-def config_resolved_stub():
-    """Do we make the systemd-resolved stub, or not?"""
-    return config.getboolean('genie', 'resolved-stub', fallback=False)
-
-
-def config_secure_path():
-    """Get the configured secure path."""
-    return config.get('genie', 'secure-path', fallback='/lib/systemd:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin')
-
-
-def config_system_timeout():
-    """Return the configured timeout for systemd startup."""
-    return config.getint('genie', 'systemd-timeout', fallback=240)
-
-
-def config_target_warning():
-    """Warn when the systemd target is not set to 'multi-user.target'."""
-    return config.getboolean('genie', 'target-warning', fallback=True)
-
-
-def config_update_hostname():
-    """Update the hostname in the config file."""
-    return config.getboolean('genie', 'update-hostname', fallback=True)
-
-
-def config_update_hostname_suffix():
-    """Update the hostname suffix in the config file."""
-    return config.get('genie', 'update-hostname-suffix', fallback='-wsl')
 
 
 def find_systemd():
@@ -210,109 +85,6 @@ def get_systemd_target():
 def get_unshare_path():
     """Find the path to the unshare utility."""
     return shutil.which('unshare')
-
-
-def get_wsl_distro_name():
-    """Get the WSL distribution name."""
-    return os.environ['WSL_DISTRO_NAME']
-
-
-def hostname_update():
-    """Update the hostname and mount over previous hostname."""
-    if verbose:
-        print("genie: generating new hostname")
-
-    external_hostname = os.uname().nodename
-
-    if verbose:
-        print(f"genie: external hostname is {external_hostname}")
-
-    internal_hostname = external_hostname + config_update_hostname_suffix()
-
-    # Create the hostname file
-    with open('/run/genie.hostname', 'w') as hostfile:
-        print(internal_hostname, file=hostfile)
-        hostfile.close()
-
-    os.chmod('/run/genie.hostname', 0o644)
-
-    # Mount the hostname file
-    if verbose:
-        print(f"genie: setting new hostname to {internal_hostname}")
-
-    sp = subprocess.run(
-        ['mount', '--bind', '/run/genie.hostname', '/etc/hostname'])
-
-    if sp.returncode != 0:
-        print("genie: failed to bind hostname file; attempting to continue")
-        return
-
-    if verbose:
-        print("genie: updating hosts file")
-
-    # Update hosts file (remove old hostname, add new hostname)
-    modify_hosts_file_entries(external_hostname, internal_hostname)
-
-
-def hostname_restore():
-    """Restore the hostname."""
-    internal_hostname = os.uname().nodename
-
-    if verbose:
-        print("genie: dropping in-bottle hostname")
-
-    # Drop the in-bottle hostname mount
-    sp = subprocess.run(['umount', '/etc/hostname'])
-
-    if sp.returncode != 0:
-        print("genie: failed to unmount hostname file; attempting to continue")
-        return
-
-    # Remove the hostname file
-    os.remove('/run/genie.hostname')
-
-    # Reset hostname
-    subprocess.run(['hostname', '-F', '/etc/hostname'])
-
-    external_hostname = os.uname().nodename
-
-    # Update hosts file (remove new hostname, add old hostname)
-    modify_hosts_file_entries(internal_hostname, external_hostname)
-
-
-def load_configuration():
-    """Load the configuration from the config file ('/etc/genie.ini')."""
-    global config
-
-    config = configparser.ConfigParser()
-    config.read('/etc/genie.ini')
-
-
-def modify_hosts_file_entries(old_name, new_name):
-    """Modify the hosts file to replace old_name with new_name."""
-    try:
-        hosts = Hosts()
-
-        entries = hosts.find_all_matching(name=old_name)
-
-        # Iterate through all relevant entries
-        for e in entries:
-            # Iterate through all names
-            new_names = []
-            for n in e.names:
-                # Modify name
-                new_names.append(n.replace(old_name, new_name))
-                new_entry = HostsEntry(
-                    entry_type=e.entry_type, address=e.address, names=new_names, comment=e.comment)
-
-                # Replace old entry
-                hosts.add([new_entry], force=True)
-
-        hosts.write()
-
-    except:  # noqa
-        print(f"genie: error occurred modifying hosts file ({sys.exc_info()[0]}); check format")
-        print("genie: attempting to continue anyway...")
 
 
 def parse_command_line():
@@ -410,7 +182,7 @@ def pre_systemd_action_checks(sdp):
         # wait for it
         print("genie: systemd is starting up, please wait...", end="", flush=True)
 
-        timeout = config_system_timeout()
+        timeout = configuration.system_timeout()
 
         while ('running' not in state) and timeout > 0:
             time.sleep(1)
@@ -493,11 +265,11 @@ def set_secure_path():
     # TODO: Should reference system drive by letter
     originalPath = '/mnt/c/Windows/System32'
 
-    if config_clone_path():
+    if configuration.clone_path():
         originalPath = os.environ['PATH']
 
     # Set the local path
-    os.environ['PATH'] = config_secure_path()
+    os.environ['PATH'] = configuration.secure_path()
 
     # Create the path file
     with open('/run/genie.path', 'w') as pathfile:
@@ -508,8 +280,7 @@ def set_secure_path():
 def stash_environment():
     """Save a copy of the original environment (specified variables only)."""
     # Get variables to stash
-    names = (config.get('genie', 'clone-env',
-                        fallback='WSL_DISTRO_NAME,WSL_INTEROP,WSLENV,DISPLAY,WAYLAND_DISPLAY,PULSE_SERVER')).split(',')
+    names = configuration.clonable_envars()
 
     # Do the stashing.
     with open('/run/genie.env', 'w') as envfile:
@@ -548,7 +319,7 @@ def do_initialize():
                 f"genie: already initializing, pid={running}, waiting...", end="", flush=True)
 
         # Allow 10% startup margin
-        timeout = config_system_timeout() * 1.1
+        timeout = configuration.system_timeout() * 1.1
 
         while not os.path.exists('/run/genie.systemd.pid') and timeout > 0:
             time.sleep(1)
@@ -577,7 +348,7 @@ def do_initialize():
     stash_environment()
 
     # Check and warn if not multi-user.target.
-    if config_target_warning():
+    if configuration.target_warning():
         target = get_systemd_target()
 
         if target != 'multi-user.target':
@@ -591,16 +362,16 @@ def do_initialize():
     # it automatically in genie an option, enable/disable in genie.ini. Defaults to on
     # for backwards compatibility and because not doing so when using bridged networking is
     # a Bad Idea.
-    if config_update_hostname():
-        hostname_update()
+    if configuration.update_hostname():
+        host.update()
 
     # If configured to, create the resolv.conf symlink for systemd-resolved.
-    if config_resolved_stub():
+    if configuration.resolved_stub():
         resolved_configure()
 
     # Unmount the binfmts fs before starting systemd, so systemd can mount it
     # again with all the trimmings.
-    binfmts_umount()
+    binfmts.umount(verbose)
 
     # Define systemd startup chain.
     startupChain = ["daemonize", get_unshare_path(
@@ -610,7 +381,7 @@ def do_initialize():
     if os.path.exists('/sys/module/apparmor'):
 
         # If so, configure AppArmor.
-        nsName = apparmor_configure()
+        nsName = apparmor.configure(verbose)
 
         # Add AppArmor to the startup chain.
         if nsName is not None:
@@ -654,7 +425,7 @@ def do_initialize():
 
     # Wait for systemd to be in running state.
     state = 'initializing'
-    timeout = config_system_timeout()
+    timeout = configuration.system_timeout()
 
     while ('running' not in state) and timeout > 0:
         time.sleep(1)
@@ -668,7 +439,7 @@ def do_initialize():
 
     if 'running' not in state:
         print(
-            f"genie: systemd did not enter running state ({state}) after {config_system_timeout()} seconds")
+            f"genie: systemd did not enter running state ({state}) after {configuration.system_timeout()} seconds")
         print("genie: this may be due to a problem with your systemd configuration")
         print("genie: information on problematic units is available at https://github.com/arkane-systems/genie/wiki/Systemd-units-known-to-be-problematic-under-WSL")
         print("genie: a list of failed units follows:\n")
@@ -781,7 +552,7 @@ def do_shutdown():
     # Wait for systemd to exit.
     print("Waiting for systemd to exit...", end="", flush=True)
 
-    timeout = config_system_timeout()
+    timeout = configuration.system_timeout()
 
     while find_systemd() != 0 and timeout > 0:
         time.sleep(1)
@@ -793,19 +564,19 @@ def do_shutdown():
 
     if (timeout <= 0):
         print(
-            f"genie: systemd did not exit after {config_system_timeout()} seconds")
+            f"genie: systemd did not exit after {configuration.system_timeout()} seconds")
         print("genie: this may be due to a problem with your systemd configuration")
         print("genie: attempting to continue")
 
     # Reverse the processes we performed to prepare the bottle as the post-shutdown
     # cleanup, only in reverse.
     if os.path.exists('/sys/module/apparmor'):
-        apparmor_unconfigure()
+        apparmor.unconfigure(verbose)
 
-    binfmts_mount()
+    binfmts.mount(verbose)
 
-    if config_update_hostname():
-        hostname_restore()
+    if configuration.update_hostname():
+        host.restore()
 
 
 def do_is_running():
@@ -862,7 +633,7 @@ def entrypoint():
     global login
 
     prelaunch_checks()
-    load_configuration()
+    configuration.load()
     arguments = parse_command_line()
 
     # Set globals
