@@ -4,7 +4,6 @@ import argparse
 import fcntl
 import os
 import pwd
-import shutil
 import subprocess
 import sys
 import time
@@ -55,37 +54,6 @@ def bottle_init_unlock():
     lockfile_fp.close()
 
     os.remove("/run/genie.init.lock")
-
-
-def find_systemd():
-    """Find the running systemd process and return its pid."""
-    for proc in psutil.process_iter():
-        if "systemd" in proc.name():
-            return proc.pid
-
-    return 0
-
-
-def get_systemd_state(sdp):
-    """Get the systemd state, whether we are within or without the bottle."""
-
-    if sdp == 0:
-        return "offline"
-
-    with nsenter.Namespace(sdp, 'pid'):
-        sc = subprocess.run(["systemctl", "is-system-running"],
-                            capture_output=True, text=True)
-        return sc.stdout.rstrip()
-
-
-def get_systemd_target():
-    """Get the default systemd target."""
-    return os.path.basename(os.path.realpath('/etc/systemd/system/default.target'))
-
-
-def get_unshare_path():
-    """Find the path to the unshare utility."""
-    return shutil.which('unshare')
 
 
 def parse_command_line():
@@ -172,9 +140,9 @@ def pre_systemd_action_checks(sdp):
                 f"could not initialise bottle, exit code = {init.returncode}")
 
         # Refresh systemd pid
-        sdp = find_systemd()
+        sdp = helpers.find_systemd()
 
-    state = get_systemd_state(sdp)
+    state = helpers.get_systemd_state(sdp)
 
     if 'stopping' in state:
         sys.exit("genie: systemd is shutting down, cannot proceed")
@@ -187,7 +155,7 @@ def pre_systemd_action_checks(sdp):
 
         while ('running' not in state) and timeout > 0:
             time.sleep(1)
-            state = get_systemd_state(sdp)
+            state = helpers.get_systemd_state(sdp)
 
             print(".", end="", flush=True)
 
@@ -334,7 +302,7 @@ def do_initialize():
 
         return
 
-    sdp = find_systemd()
+    sdp = helpers.find_systemd()
 
     if sdp != 0:
         sys.exit("genie: bottle is already established (systemd running)")
@@ -350,7 +318,7 @@ def do_initialize():
 
     # Check and warn if not multi-user.target.
     if configuration.target_warning():
-        target = get_systemd_target()
+        target = helpers.get_systemd_target()
 
         if target != 'multi-user.target':
             print(
@@ -375,7 +343,7 @@ def do_initialize():
     binfmts.umount(verbose)
 
     # Define systemd startup chain.
-    startupChain = ["daemonize", get_unshare_path(
+    startupChain = ["daemonize", helpers.get_unshare_path(
     ), "-fp", "--propagation", "shared", "--mount-proc", "--"]
 
     # Check whether AppArmor is available in the kernel.
@@ -420,7 +388,7 @@ def do_initialize():
 
     while sdp == 0:
         time.sleep(0.5)
-        sdp = find_systemd()
+        sdp = helpers.find_systemd()
 
         print(".", end="", flush=True)
 
@@ -430,7 +398,7 @@ def do_initialize():
 
     while ('running' not in state) and timeout > 0:
         time.sleep(1)
-        state = get_systemd_state(sdp)
+        state = helpers.get_systemd_state(sdp)
 
         print("!", end="", flush=True)
 
@@ -466,9 +434,9 @@ def do_shell():
     if verbose:
         print("genie: starting shell")
 
-    pre_systemd_action_checks(find_systemd())
+    pre_systemd_action_checks(helpers.find_systemd())
 
-    sdp = find_systemd()
+    sdp = helpers.find_systemd()
 
     if sdp == 1:
         # we're already inside the bottle
@@ -486,9 +454,9 @@ def do_login():
     if verbose:
         print("genie: starting login prompt")
 
-    pre_systemd_action_checks(find_systemd())
+    pre_systemd_action_checks(helpers.find_systemd())
 
-    sdp = find_systemd()
+    sdp = helpers.find_systemd()
 
     if sdp == 1:
         # we're already inside the bottle
@@ -509,7 +477,7 @@ def do_command(commandline):
     if len(commandline) == 0:
         sys.exit("genie: no command specified")
 
-    sdp = find_systemd()
+    sdp = helpers.find_systemd()
 
     if sdp == 1:
         # we're already inside the bottle
@@ -518,7 +486,7 @@ def do_command(commandline):
 
     pre_systemd_action_checks(sdp)
 
-    sdp = find_systemd()
+    sdp = helpers.find_systemd()
 
     command = ["machinectl", "shell", "-q", login + "@.host",
                "/usr/lib/genie/runinwsl", os.getcwd()] + commandline
@@ -530,7 +498,7 @@ def do_command(commandline):
 
 def do_shutdown():
     """Shutdown the genie bottle and clean up."""
-    sdp = find_systemd()
+    sdp = helpers.find_systemd()
 
     if sdp == 0:
         sys.exit("genie: no bottle exists")
@@ -538,7 +506,7 @@ def do_shutdown():
     if sdp == 1:
         sys.exit("genie: cannot shut down bottle from inside bottle")
 
-    state = get_systemd_state(sdp)
+    state = helpers.get_systemd_state(sdp)
 
     if 'starting' in state or 'stopping' in state:
         sys.exit(
@@ -555,7 +523,7 @@ def do_shutdown():
 
     timeout = configuration.system_timeout()
 
-    while find_systemd() != 0 and timeout > 0:
+    while helpers.find_systemd() != 0 and timeout > 0:
         time.sleep(1)
         print(".", end="", flush=True)
 
@@ -582,13 +550,13 @@ def do_shutdown():
 
 def do_is_running():
     """Display whether the bottle is running or not."""
-    sdp = find_systemd()
+    sdp = helpers.find_systemd()
 
     if sdp == 0:
         print("stopped")
         sys.exit(1)
 
-    state = get_systemd_state(sdp)
+    state = helpers.get_systemd_state(sdp)
 
     if 'running' in state:
         print("running")
@@ -612,7 +580,7 @@ def do_is_running():
 
 def do_is_in_bottle():
     """Display whether we are currently executing within or without the genie bottle."""
-    sdp = find_systemd()
+    sdp = helpers.find_systemd()
 
     if sdp == 1:
         print("inside")
