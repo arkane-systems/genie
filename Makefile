@@ -3,7 +3,7 @@
 #
 
 # Genie version
-GENIEVERSION = 2.3
+GENIEVERSION = 2.4
 
 # Determine this makefile's path.
 # Be sure to place this BEFORE `include` directives, if any.
@@ -143,13 +143,13 @@ internal-package:
 	install -Dm 0644 -o root "othersrc/etc/genie.ini" -t "$(ETCDIR)"
 
 	# Unit files.
-	install -Dm 0644 -o root "othersrc/lib-systemd-system/wslg-xwayland.service" -t "$(SVCDIR)"
-	install -Dm 0644 -o root "othersrc/lib-systemd-system/wslg-xwayland.socket" -t "$(SVCDIR)"
-
 	install -Dm 0644 -o root "othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf" -t "$(SVCDIR)/user-runtime-dir@.service.d"
 
 	# binfmt.d
 	install -Dm 0644 -o root "othersrc/usr-lib/binfmt.d/WSLInterop.conf" -t "$(USRLIBDIR)/binfmt.d"
+
+	# tmpfiles.d
+	install -Dm 0644 -o root "othersrc/usr-lib/tmpfiles.d/wslg.conf" -t "$(USRLIBDIR)/tmpfiles.d"
 
 internal-clean:
 	make -C binsrc clean
@@ -160,8 +160,6 @@ internal-supplement:
 	mkdir -p $(USRENVGENDIR)
 	ln -sr $(INSTALLDIR)/80-genie-envar.sh $(ENVGENDIR)/80-genie-envar.sh
 	ln -sr $(INSTALLDIR)/80-genie-envar.sh $(USRENVGENDIR)/80-genie-envar.sh
-	mkdir -p $(SVCDIR)/sockets.target.wants
-	ln -sr $(SVCDIR)/wslg-xwayland.socket $(SVCDIR)/sockets.target.wants/wslg-xwayland.socket
 
 	# Man page.
 	# Make sure directory exists.

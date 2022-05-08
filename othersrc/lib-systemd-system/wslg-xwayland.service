@@ -1,8 +1,0 @@
-[Unit]
-Requires=wslg-xwayland.socket
-After=wslg-xwayland.socket
-ConditionVirtualization=wsl
-ConditionPathExists=/mnt/wslg/.X11-unix/X0
-
-[Service]
-ExecStart=/lib/systemd/systemd-socket-proxyd /mnt/wslg/.X11-unix/X0
