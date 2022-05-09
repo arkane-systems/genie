@@ -1,7 +1,16 @@
 systemd-genie (2.4) bullseye bookworm sid focal jammy; urgency=medium
 
         * Deprecated support for Debian buster and Ubuntu bionic.
-        * Miscellaneous fixes.
+        * (The above should still function but will no longer be tested.)
+        * Python refactoring.
+        * Fixed no-command-specified error for genie -c.
+        * Added cwd preservation note to help for genie -c.
+        * Added proper return values for status checks (fixes #269).
+        * Properly configure WSLInterop binary format (fixes #267, #264).
+        * Carries through real UID from wrapper (fixes #258).
+        * Use systemd-tmpfiles for WSLg support (fixes #214, #175).
+        * Warn user if unsupported Unicode hostname (warns on #268, no fix).
+        * Miscellaneous packaging fixes.
 
  -- Alistair Young <avatar@arkane-systems.net>  Tue, 22 Mar 2022 08:15:00 -0500
 

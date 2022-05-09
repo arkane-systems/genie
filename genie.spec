@@ -84,6 +84,14 @@ rm -rf %{buildroot}
 %changelog
 * Tue Mar 22 2022 Alistair Young <avatar@arkane-systems.net> 2.4-1
 - Fixed missing dependency versions.
+- Python refactoring.
+- Fixed no-command-specified error for genie -c.
+- Added cwd preservation note to help for genie -c.
+- Added proper return values for status checks (fixes #269).
+- Properly configure WSLInterop binary format (fixes #267, #264).
+- Carries through real UID from wrapper (fixes #258).
+- Use systemd-tmpfiles for WSLg support (fixes #214, #175).
+- Warn user if unsupported Unicode hostname (warns on #268, no fix).
 - Miscellaneous fixes.
 
 * Tue Mar 22 2022 Alistair Young <avatar@arkane-systems.net> 2.3-1
