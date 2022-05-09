@@ -49,7 +49,6 @@ install -d -p %{buildroot}%{_exec_prefix}/lib/binfmt.d
 install -d -p %{buildroot}%{_bindir}
 install -d -p %{buildroot}%{_unitdir}
 install -d -p %{buildroot}%{_unitdir}/user-runtime-dir@.service.d
-install -d -p %{buildroot}%{_unitdir}/sockets.target.wants
 install -d -p %{buildroot}%{_mandir}/man8
 
 make DESTDIR=%{buildroot} internal-package
@@ -59,13 +58,11 @@ make DESTDIR=%{buildroot} internal-supplement
 if [ $1 -eq 0 ]; then
 rm -f %{_bindir}/%{name}
 rm -rf %{_exec_prefix}/lib/%{name}/*
-rm -f %{_unitdir}/wslg-xwayland.service
-rm -f %{_unitdir}/wslg-xwayland.socket
 rm -f %{_unitdir}/user-runtime-dir@.service.d/override.conf
 rm -f %{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
+rm -f %{_exec_prefix}/lib/tmpfiles.d/wslg.conf
 rm -f %{_exec_prefix}/lib/systemd/system-environment-generators/80-genie-envar.sh
 rm -f %{_exec_prefix}/lib/systemd/user-environment-generators/80-genie-envar.sh
-rm -f %{_unitdir}/sockets.target.wants/wslg-xwayland.socket
 rm -f ${_mandir}/man8/genie.8.gz
 fi
 
@@ -77,13 +74,11 @@ rm -rf %{buildroot}
 %{_bindir}/%{name}
 %{_exec_prefix}/lib/%{name}/*
 %config %{_sysconfdir}/genie.ini
-%{_unitdir}/wslg-xwayland.service
-%{_unitdir}/wslg-xwayland.socket
 %{_unitdir}/user-runtime-dir@.service.d/override.conf
 %{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
+%{_exec_prefix}/lib/tmpfiles.d/wslg.conf
 %{_exec_prefix}/lib/systemd/system-environment-generators/80-genie-envar.sh
 %{_exec_prefix}/lib/systemd/user-environment-generators/80-genie-envar.sh
-%{_unitdir}/sockets.target.wants/wslg-xwayland.socket
 %doc %{_mandir}/man8/genie.8.gz
 
 %changelog
