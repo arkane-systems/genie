@@ -22,9 +22,16 @@ def update(verbose):
     internal_hostname = external_hostname + configuration.update_hostname_suffix()
 
     # Create the hostname file
-    with open('/run/genie.hostname', 'w') as hostfile:
-        print(internal_hostname, file=hostfile)
-        hostfile.close()
+    try:
+        with open('/run/genie.hostname', 'w') as hostfile:
+            print(internal_hostname, file=hostfile)
+            hostfile.close()
+    except UnicodeEncodeError:
+        print("genie: it appears that your hostname contains characters not permitted by Linux")
+        print("       (per RFC 952/RFC 1123); this is probably because Windows permits Unicode")
+        print("       hostnames and WSL inherits them. Please see here for details and workaround:")
+        print("       https://github.com/arkane-systems/genie/issues/268\n")
+        sys.exit("genie: cannot continue with illegal hostname")
 
     os.chmod('/run/genie.hostname', 0o644)
 
