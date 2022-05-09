@@ -9,13 +9,13 @@ import sys
 import time
 
 import nsenter
-import psutil
 
 import apparmor
 import binfmts
 import configuration
 import helpers
 import host
+import resolved
 
 # Global variables
 version = "2.4"
@@ -99,29 +99,6 @@ def parse_command_line():
     return parser.parse_args()
 
 
-def prelaunch_checks():
-    """Check that we are on the correct platform, and as the correct user."""
-
-    # Is this Linux?
-    if not sys.platform.startswith('linux'):
-        sys.exit("genie: not executing on the Linux platform - how did we get here?")
-
-    # Is this WSL 1?
-    root_type = list(filter(lambda x: x.mountpoint == '/',
-                            psutil.disk_partitions(all=True)))[0].fstype
-    if root_type == 'lxfs' or root_type == 'wslfs':
-        sys.exit("genie: systemd is not supported under WSL 1.")
-
-    # Is this WSL 2?
-    if not os.path.exists('/run/WSL'):
-        if 'microsoft' not in os.uname():
-            sys.exit("genie: not executing under WSL 2 - how did we get here?")
-
-    # Are we effectively root?
-    if os.geteuid() != 0:
-        sys.exit("genie: must execute as root - has the setuid bit gone astray?")
-
-
 def pre_systemd_action_checks(sdp):
     """Things to check before performing a systemd-requiring action."""
 
@@ -172,60 +149,6 @@ def pre_systemd_action_checks(sdp):
     if not ('running' in state or 'degraded' in state):
         sys.exit("genie: systemd in unsupported state '"
                  + state + "'; cannot proceed")
-
-
-def resolved_configure():
-    """Replace resolv.conf with the required stub symlink for systemd-resolved."""
-    # We cannot check if the target (/run/systemd/resolve/stub-resolv.conf) exists,
-    # since it will not be created until after systemd-resolved starts up. So we're
-    # going to have to live with that uncertainty.
-
-    # Check if source file (/etc/resolv.conf) exists
-    if os.path.lexists('/etc/resolv.conf'):
-        # If so, move it to the backup file (/etc/resolv.conf.wsl)
-        if verbose:
-            print("genie: backing up /etc/resolv.conf to /etc/resolv.conf.wsl")
-
-        if os.path.exists('/etc/resolv.conf.wsl'):
-            os.remove('/etc/resolv.conf.wsl')
-
-        os.rename('/etc/resolv.conf', '/etc/resolv.conf.wsl')
-
-    # Create symlink from /etc/resolv.conf to /run/systemd/resolve/stub-resolv.conf
-    if verbose:
-        print("genie: creating symlink /etc/resolv.conf -> /run/systemd/resolve/stub-resolv.conf")
-
-    os.symlink('/run/systemd/resolve/stub-resolv.conf', '/etc/resolv.conf')
-
-
-def resolved_unconfigure():
-    """Restore original resolv.conf."""
-    # Check if /etc/resolv.conf exists, and if so, if it is a symlink
-    if os.path.exists('/etc/resolv.conf'):
-        if os.path.islink('/etc/resolv.conf'):
-            # If so, remove it
-            if verbose:
-                print("genie: removing symlink /etc/resolv.conf")
-
-            os.remove('/etc/resolv.conf')
-
-            # Check if /etc/resolv.conf.wsl exists
-            if os.path.exists('/etc/resolv.conf.wsl'):
-                # If so, move it to /etc/resolv.conf
-                if verbose:
-                    print("genie: restoring /etc/resolv.conf from /etc/resolv.conf.wsl")
-
-                os.rename('/etc/resolv.conf.wsl', '/etc/resolv.conf')
-            else:
-                # If not, warn the user
-                print(
-                    "genie: WARNING: /etc/resolv.conf.wsl does not exist; please restore /etc/resolv.conf manually")
-
-        else:
-            print("genie: WARNING: /etc/resolv.conf is not a symlink")
-
-    else:
-        print("genie: WARNING: /etc/resolv.conf does not exist")
 
 
 def set_secure_path():
@@ -336,7 +259,7 @@ def do_initialize():
 
     # If configured to, create the resolv.conf symlink for systemd-resolved.
     if configuration.resolved_stub():
-        resolved_configure()
+        resolved.configure(verbose)
 
     # Unmount the binfmts fs before starting systemd, so systemd can mount it
     # again with all the trimmings.
@@ -544,6 +467,10 @@ def do_shutdown():
 
     binfmts.mount(verbose)
 
+    # If configured to, remove the resolv.conf symlink for systemd-resolved.
+    if configuration.resolved_stub():
+        resolved.unconfigure(verbose)
+
     if configuration.update_hostname():
         host.restore(verbose)
 
@@ -601,7 +528,7 @@ def entrypoint():
     global verbose
     global login
 
-    prelaunch_checks()
+    helpers.prelaunch_checks()
     configuration.load()
     arguments = parse_command_line()
 
