@@ -3,7 +3,6 @@
 import argparse
 import fcntl
 import os
-import pwd
 import subprocess
 import sys
 import time
@@ -25,9 +24,8 @@ login = None
 
 lockfile_fp = None
 
-# Helper functions
 
-
+# Init lock functions
 def bottle_init_lock():
     """Lock the bottle init process to one instance only."""
     global lockfile_fp
@@ -56,6 +54,7 @@ def bottle_init_unlock():
     os.remove("/run/genie.init.lock")
 
 
+# Command line parser
 def parse_command_line():
     """Create the command-line option parser and parse arguments."""
     parser = argparse.ArgumentParser(
@@ -99,6 +98,7 @@ def parse_command_line():
     return parser.parse_args()
 
 
+# Subordinate functions.
 def pre_systemd_action_checks(sdp):
     """Things to check before performing a systemd-requiring action."""
 
@@ -186,45 +186,18 @@ def stash_environment():
 
         envfile.close()
 
+
 # Commands
-
-
+# Parser test
 def do_parser_test(arguments):
     """Parser test option."""
     print("genie: congratulations! you found the hidden parser test option!")
     print(arguments)
 
 
-def do_initialize():
-    """Initialize the genie bottle."""
-    if verbose:
-        print("genie: starting bottle")
-
-    # Secure the bottle init lock
-    running = bottle_init_lock()
-    if running:
-        # Wait for other process to have started the bottle
-        # The last step is the pid file being created, so we wait
-        # for that, then return.
-        if verbose:
-            print(
-                f"genie: already initializing, pid={running}, waiting...", end="", flush=True)
-
-        # Allow 10% startup margin
-        timeout = configuration.system_timeout() * 1.1
-
-        while not os.path.exists('/run/genie.systemd.pid') and timeout > 0:
-            time.sleep(1)
-            print(".", end="", flush=True)
-            timeout -= 1
-
-        print("")
-
-        if timeout <= 0:
-            print("genie: WARNING: timeout waiting for bottle to start")
-
-        return
-
+# Initialize bottle
+def inner_do_initialize():
+    """Initialize the genie bottle (inner function)."""
     sdp = helpers.find_systemd()
 
     if sdp != 0:
@@ -247,8 +220,7 @@ def do_initialize():
             print(
                 f"genie: WARNING: systemd default target is {target}; targets other than multi-user.target may not work")
             print("genie: WARNING: if you wish to use a different target, this warning can be disabled in the config file")
-            print(
-                "genie: WARNING: if you experience problems, please change the target to multi-user.target")
+            print("genie: WARNING: if you experience problems, please change the target to multi-user.target")
 
     # Now that the WSL hostname can be set via .wslconfig, we're going to make changing
     # it automatically in genie an option, enable/disable in genie.ini. Defaults to on
@@ -266,11 +238,10 @@ def do_initialize():
     binfmts.umount(verbose)
 
     # Define systemd startup chain.
-    startupChain = ["daemonize", helpers.get_unshare_path(
-    ), "-fp", "--propagation", "shared", "--mount-proc", "--"]
+    startupChain = ["daemonize", helpers.get_unshare_path(), "-fp", "--propagation", "shared", "--mount-proc", "--"]
 
     # Check whether AppArmor is available in the kernel.
-    if os.path.exists('/sys/module/apparmor'):
+    if apparmor.exists():
 
         # If so, configure AppArmor.
         nsName = apparmor.configure(verbose)
@@ -345,12 +316,45 @@ def do_initialize():
         print(sdp, file=pidfile)
         pidfile.close()
 
+
+def do_initialize():
+    """Initialize the genie bottle."""
+    if verbose:
+        print("genie: starting bottle")
+
+    # Secure the bottle init lock
+    running = bottle_init_lock()
+    if running:
+        # Wait for other process to have started the bottle
+        # The last step is the pid file being created, so we wait
+        # for that, then return.
+        if verbose:
+            print(
+                f"genie: already initializing, pid={running}, waiting...", end="", flush=True)
+
+        # Allow 10% startup margin
+        timeout = configuration.system_timeout() * 1.1
+
+        while not os.path.exists('/run/genie.systemd.pid') and timeout > 0:
+            time.sleep(1)
+            print(".", end="", flush=True)
+            timeout -= 1
+
+        print("")
+
+        if timeout <= 0:
+            print("genie: WARNING: timeout waiting for bottle to start")
+
+        return
+
+    # Do the actual functionality of the thing.
+    inner_do_initialize()
+
     # Unlock the init lock
     bottle_init_unlock()
 
+
 # Run inside bottle.
-
-
 def do_shell():
     """Start a shell inside the bottle, initializing it if necessary."""
 
@@ -419,6 +423,7 @@ def do_command(commandline):
         return sp
 
 
+# Shut down bottle.
 def do_shutdown():
     """Shutdown the genie bottle and clean up."""
     sdp = helpers.find_systemd()
@@ -462,7 +467,7 @@ def do_shutdown():
 
     # Reverse the processes we performed to prepare the bottle as the post-shutdown
     # cleanup, only in reverse.
-    if os.path.exists('/sys/module/apparmor'):
+    if apparmor.exists():
         apparmor.unconfigure(verbose)
 
     binfmts.mount(verbose)
@@ -475,6 +480,7 @@ def do_shutdown():
         host.restore(verbose)
 
 
+# Status checks.
 def do_is_running():
     """Display whether the bottle is running or not."""
     sdp = helpers.find_systemd()
@@ -520,9 +526,8 @@ def do_is_in_bottle():
     print("outside")
     sys.exit(1)
 
+
 # Entrypoint
-
-
 def entrypoint():
     """Entrypoint of the application."""
     global verbose
@@ -545,10 +550,7 @@ def entrypoint():
                 "genie: error: argument -a/--as-user can only be used with -c/--command or -s/--shell")
 
         # Check if arguments.user is a real user
-        try:
-            pwd.getpwnam(arguments.user)
-        except KeyError:
-            sys.exit("genie: specified user does not exist")
+        helpers.validate_is_real_user(arguments.user)
 
         login = arguments.user
 

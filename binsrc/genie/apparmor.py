@@ -6,6 +6,14 @@ import subprocess
 import helpers
 
 
+def exists():
+    """Determine whether AppArmor support exists in the kernel."""
+    if os.path.exists('/sys/module/apparmor'):
+        return True
+    else:
+        return False
+
+
 def configure(verbose):
     """Configure an AppArmor namespace for the genie bottle."""
 

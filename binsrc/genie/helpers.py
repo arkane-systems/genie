@@ -1,6 +1,7 @@
 # Helper functions module
 
 import os
+import pwd
 import shutil
 import subprocess
 import sys
@@ -72,3 +73,11 @@ def prelaunch_checks():
     # Are we effectively root?
     if os.geteuid() != 0:
         sys.exit("genie: must execute as root - has the setuid bit gone astray?")
+
+
+def validate_is_real_user(username):
+    """Check that the supplied username is a real user; otherwise exit."""
+    try:
+        pwd.getpwnam(username)
+    except KeyError:
+        sys.exit("genie: specified user does not exist")
