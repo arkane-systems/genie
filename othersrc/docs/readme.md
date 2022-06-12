@@ -32,7 +32,7 @@ If there is a package available for your distribution, this is the recommended m
 
 ### Debian
 
-Dependent packages on Debian are _daemonize_, _dbus_, _gawk_, _libc6_ (>= 2.2.5), _policykit-1_, _python3_ (>= 3.7), _python3-pip_, _systemd_ (>= 232-25), and _systemd-container_ (>= 232-25). These should all be in the distro and able to be installed automatically.
+Dependent packages on Debian are _daemonize_, _dbus_, _gawk_, _libc6_ (>= 2.2.5), _policykit-1_, _python3_ (>= 3.7), _python3-pip_, _python3-psutil_, _systemd_ (>= 232-25), and _systemd-container_ (>= 232-25). These should all be in the distro and able to be installed automatically.
 
 To install, add the wsl-translinux repository here by following the instructions here:
 
