@@ -1,49 +1,58 @@
 using System;
-
 using Tmds.Linux;
 using static Tmds.Linux.LibC;
 
 namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 {
-    // While this class exists, the program is running as root.
+    /// <summary>
+    /// While this class exists, the program is running as root.
+    /// </summary>
     internal class RootPrivilege : IDisposable
     {
-        // Previous UID while running as root.
-        private uid_t previousUid = 0;
+        /// <summary>
+        /// Previous UID while running as root.
+        /// </summary>
+        private uid_t _previousUid;
 
-        // Previous GID while running as root.
-        private gid_t previousGid = 0;
+        /// <summary>
+        /// Previous GID while running as root.
+        /// </summary>
+        private gid_t _previousGid;
 
-        // Become root.
+        /// <summary>
+        /// Become root.
+        /// </summary>
         internal RootPrivilege()
         {
-            this.previousUid = getuid();
-            this.previousGid = getgid();
+            _previousUid = getuid();
+            _previousGid = getgid();
 
             setreuid(0, 0);
             setregid(0, 0);
 
-            this.IsRoot = true;
+            IsRoot = true;
         }
 
-        // On disposal, cease to be root.
+        /// <summary>
+        /// On disposal, cease to be root.
+        /// </summary>
         public void Dispose()
         {
-            setreuid(this.previousUid, this.previousUid);
-            setregid(this.previousGid, this.previousGid);
+            setreuid(_previousUid, _previousUid);
+            setregid(_previousGid, _previousGid);
 
-            this.previousUid = 0;
-            this.previousGid = 0;
+            _previousUid = 0;
+            _previousGid = 0;
 
-            this.IsRoot = false;
+            IsRoot = false;
         }
 
         ~RootPrivilege()
         {
-            if (this.IsRoot)
-                this.Dispose();
+            if (IsRoot)
+                Dispose();
         }
 
-        internal bool IsRoot { get; private set; } = false;
+        private bool IsRoot { get; set; }
     }
 }

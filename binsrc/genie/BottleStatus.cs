@@ -1,46 +1,29 @@
 namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 {
-    internal enum Status
-    {
-        NoBottlePresent,
-        BottleStarting,
-        BottleStarted,
-        BottleStartedNotReady,
-        BottleShutdown,
-        InsideBottleNotReady,
-        InsideBottle
-    }
-
     internal record BottleStatus
     {
-        // Current status of the bottle.
-        internal Status Status { get; init; }
+        /// <summary>
+        /// Current status of the bottle.
+        /// </summary>
+        internal Status Status { get; }
 
-        internal int SystemdPid { get; init;}
+        private int SystemdPid { get; }
 
-        internal BottleStatus (bool verbose)
+        internal BottleStatus()
         {
             SystemdPid = Helpers.GetSystemdPid();
-
             switch (SystemdPid)
             {
                 case 0:
                     // No systemd is running. The only possibility is that there
                     // is no bottle running.
-                    this.Status = Status.NoBottlePresent;
+                    Status = Status.NoBottlePresent;
                     break;
-
                 case 1:
                     // systemd is running as pid 1. This means we are inside the
                     // bottle. Check systemd status for more information.
-
-                    if (Helpers.IsSystemdRunning(SystemdPid))
-                        this.Status = Status.InsideBottle;
-                    else
-                        this.Status = Status.InsideBottleNotReady;
-
+                    Status = Helpers.IsSystemdRunning(SystemdPid) ? Status.InsideBottle : Status.InsideBottleNotReady;
                     break;
-
                 default:
                     // systemd is running with the given PID. This means that we
                     // are outside the bottle. Current status depends on the state
@@ -48,40 +31,35 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
                     if (FlagFiles.StartupFile)
                     {
-                        this.Status = Status.BottleStarting;
+                        Status = Status.BottleStarting;
                         break;
                     }
 
                     if (FlagFiles.ShutdownFile)
                     {
-                        this.Status = Status.BottleShutdown;
+                        Status = Status.BottleShutdown;
                         break;
                     }
 
                     if (FlagFiles.RunFile)
-                    {
-                        if (Helpers.IsSystemdRunning (SystemdPid))
-                            this.Status = Status.BottleStarted;
-                        else
-                            this.Status = Status.BottleStartedNotReady;
-                    }
+                        Status = Helpers.IsSystemdRunning(SystemdPid) ? Status.BottleStarted : Status.BottleStartedNotReady;
 
                     break;
             }
         }
 
-        internal bool StartedWithinBottle => (Status == Status.InsideBottle) || (Status == Status.InsideBottleNotReady);
+        internal bool StartedWithinBottle => Status is Status.InsideBottle or Status.InsideBottleNotReady;
 
-        internal bool BottleExistsInContext => (Status == Status.BottleStarted) || (Status == Status.BottleStartedNotReady);
+        internal bool BottleExistsInContext => Status is Status.BottleStarted or Status.BottleStartedNotReady;
 
         internal bool BottleExists => StartedWithinBottle || BottleExistsInContext ;
 
-        internal bool BottleWillExist => (Status == Status.BottleStarting);
+        internal bool BottleWillExist => Status == Status.BottleStarting;
 
-        internal bool BottleStartingUp => (Status == Status.BottleStarting);
+        internal bool BottleStartingUp => Status == Status.BottleStarting;
 
-        internal bool BottleClosingDown => (Status == Status.BottleShutdown);
+        internal bool BottleClosingDown => Status == Status.BottleShutdown;
 
-        internal bool BottleError => (Status == Status.BottleStartedNotReady) || (Status == Status.InsideBottleNotReady);
+        internal bool BottleError => Status is Status.BottleStartedNotReady or Status.InsideBottleNotReady;
     }
 }

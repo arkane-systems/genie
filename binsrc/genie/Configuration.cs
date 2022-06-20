@@ -1,11 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-
 using Microsoft.Extensions.Configuration;
 
 namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 {
-    // COnfiguration values for Genie.
+    /// <summary>
+    /// Configuration values for Genie.
+    /// </summary>
     internal class GenieConfig
     {
         #region Static configuration
@@ -14,56 +16,75 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 #if LOCAL
         internal const string Prefix = "/usr/local";
 #else
-        internal const string Prefix = "/usr";
+        private const string Prefix = "/usr";
 #endif
 
-        // Default environment variables to be added to every genie bottle.
-        internal static string[] DefaultVariables = { "INSIDE_GENIE=true" } ;
+        /// <summary>
+        /// Default environment variables to be added to every genie bottle.
+        /// </summary>
+        internal static readonly string[] DefaultVariables = { "INSIDE_GENIE=true" };
 
         #endregion Static configuration
 
-        private IConfiguration Configuration { get; init; }
+        private IConfiguration Configuration { get; }
 
         internal GenieConfig()
         {
-            this.Configuration = new ConfigurationBuilder()
-                .SetBasePath ("/etc")
-                .AddIniFile ("genie.ini", optional: false)
-                .Build();
+            Configuration = new ConfigurationBuilder().SetBasePath("/etc").AddIniFile("genie.ini", optional: false).Build();
         }
 
-        // Secure path to use when shelling out from Genie and to init systemd.
-        internal string SecurePath => this.Configuration.GetValue<string> ("genie:secure-path", "/lib/systemd:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");
+        /// <summary>
+        /// Secure path to use when shelling out from Genie and to init systemd.
+        /// </summary>
+        internal string SecurePath => Configuration.GetValue("genie:secure-path", "/lib/systemd:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");
 
-        // True if the original path should be merged onto the end of the secure path for systemd and/or genie bottle;
-        // false otherwise.
-        internal bool ClonePath => this.Configuration.GetValue<bool> ("genie:clone-path", false);
+        /// <summary>
+        /// True if the original path should be merged onto the end of the secure path for systemd and/or genie bottle;
+        /// false otherwise.
+        /// </summary>
+        internal bool ClonePath => Configuration.GetValue("genie:clone-path", false);
 
-        // Environment variables to copy into the systemd environment and/or genie bottle.
-        internal string[] CloneEnv => (this.Configuration.GetValue<string> ("genie:clone-env", "WSL_DISTRO_NAME,WSL_INTEROP,WSLENV"))
-            .Split (',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        /// <summary>
+        /// Environment variables to copy into the systemd environment and/or genie bottle.
+        /// </summary>
+        internal IEnumerable<string> CloneEnv => Configuration.GetValue("genie:clone-env", "WSL_DISTRO_NAME,WSL_INTEROP,WSLENV")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        // True to update the host name with the "-wsl" suffix, false otherwise.
-        internal bool UpdateHostname => this.Configuration.GetValue<bool> ("genie:update-hostname", true);
+        /// <summary>
+        /// True to update the host name with the "-wsl" suffix, false otherwise.
+        /// </summary>
+        internal bool UpdateHostname => Configuration.GetValue("genie:update-hostname", true);
 
-        // Suffix with which to update the host name, if the above is true.
-        internal string HostnameSuffix => this.Configuration.GetValue<string> ("genie:update-hostname-suffix", "-wsl");
+        /// <summary>
+        /// Suffix with which to update the host name, if the above is true.
+        /// </summary>
+        internal string HostnameSuffix => Configuration.GetValue("genie:update-hostname-suffix", "-wsl");
 
-        // Path to the local binary for unshare(1).
-        internal string PathToUnshare => this.Configuration.GetValue<string> ("genie:unshare", "/usr/bin/unshare");
+        /// <summary>
+        /// Path to the local binary for unshare(1).
+        /// </summary>
+        internal string PathToUnshare => Configuration.GetValue("genie:unshare", "/usr/bin/unshare");
 
-        // Seconds to wait for systemd to enter the running state on startup.
-        internal int SystemdStartupTimeout => this.Configuration.GetValue<int> ("genie:systemd-timeout", 240);
+        /// <summary>
+        /// Seconds to wait for systemd to enter the running state on startup.
+        /// </summary>
+        internal int SystemdStartupTimeout => Configuration.GetValue("genie:systemd-timeout", 240);
 
-        // True to symlink a stub resolv.conf file for systemd-resolved, false otherwise.
-        internal bool ResolvedStub => this.Configuration.GetValue<bool> ("genie:resolved-stub", false);
+        /// <summary>
+        /// True to symlink a stub resolv.conf file for systemd-resolved, false otherwise.
+        /// </summary>
+        internal bool ResolvedStub => Configuration.GetValue("genie:resolved-stub", false);
 
-        internal bool AppArmorNamespace => this.Configuration.GetValue<bool> ("genie:apparmor-namespace", false);
+        internal bool AppArmorNamespace => Configuration.GetValue("genie:apparmor-namespace", false);
 
-        // Get the installation-dependent path for a given file.
-        internal string GetPrefixedPath (string path) => Path.Combine (GenieConfig.Prefix, path);
+        /// <summary>
+        /// Get the installation-dependent path for a given file.
+        /// </summary>
+        internal static string GetPrefixedPath(string path) => Path.Combine(Prefix, path);
 
-        // Warn the user if the systemd target is not multi-user.target.
-        internal bool TargetWarning => this.Configuration.GetValue<bool> ("genie:target-warning", true);
+        /// <summary>
+        /// Warn the user if the systemd target is not multi-user.target.
+        /// </summary>
+        internal bool TargetWarning => Configuration.GetValue("genie:target-warning", true);
     }
 }

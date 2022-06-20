@@ -77,7 +77,7 @@ _I am unable to support distributions which there are not prebuilt packages for.
 
 ### ...OR BUILD IT YOURSELF
 
-It is possible to build your own version of genie and install it locally. To do so, you will require _build-essential_ and _dotnet-sdk-5.0_ in addition to the other dependencies, all of which must be installed manually.
+It is possible to build your own version of genie and install it locally. To do so, you will require _build-essential_ and _dotnet-sdk-6.0_ in addition to the other dependencies, all of which must be installed manually.
 
 After cloning the repository, run
 

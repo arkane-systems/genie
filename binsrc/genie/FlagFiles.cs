@@ -12,56 +12,47 @@ namespace ArkaneSystems.WindowsSubsystemForLinux.Genie
 
         public static bool StartupFile
         {
-            get => TestFile (StartupFileName);
+            get => TestFile(StartupFileName);
             set
             {
                 if (value)
-                    CreateFile (StartupFileName);
+                    CreateFile(StartupFileName);
                 else
-                    DeleteFile (StartupFileName);
+                    DeleteFile(StartupFileName);
             }
         }
 
         public static bool ShutdownFile
         {
-            get => TestFile (ShutdownFileName);
+            get => TestFile(ShutdownFileName);
             set
             {
                 if (value)
-                    CreateFile (ShutdownFileName);
+                    CreateFile(ShutdownFileName);
                 else
-                    DeleteFile (ShutdownFileName);
+                    DeleteFile(ShutdownFileName);
             }
         }
 
         public static bool RunFile
         {
-            get => TestFile (RunFileName);
+            get => TestFile(RunFileName);
             set
             {
                 if (value)
-                    CreateFile (RunFileName);
+                    CreateFile(RunFileName);
                 else
-                    DeleteFile (RunFileName);
+                    DeleteFile(RunFileName);
             }
         }
 
         #region Helper methods
 
-        private static void CreateFile (string path)
-        {
-            File.Create (path).Close();
-        }
+        private static void CreateFile(string path) => File.Create(path).Close();
 
-        private static void DeleteFile (string path)
-        {
-            File.Delete (path);
-        }
+        private static void DeleteFile(string path) => File.Delete(path);
 
-        private static bool TestFile (string path)
-        {
-            return File.Exists (path);
-        }
+        private static bool TestFile(string path) => File.Exists(path);
 
         #endregion
     }
