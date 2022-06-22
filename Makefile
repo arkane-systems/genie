@@ -110,7 +110,7 @@ package-fedora:
 	tar zcvf $(shell rpm --eval '%{_sourcedir}')/genie-${genie_version}.tar.gz * --dereference --transform='s/^/genie-${genie_version}\//'
 	fakeroot rpmbuild -ba -v genie.spec
 	mkdir -p out/fedora
-	mv $(shell rpm --eval '%{_rpmdir}')/x86_64/genie* out/fedora
+	mv $(shell rpm --eval '%{_rpmdir}')/*/genie* out/fedora
 
 clean-fedora:
 	rpmdev-wipetree
