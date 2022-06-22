@@ -105,10 +105,11 @@ clean-arch:
 
 package-fedora: genie_version := $(shell rpmspec -q --qf %{Version} --srpm genie.spec)
 
+RPMBUILD_TARGET = $(shell uname --processor)
 package-fedora:
 	rpmdev-setuptree
 	tar zcvf $(shell rpm --eval '%{_sourcedir}')/genie-${genie_version}.tar.gz * --dereference --transform='s/^/genie-${genie_version}\//'
-	fakeroot rpmbuild -ba -v genie.spec
+	fakeroot rpmbuild --target $(RPMBUILD_TARGET) -ba -v genie.spec
 	mkdir -p out/fedora
 	mv $(shell rpm --eval '%{_rpmdir}')/*/genie* out/fedora
 
