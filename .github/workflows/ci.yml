@@ -60,11 +60,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-#      - name: Permissions fixup
-#        run: sudo chown -R build .
+      - name: Permissions fixup
+        run: sudo chown -R build .
 
       - name: Build Package
-        run: build make package-arch
+        run: sudo -u build make package-arch
 
       - name: Upload Results
         uses: actions/upload-artifact@v3
