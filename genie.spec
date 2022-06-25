@@ -26,8 +26,6 @@ Requires:      systemd-container >= 232.25
 # BuildRequires: git
 BuildRequires: make
 
-ExclusiveArch: x86_64
-
 %description
 A quick way into systemd "bottle" for WSL
 

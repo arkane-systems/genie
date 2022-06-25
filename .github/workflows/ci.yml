@@ -30,3 +30,31 @@ jobs:
       with:
         name: debpkg
         path: out/debian/*
+  build-fedora:
+    strategy:
+      matrix:
+        fedora_version: [35, 36, 37]
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:${{ matrix.fedora_version }}
+    steps:
+    - name: dnf update
+      run: sudo dnf update -y
+    - name: Install Packagers & Cross-Compiler
+      run: |
+        sudo dnf install -y \
+          @development-tools \
+          @rpm-development-tools \
+          python-pip \
+          gcc-aarch64-linux-gnu
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build RPMs
+      run: |
+        make package-fedora RPMBUILD_TARGET=x86_64
+        make package-fedora RPMBUILD_TARGET=aarch64
+    - name: Upload Results
+      uses: actions/upload-artifact@v3
+      with:
+        name: rpm
+        path: out/fedora/*
