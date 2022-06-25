@@ -68,12 +68,12 @@ package-debian: package-debian-amd64 package-debian-arm64
 
 package-debian-amd64: make-output-directory
 	mkdir -p out/debian
-	debuild -us -uc
+	debuild
 	mv ../systemd-genie_* out/debian
 
 package-debian-arm64: make-output-directory
 	mkdir -p out/debian
-	debuild -aarm64 -us -uc
+	debuild -aarm64
 	mv ../systemd-genie_* out/debian
 
 clean-debian:
