@@ -64,7 +64,7 @@ jobs:
         run: sudo pacman -S pacman-contrib --noconfirm
 
       - name: Add Build User
-        run: sudo adduser -m build
+        run: sudo useradd -m build
 
       - name: Checkout
         uses: actions/checkout@v2
