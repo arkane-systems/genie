@@ -80,7 +80,7 @@ rm -rf %{buildroot}
 %doc %{_mandir}/man8/genie.8.gz
 
 %changelog
-* Tue Mar 22 2022 Alistair Young <avatar@arkane-systems.net> 2.4-1
+* Sat Jun 25 2022 Alistair Young <avatar@arkane-systems.net> 2.4-1
 - Fixed missing dependency versions.
 - Python refactoring.
 - Fixed no-command-specified error for genie -c.
