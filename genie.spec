@@ -90,6 +90,7 @@ rm -rf %{buildroot}
 - Carries through real UID from wrapper (fixes #258).
 - Use systemd-tmpfiles for WSLg support (fixes #214, #175).
 - Warn user if unsupported Unicode hostname (warns on #268, no fix).
+- arm64 package for Fedora.
 - Miscellaneous fixes.
 
 * Tue Mar 22 2022 Alistair Young <avatar@arkane-systems.net> 2.3-1

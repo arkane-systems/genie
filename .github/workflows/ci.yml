@@ -42,14 +42,35 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Build & Make Debian Package
-      run: make package-debian
+    - name: Build & Make Tarball
+      run: make package-tar
 
     - name: Upload Results
       uses: actions/upload-artifact@v3
       with:
-        name: debpkg
-        path: out/debian/*
+        name: tar
+        path: out/tar/*
+
+  build-arch:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:base-devel
+
+    steps:
+      - name: pacman update
+        run: sudo pacman -Syu --noconfirm
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build Package
+        run: make package-arch
+
+      - name: Upload Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: zst
+          path: out/arch/*
 
   build-fedora:
     strategy:
@@ -61,6 +82,7 @@ jobs:
     steps:
     - name: dnf update
       run: sudo dnf update -y
+
     - name: Install Packagers & Cross-Compiler
       run: |
         sudo dnf install -y \
