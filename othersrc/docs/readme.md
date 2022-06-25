@@ -16,7 +16,7 @@ Well, this gives you a way to run systemd as pid 1, with all the trimmings, insi
 
 It is a good idea to set your systemd default target to _multi-user.target_ before installing genie. This is the target that genie is designed to work with, since the default _graphical.target_ used by many distributions includes services for the graphical desktop that would take, at minimum, considerable reconfiguration before operating properly under the WSL/WSLg environment.
 
-If you are using a custom kernel for WSL, it should comply with the suggested means of detecting WSL given in https://github.com/Microsoft/WSL/issues/423#issuecomment-221627364 - i.e., the strings "Microsoft" and/or "WSL" should be present in the kernel version string, which can be found in `/proc/sys/kernel/osrelease`. You can check this by running `systemd-detect-virt`; it should return "wsl".
+If you are using a custom kernel for WSL, it should comply with the suggested means of detecting WSL given in https://github.com/Microsoft/WSL/issues/423#issuecomment-221627364 - i.e., the string "microsoft" should be present in the kernel version string, which can be found in `/proc/sys/kernel/osrelease`. You can check this by running `systemd-detect-virt`; it should return "wsl".
 
 Also read the [WSLg FAQ](https://github.com/arkane-systems/genie/wiki/WSLg-FAQ) and the [known-problematic systemd units list](https://github.com/arkane-systems/genie/wiki/Systemd-units-known-to-be-problematic-under-WSL) for known problems and known solutions to them.
 
@@ -32,7 +32,7 @@ If there is a package available for your distribution, this is the recommended m
 
 ### Debian
 
-Dependent packages on Debian are _daemonize_, _dbus_, _gawk_, _libc6_ (>= 2.2.5), _policykit-1_, _python3_ (>= 3.7), _python3-pip_, _systemd_ (>= 232-25), and _systemd-container_ (>= 232-25). These should all be in the distro and able to be installed automatically.
+Dependent packages on Debian are _daemonize_, _dbus_, _gawk_, _libc6_ (>= 2.2.5), _policykit-1_, _python3_ (>= 3.7), _python3-pip_, _python3-psutil_, _systemd_ (>= 232-25), and _systemd-container_ (>= 232-25). These should all be in the distro and able to be installed automatically.
 
 To install, add the wsl-translinux repository here by following the instructions here:
 

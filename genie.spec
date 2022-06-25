@@ -1,5 +1,5 @@
 %global project https://github.com/arkane-systems/genie/
-%global version 2.3
+%global version 2.4
 
 %global debug_package %{nil}
 %global _enable_debug_package 0
@@ -18,15 +18,13 @@ Requires:      daemonize
 Requires:      dbus
 Requires:      gawk
 Requires:      polkit
-Requires:      python3
+Requires:      python3 >= 3.7
 Requires:      python3-pip
 Requires:      python3-psutil
-Requires:      systemd
-Requires:      systemd-container
+Requires:      systemd >= 232.25
+Requires:      systemd-container >= 232.25
 # BuildRequires: git
 BuildRequires: make
-
-ExclusiveArch: x86_64
 
 %description
 A quick way into systemd "bottle" for WSL
@@ -49,7 +47,6 @@ install -d -p %{buildroot}%{_exec_prefix}/lib/binfmt.d
 install -d -p %{buildroot}%{_bindir}
 install -d -p %{buildroot}%{_unitdir}
 install -d -p %{buildroot}%{_unitdir}/user-runtime-dir@.service.d
-install -d -p %{buildroot}%{_unitdir}/sockets.target.wants
 install -d -p %{buildroot}%{_mandir}/man8
 
 make DESTDIR=%{buildroot} internal-package
@@ -59,13 +56,11 @@ make DESTDIR=%{buildroot} internal-supplement
 if [ $1 -eq 0 ]; then
 rm -f %{_bindir}/%{name}
 rm -rf %{_exec_prefix}/lib/%{name}/*
-rm -f %{_unitdir}/wslg-xwayland.service
-rm -f %{_unitdir}/wslg-xwayland.socket
 rm -f %{_unitdir}/user-runtime-dir@.service.d/override.conf
 rm -f %{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
+rm -f %{_exec_prefix}/lib/tmpfiles.d/wslg.conf
 rm -f %{_exec_prefix}/lib/systemd/system-environment-generators/80-genie-envar.sh
 rm -f %{_exec_prefix}/lib/systemd/user-environment-generators/80-genie-envar.sh
-rm -f %{_unitdir}/sockets.target.wants/wslg-xwayland.socket
 rm -f ${_mandir}/man8/genie.8.gz
 fi
 
@@ -77,16 +72,27 @@ rm -rf %{buildroot}
 %{_bindir}/%{name}
 %{_exec_prefix}/lib/%{name}/*
 %config %{_sysconfdir}/genie.ini
-%{_unitdir}/wslg-xwayland.service
-%{_unitdir}/wslg-xwayland.socket
 %{_unitdir}/user-runtime-dir@.service.d/override.conf
 %{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
+%{_exec_prefix}/lib/tmpfiles.d/wslg.conf
 %{_exec_prefix}/lib/systemd/system-environment-generators/80-genie-envar.sh
 %{_exec_prefix}/lib/systemd/user-environment-generators/80-genie-envar.sh
-%{_unitdir}/sockets.target.wants/wslg-xwayland.socket
 %doc %{_mandir}/man8/genie.8.gz
 
 %changelog
+* Sat Jun 25 2022 Alistair Young <avatar@arkane-systems.net> 2.4-1
+- Fixed missing dependency versions.
+- Python refactoring.
+- Fixed no-command-specified error for genie -c.
+- Added cwd preservation note to help for genie -c.
+- Added proper return values for status checks (fixes #269).
+- Properly configure WSLInterop binary format (fixes #267, #264).
+- Carries through real UID from wrapper (fixes #258).
+- Use systemd-tmpfiles for WSLg support (fixes #214, #175).
+- Warn user if unsupported Unicode hostname (warns on #268, no fix).
+- arm64 package for Fedora.
+- Miscellaneous fixes.
+
 * Tue Mar 22 2022 Alistair Young <avatar@arkane-systems.net> 2.3-1
 - Paths-containing-spaces fix (#240).
 - Makefile updates for CI build.

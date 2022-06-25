@@ -3,7 +3,7 @@
 #
 
 # Genie version
-GENIEVERSION = 2.3
+GENIEVERSION = 2.4
 
 # Determine this makefile's path.
 # Be sure to place this BEFORE `include` directives, if any.
@@ -64,14 +64,16 @@ package: package-debian
 # Debian packaging
 #
 
-package-debian: make-output-directory
+package-debian: package-debian-amd64 package-debian-arm64
+
+package-debian-amd64: make-output-directory
 	mkdir -p out/debian
-	if [ "${CI}" = "true" ]; then debuild -us -uc; else debuild; fi
+	debuild -us -uc
 	mv ../systemd-genie_* out/debian
 
 package-debian-arm64: make-output-directory
 	mkdir -p out/debian
-	debuild -aarm64
+	debuild -aarm64 -us -uc
 	mv ../systemd-genie_* out/debian
 
 clean-debian:
@@ -87,7 +89,7 @@ package-tar: make-output-directory build-binaries
 	fakeroot $(MAKE) -f $(THIS_FILE) DESTDIR=tarball internal-supplement
 	fakeroot $(MAKE) -f $(THIS_FILE) DESTDIR=tarball internal-tar
 
-	mv genie-systemd-*.tar.gz out/tar
+	mv genie-systemd-*-amd64.tar.gz out/tar
 
 clean-tar:
 	rm -rf tarball
@@ -105,12 +107,13 @@ clean-arch:
 
 package-fedora: genie_version := $(shell rpmspec -q --qf %{Version} --srpm genie.spec)
 
+RPMBUILD_TARGET = $(shell uname --processor)
 package-fedora:
 	rpmdev-setuptree
 	tar zcvf $(shell rpm --eval '%{_sourcedir}')/genie-${genie_version}.tar.gz * --dereference --transform='s/^/genie-${genie_version}\//'
-	fakeroot rpmbuild -ba -v genie.spec
+	fakeroot rpmbuild --target $(RPMBUILD_TARGET) -ba -v genie.spec
 	mkdir -p out/fedora
-	mv $(shell rpm --eval '%{_rpmdir}')/x86_64/genie* out/fedora
+	mv $(shell rpm --eval '%{_rpmdir}')/*/genie* out/fedora
 
 clean-fedora:
 	rpmdev-wipetree
@@ -143,13 +146,13 @@ internal-package:
 	install -Dm 0644 -o root "othersrc/etc/genie.ini" -t "$(ETCDIR)"
 
 	# Unit files.
-	install -Dm 0644 -o root "othersrc/lib-systemd-system/wslg-xwayland.service" -t "$(SVCDIR)"
-	install -Dm 0644 -o root "othersrc/lib-systemd-system/wslg-xwayland.socket" -t "$(SVCDIR)"
-
 	install -Dm 0644 -o root "othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf" -t "$(SVCDIR)/user-runtime-dir@.service.d"
 
 	# binfmt.d
 	install -Dm 0644 -o root "othersrc/usr-lib/binfmt.d/WSLInterop.conf" -t "$(USRLIBDIR)/binfmt.d"
+
+	# tmpfiles.d
+	install -Dm 0644 -o root "othersrc/usr-lib/tmpfiles.d/wslg.conf" -t "$(USRLIBDIR)/tmpfiles.d"
 
 internal-clean:
 	make -C binsrc clean
@@ -160,8 +163,6 @@ internal-supplement:
 	mkdir -p $(USRENVGENDIR)
 	ln -sr $(INSTALLDIR)/80-genie-envar.sh $(ENVGENDIR)/80-genie-envar.sh
 	ln -sr $(INSTALLDIR)/80-genie-envar.sh $(USRENVGENDIR)/80-genie-envar.sh
-	mkdir -p $(SVCDIR)/sockets.target.wants
-	ln -sr $(SVCDIR)/wslg-xwayland.socket $(SVCDIR)/sockets.target.wants/wslg-xwayland.socket
 
 	# Man page.
 	# Make sure directory exists.
@@ -174,7 +175,7 @@ internal-supplement:
 
 internal-tar:
 	# tar it up
-	tar zcvf genie-systemd-$(GENIEVERSION).tar.gz tarball/* --transform='s/^tarball//'
+	tar zcvf genie-systemd-$(GENIEVERSION)-amd64.tar.gz tarball/* --transform='s/^tarball//'
 
 #
 # Helpers: intermediate build stages.

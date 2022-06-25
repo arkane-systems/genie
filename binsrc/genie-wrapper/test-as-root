@@ -1,0 +1,4 @@
+#! /bin/sh
+sudo chown root:root genie
+sudo chmod 6755 genie
+

@@ -15,3 +15,18 @@ If your update significantly changes the behavior of _genie_ , adds new configur
 If you have or would like to create the pull request (for comment, for example) but it still requires more work before merging, please tag it _work-in-progess_ .
 
 Thank you!
+
+
+## Building
+
+Builds are carried out automatically by GitHub Actions on pull-request or push to master. The only build I use
+locally is the Debian one, as that's my build platform. If you change any of the others and they stop working on
+GitHub Actions, the pull request will not be accepted even if they do work for you locally.
+
+The Arch build makes use of the special container image `cerebrate/fuckarch:right-in-the-ear`, which exists to deal
+with the pain-in-the-ass that is having to compile a second package manager to deal with getting packages from a
+different repository, all for the sake of one lousy package.
+
+If you need to know the gory details, the Dockerfile for the image is here:
+
+https://gist.github.com/cerebrate/45daae1bf6ad82ecd041d347bd2b1173

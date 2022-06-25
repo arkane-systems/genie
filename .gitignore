@@ -22,6 +22,7 @@ debian/.debhelper/
 debian/debhelper-build-stamp
 debian/files
 debian/systemd-genie.debhelper.log
+debian/systemd-genie.postinst.debhelper
 debian/systemd-genie.substvars
 debian/genie-*
 
@@ -29,6 +30,7 @@ debian/genie-*
 tarball
 
 # Arch build intermediates
+/genie/
 
-genie/
-
+# Visual Studio code
+.vscode
