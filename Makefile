@@ -37,7 +37,8 @@ default:
 	#
 	# make package
 	# make package-debian
-	# make package-debian-arm64
+	#   make package-debian-amd64
+	#   make package-debian-arm64
 	# make package-tar
 	# make package-arch (requires Arch packaging environment)
 	# make package-fedora (requires Fedora packaging environment)
@@ -68,12 +69,12 @@ package-debian: package-debian-amd64 package-debian-arm64
 
 package-debian-amd64: make-output-directory
 	mkdir -p out/debian
-	debuild
+	debuild --no-sign
 	mv ../systemd-genie_* out/debian
 
 package-debian-arm64: make-output-directory
 	mkdir -p out/debian
-	debuild -aarm64
+	debuild -aarm64 -b --no-sign
 	mv ../systemd-genie_* out/debian
 
 clean-debian:
