@@ -60,8 +60,11 @@ jobs:
       - name: pacman update
         run: sudo pacman -Syu --noconfirm
 
-      - name: Add Build Tools
-        run: sudo pacman -S pacman-contrib git python-pip daemonize python-psutil inetutils --noconfirm
+      - name: Add Build Tools & Dependencies
+        run: sudo pacman -S pacman-contrib git python-pip python-psutil inetutils yaourt --noconfirm
+
+      - name: Add Dependencies (AUR)
+        run: sudo yaourt Syy daemonize
 
       - name: Add Build User
         run: sudo useradd -m build
