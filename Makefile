@@ -68,12 +68,12 @@ package-debian: package-debian-amd64 package-debian-arm64
 
 package-debian-amd64: make-output-directory
 	mkdir -p out/debian
-	debuild
+	debuild -us -uc
 	mv ../systemd-genie_* out/debian
 
 package-debian-arm64: make-output-directory
 	mkdir -p out/debian
-	debuild -aarm64
+	debuild -aarm64 -us -uc
 	mv ../systemd-genie_* out/debian
 
 clean-debian:
@@ -89,7 +89,7 @@ package-tar: make-output-directory build-binaries
 	fakeroot $(MAKE) -f $(THIS_FILE) DESTDIR=tarball internal-supplement
 	fakeroot $(MAKE) -f $(THIS_FILE) DESTDIR=tarball internal-tar
 
-	mv genie-systemd-*.tar.gz out/tar
+	mv genie-systemd-*-amd64.tar.gz out/tar
 
 clean-tar:
 	rm -rf tarball

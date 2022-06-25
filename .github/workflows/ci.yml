@@ -13,12 +13,31 @@ jobs:
 
     steps:
 
-
     - name: Update apt db
       run: sudo apt update
 
     - name: Install Packagers & Cross-Compiler
       run: sudo apt install -y devscripts debhelper gcc-aarch64-linux-gnu
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build & Make Debian Package
+      run: make package-debian
+
+    - name: Upload Results
+      uses: actions/upload-artifact@v3
+      with:
+        name: debpkg
+        path: out/debian/*
+
+  build-tarball:
+    runs-on: ubuntu-20.04
+
+    steps:
+
+    - name: Update apt db
+      run: sudo apt update
 
     - name: Checkout
       uses: actions/checkout@v2
