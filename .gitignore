@@ -30,5 +30,7 @@ debian/genie-*
 tarball
 
 # Arch build intermediates
-
 /genie/
+
+# Visual Studio code
+.vscode

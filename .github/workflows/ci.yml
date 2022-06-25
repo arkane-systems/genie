@@ -4,10 +4,11 @@ on:
   push:
     branches:
       - master
+      - dev-2.4
   pull_request:
 
 jobs:
-  build:
+  build-debian:
     runs-on: ubuntu-20.04
 
     steps:
@@ -30,6 +31,7 @@ jobs:
       with:
         name: debpkg
         path: out/debian/*
+
   build-fedora:
     strategy:
       matrix:

@@ -64,9 +64,11 @@ package: package-debian
 # Debian packaging
 #
 
-package-debian: make-output-directory
+package-debian: package-debian-amd64 package-debian-arm64
+
+package-debian-amd64: make-output-directory
 	mkdir -p out/debian
-	if [ "${CI}" = "true" ]; then debuild -us -uc; else debuild; fi
+	debuild
 	mv ../systemd-genie_* out/debian
 
 package-debian-arm64: make-output-directory
