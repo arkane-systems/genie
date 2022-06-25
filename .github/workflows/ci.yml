@@ -54,29 +54,17 @@ jobs:
   build-arch:
     runs-on: ubuntu-latest
     container:
-      image: archlinux:base-devel
+      image: cerebrate/fuckarch:right-in-the-ear
 
     steps:
-      - name: pacman update
-        run: sudo pacman -Syu --noconfirm
-
-      - name: Add Build Tools & Dependencies
-        run: sudo pacman -S pacman-contrib git python-pip python-psutil inetutils yaourt --noconfirm
-
-      - name: Add Dependencies (AUR)
-        run: sudo yaourt Syy daemonize
-
-      - name: Add Build User
-        run: sudo useradd -m build
-
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Permissions fixup
-        run: sudo chown -R build .
+#      - name: Permissions fixup
+#        run: sudo chown -R build .
 
       - name: Build Package
-        run: sudo -u build make package-arch
+        run: build make package-arch
 
       - name: Upload Results
         uses: actions/upload-artifact@v3
