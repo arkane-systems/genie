@@ -63,11 +63,14 @@ jobs:
       - name: Add Build Tools
         run: sudo pacman -S pacman-contrib --noconfirm
 
+      - name: Add Build User
+        run: sudo adduser -m build
+
       - name: Checkout
         uses: actions/checkout@v2
 
       - name: Build Package
-        run: make package-arch
+        run: sudo -u build make package-arch
 
       - name: Upload Results
         uses: actions/upload-artifact@v3
