@@ -1,5 +1,5 @@
 %global project https://github.com/arkane-systems/genie/
-%global version 2.4
+%global version 2.5
 
 %global debug_package %{nil}
 %global _enable_debug_package 0
@@ -80,6 +80,9 @@ rm -rf %{buildroot}
 %doc %{_mandir}/man8/genie.8.gz
 
 %changelog
+* Sat Jun 25 2022 Alistair Young <avatar@arkane-systems.net> 2.5-1
+- Fixed Debian multiarch packaging.
+
 * Sat Jun 25 2022 Alistair Young <avatar@arkane-systems.net> 2.4-1
 - Fixed missing dependency versions.
 - Python refactoring.

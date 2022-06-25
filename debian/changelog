@@ -1,3 +1,9 @@
+systemd-genie (2.5) bullseye bookworm sid focal jammy; urgency=medium
+
+        * Fixed Debian multiarch packaging.
+
+-- Alistair Young <avatar@arkane-systems.net>  Sat, 25 Jun 2022 12:50:00 -0500
+
 systemd-genie (2.4) bullseye bookworm sid focal jammy; urgency=medium
 
         * Deprecated support for Debian buster and Ubuntu bionic.
