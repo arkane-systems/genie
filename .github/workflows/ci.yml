@@ -11,44 +11,42 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
+      - name: Update apt db
+        run: sudo apt update
 
-    - name: Update apt db
-      run: sudo apt update
+      - name: Install Packagers & Cross-Compiler
+        run: sudo apt install -y devscripts debhelper gcc-aarch64-linux-gnu
 
-    - name: Install Packagers & Cross-Compiler
-      run: sudo apt install -y devscripts debhelper gcc-aarch64-linux-gnu
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Build & Make Debian Package
+        run: make package-debian
 
-    - name: Build & Make Debian Package
-      run: make package-debian
-
-    - name: Upload Results
-      uses: actions/upload-artifact@v3
-      with:
-        name: debpkg
-        path: out/debian/*
+      - name: Upload Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: debpkg
+          path: out/debian/*
 
   build-tarball:
     runs-on: ubuntu-20.04
 
     steps:
+      - name: Update apt db
+        run: sudo apt update
 
-    - name: Update apt db
-      run: sudo apt update
+      - name: Checkout
+        uses: actions/checkout@v3
 
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Build & Make Tarball
+        run: make package-tar
 
-    - name: Build & Make Tarball
-      run: make package-tar
-
-    - name: Upload Results
-      uses: actions/upload-artifact@v3
-      with:
-        name: tar
-        path: out/tar/*
+      - name: Upload Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: tar
+          path: out/tar/*
 
   build-arch:
     runs-on: ubuntu-latest
@@ -74,29 +72,32 @@ jobs:
   build-fedora:
     strategy:
       matrix:
-        fedora_version: [35, 36, 37]
+        fedora_version: [36] # [35, 36, 37]
     runs-on: ubuntu-latest
     container:
       image: fedora:${{ matrix.fedora_version }}
     steps:
-    - name: dnf update
-      run: sudo dnf update -y
+      - name: dnf update
+        run: sudo dnf update -y
 
-    - name: Install Packagers & Cross-Compiler
-      run: |
-        sudo dnf install -y \
-          @development-tools \
-          @rpm-development-tools \
-          python-pip \
-          gcc-aarch64-linux-gnu
-    - name: Checkout
-      uses: actions/checkout@v2
-    - name: Build RPMs
-      run: |
-        make package-fedora RPMBUILD_TARGET=x86_64
-        make package-fedora RPMBUILD_TARGET=aarch64
-    - name: Upload Results
-      uses: actions/upload-artifact@v3
-      with:
-        name: rpm
-        path: out/fedora/*
+      - name: Install Packagers & Cross-Compiler
+        run: |
+          sudo dnf install -y \
+            @development-tools \
+            @rpm-development-tools \
+            python-pip \
+            gcc-aarch64-linux-gnu
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build RPMs
+        run: |
+          make package-fedora RPMBUILD_TARGET=x86_64
+          make package-fedora RPMBUILD_TARGET=aarch64
+
+      - name: Upload Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: rpm
+          path: out/fedora/*
