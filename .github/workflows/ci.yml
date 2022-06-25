@@ -60,6 +60,9 @@ jobs:
       - name: pacman update
         run: sudo pacman -Syu --noconfirm
 
+      - name: Add Build @development-tools
+        run: sudo packman -S pacman-addons --noconfirm
+
       - name: Checkout
         uses: actions/checkout@v2
 

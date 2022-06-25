@@ -175,7 +175,7 @@ internal-supplement:
 
 internal-tar:
 	# tar it up
-	tar zcvf genie-systemd-$(GENIEVERSION).tar.gz tarball/* --transform='s/^tarball//'
+	tar zcvf genie-systemd-$(GENIEVERSION)-amd64.tar.gz tarball/* --transform='s/^tarball//'
 
 #
 # Helpers: intermediate build stages.
