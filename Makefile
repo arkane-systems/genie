@@ -97,7 +97,7 @@ clean-tar:
 package-arch:
 	mkdir -p out/arch
 	updpkgsums
-	BUILDDIR=/tmp PKDEST=$(PWD)/out/arch makepkg
+	BUILDDIR=/tmp PKDEST=$(PWD)/out/arch fakeroot makepkg
 	rm -rf $(PWD)/genie
 	mv *.zst out/arch
 
