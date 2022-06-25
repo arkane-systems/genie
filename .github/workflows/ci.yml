@@ -61,7 +61,7 @@ jobs:
         run: sudo pacman -Syu --noconfirm
 
       - name: Add Build Tools
-        run: sudo pacman -S pacman-contrib git python-pip --noconfirm
+        run: sudo pacman -S pacman-contrib git python-pip daemonize python-psutil inetutils --noconfirm
 
       - name: Add Build User
         run: sudo useradd -m build
