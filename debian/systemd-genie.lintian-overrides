@@ -1,2 +1,2 @@
 # Must be setuid
-elevated-privileges 6755 root/root [/usr/bin/genie]
+elevated-privileges 6755 root/root [usr/bin/genie]
