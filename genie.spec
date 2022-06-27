@@ -20,7 +20,6 @@ Requires:      gawk
 Requires:      polkit
 Requires:      python3 >= 3.7
 Requires:      python3-pip
-Requires:      python3-psutil
 Requires:      systemd >= 232.25
 Requires:      systemd-container >= 232.25
 # BuildRequires: git
@@ -82,6 +81,7 @@ rm -rf %{buildroot}
 %changelog
 * Sat Jun 25 2022 Alistair Young <avatar@arkane-systems.net> 2.5-1
 - Fixed Debian multiarch packaging.
+- Removed dependency on python3-psutil (fixes #272).
 
 * Sat Jun 25 2022 Alistair Young <avatar@arkane-systems.net> 2.4-1
 - Fixed missing dependency versions.
