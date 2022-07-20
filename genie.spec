@@ -42,7 +42,6 @@ install -d -p %{buildroot}%{_sysconfdir}
 install -d -p %{buildroot}%{_exec_prefix}/lib/%{name}
 install -d -p %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generators
 install -d -p %{buildroot}%{_exec_prefix}/lib/systemd/user-environment-generators
-install -d -p %{buildroot}%{_exec_prefix}/lib/tmpfiles.d
 install -d -p %{buildroot}%{_exec_prefix}/lib/binfmt.d
 install -d -p %{buildroot}%{_bindir}
 install -d -p %{buildroot}%{_unitdir}
@@ -58,7 +57,6 @@ rm -f %{_bindir}/%{name}
 rm -rf %{_exec_prefix}/lib/%{name}/*
 rm -f %{_unitdir}/user-runtime-dir@.service.d/override.conf
 rm -f %{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
-rm -f %{_exec_prefix}/lib/tmpfiles.d/wslg.conf
 rm -f %{_exec_prefix}/lib/systemd/system-environment-generators/80-genie-envar.sh
 rm -f %{_exec_prefix}/lib/systemd/user-environment-generators/80-genie-envar.sh
 rm -f ${_mandir}/man8/genie.8.gz
@@ -74,7 +72,6 @@ rm -rf %{buildroot}
 %config %{_sysconfdir}/genie.ini
 %{_unitdir}/user-runtime-dir@.service.d/override.conf
 %{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
-%{_exec_prefix}/lib/tmpfiles.d/wslg.conf
 %{_exec_prefix}/lib/systemd/system-environment-generators/80-genie-envar.sh
 %{_exec_prefix}/lib/systemd/user-environment-generators/80-genie-envar.sh
 %doc %{_mandir}/man8/genie.8.gz
