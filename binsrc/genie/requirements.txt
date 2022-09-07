@@ -1,3 +1,2 @@
 git+https://github.com/zalando/python-nsenter@b7fd78fef24c456d88130c75fe734417728e97e8
 python_hosts>=1.0.1
-psutil>=5.9.0

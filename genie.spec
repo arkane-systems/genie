@@ -20,6 +20,7 @@ Requires:      gawk
 Requires:      polkit
 Requires:      python3 >= 3.7
 Requires:      python3-pip
+Requires:      python3-psutil
 Requires:      systemd >= 232.25
 Requires:      systemd-container >= 232.25
 # BuildRequires: git
