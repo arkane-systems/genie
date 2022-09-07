@@ -2,6 +2,7 @@ systemd-genie (2.5) bullseye bookworm sid focal jammy; urgency=medium
 
         * Fixed Debian multiarch packaging.
         * Removed dependency on python3-psutil (fixes #272).
+        * Dynamically build WSLInterop.conf based on existing (fixes #287, #295).
 
  -- Alistair Young <avatar@arkane-systems.net>  Sat, 25 Jun 2022 12:50:00 -0500
 
