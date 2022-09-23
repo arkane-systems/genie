@@ -233,6 +233,10 @@ def inner_do_initialize():
     if configuration.resolved_stub():
         resolved.configure(verbose)
 
+    # Update binfmts config file.
+    flags = binfmts.check_flags(verbose)
+    binfmts.write_interop_file(verbose, flags)
+
     # Unmount the binfmts fs before starting systemd, so systemd can mount it
     # again with all the trimmings.
     binfmts.umount(verbose)
@@ -290,7 +294,7 @@ def inner_do_initialize():
     state = 'initializing'
     timeout = configuration.system_timeout()
 
-    while ('running' not in state) and timeout > 0:
+    while ('running' not in state and 'degraded' not in state) and timeout > 0:
         time.sleep(1)
         state = helpers.get_systemd_state(sdp)
 

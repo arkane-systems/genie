@@ -67,7 +67,7 @@ def prelaunch_checks():
 
     # Is this WSL 2?
     if not os.path.exists('/run/WSL'):
-        if 'microsoft' not in os.uname():
+        if 'microsoft' not in os.uname().release:
             sys.exit("genie: not executing under WSL 2 - how did we get here?")
 
     # Are we effectively root?

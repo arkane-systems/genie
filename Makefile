@@ -37,7 +37,8 @@ default:
 	#
 	# make package
 	# make package-debian
-	# make package-debian-arm64
+	#   make package-debian-amd64
+	#   make package-debian-arm64
 	# make package-tar
 	# make package-arch (requires Arch packaging environment)
 	# make package-fedora (requires Fedora packaging environment)
@@ -68,12 +69,12 @@ package-debian: package-debian-amd64 package-debian-arm64
 
 package-debian-amd64: make-output-directory
 	mkdir -p out/debian
-	debuild -us -uc
+	debuild --no-sign
 	mv ../systemd-genie_* out/debian
 
 package-debian-arm64: make-output-directory
 	mkdir -p out/debian
-	debuild -aarm64 -us -uc
+	debuild -aarm64 -b --no-sign
 	mv ../systemd-genie_* out/debian
 
 clean-debian:
@@ -148,9 +149,6 @@ internal-package:
 	# Unit files.
 	install -Dm 0644 -o root "othersrc/lib-systemd-system/user-runtime-dir@.service.d/override.conf" -t "$(SVCDIR)/user-runtime-dir@.service.d"
 
-	# binfmt.d
-	install -Dm 0644 -o root "othersrc/usr-lib/binfmt.d/WSLInterop.conf" -t "$(USRLIBDIR)/binfmt.d"
-
 	# tmpfiles.d
 	install -Dm 0644 -o root "othersrc/usr-lib/tmpfiles.d/wslg.conf" -t "$(USRLIBDIR)/tmpfiles.d"
 
@@ -169,6 +167,8 @@ internal-supplement:
 	mkdir -p "$(MAN8DIR)"
 
  	# this bit would ordinarily be handed by debuild, etc.
+
+	
 	cp "othersrc/docs/genie.8" /tmp/genie.8
 	gzip -f9 "/tmp/genie.8"
 	install -Dm 0644 -o root "/tmp/genie.8.gz" -t "$(MAN8DIR)"

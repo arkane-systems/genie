@@ -1,5 +1,5 @@
 %global project https://github.com/arkane-systems/genie/
-%global version 2.4
+%global version 2.5
 
 %global debug_package %{nil}
 %global _enable_debug_package 0
@@ -23,6 +23,7 @@ Requires:      python3-pip
 Requires:      python3-psutil
 Requires:      systemd >= 232.25
 Requires:      systemd-container >= 232.25
+Conflicts:     bottle-imp
 # BuildRequires: git
 BuildRequires: make
 
@@ -43,7 +44,6 @@ install -d -p %{buildroot}%{_exec_prefix}/lib/%{name}
 install -d -p %{buildroot}%{_exec_prefix}/lib/systemd/system-environment-generators
 install -d -p %{buildroot}%{_exec_prefix}/lib/systemd/user-environment-generators
 install -d -p %{buildroot}%{_exec_prefix}/lib/tmpfiles.d
-install -d -p %{buildroot}%{_exec_prefix}/lib/binfmt.d
 install -d -p %{buildroot}%{_bindir}
 install -d -p %{buildroot}%{_unitdir}
 install -d -p %{buildroot}%{_unitdir}/user-runtime-dir@.service.d
@@ -57,7 +57,6 @@ if [ $1 -eq 0 ]; then
 rm -f %{_bindir}/%{name}
 rm -rf %{_exec_prefix}/lib/%{name}/*
 rm -f %{_unitdir}/user-runtime-dir@.service.d/override.conf
-rm -f %{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
 rm -f %{_exec_prefix}/lib/tmpfiles.d/wslg.conf
 rm -f %{_exec_prefix}/lib/systemd/system-environment-generators/80-genie-envar.sh
 rm -f %{_exec_prefix}/lib/systemd/user-environment-generators/80-genie-envar.sh
@@ -73,13 +72,20 @@ rm -rf %{buildroot}
 %{_exec_prefix}/lib/%{name}/*
 %config %{_sysconfdir}/genie.ini
 %{_unitdir}/user-runtime-dir@.service.d/override.conf
-%{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
 %{_exec_prefix}/lib/tmpfiles.d/wslg.conf
 %{_exec_prefix}/lib/systemd/system-environment-generators/80-genie-envar.sh
 %{_exec_prefix}/lib/systemd/user-environment-generators/80-genie-envar.sh
 %doc %{_mandir}/man8/genie.8.gz
 
 %changelog
+* Fri Sep 23 2022 Alistair Young <avatar@arkane-systems.net> 2.5-1
+- Fixed Debian multiarch packaging.
+- Dynamically build WSLInterop.conf based on existing (fixes #287, #295).
+- Fix for schrödinbug (fixes #298).
+- Allow for faster timeout when system in degraded state.
+- Added note and referrer about native systemd support.
+- Added bottle-imp conflict to packages.
+
 * Sat Jun 25 2022 Alistair Young <avatar@arkane-systems.net> 2.4-1
 - Fixed missing dependency versions.
 - Python refactoring.

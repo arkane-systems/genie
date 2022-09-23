@@ -10,6 +10,7 @@ binsrc/genie-wrapper/genie-arm64
 binsrc/genie/*.dist-info
 binsrc/genie/bin/
 binsrc/genie/nsenter/
+binsrc/genie/psutil
 binsrc/genie/python_hosts/
 
 # Built binaries
