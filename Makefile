@@ -167,6 +167,8 @@ internal-supplement:
 	mkdir -p "$(MAN8DIR)"
 
  	# this bit would ordinarily be handed by debuild, etc.
+
+	
 	cp "othersrc/docs/genie.8" /tmp/genie.8
 	gzip -f9 "/tmp/genie.8"
 	install -Dm 0644 -o root "/tmp/genie.8.gz" -t "$(MAN8DIR)"

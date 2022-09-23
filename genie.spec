@@ -72,7 +72,6 @@ rm -rf %{buildroot}
 %{_exec_prefix}/lib/%{name}/*
 %config %{_sysconfdir}/genie.ini
 %{_unitdir}/user-runtime-dir@.service.d/override.conf
-%{_exec_prefix}/lib/binfmt.d/WSLInterop.conf
 %{_exec_prefix}/lib/tmpfiles.d/wslg.conf
 %{_exec_prefix}/lib/systemd/system-environment-generators/80-genie-envar.sh
 %{_exec_prefix}/lib/systemd/user-environment-generators/80-genie-envar.sh
