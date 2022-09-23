@@ -10,6 +10,14 @@ What does that even mean?
 
 Well, this gives you a way to run systemd as pid 1, with all the trimmings, inside WSL 2. It does this by creating a pid namespace, the eponymous poor-man's-container "bottle", starting up systemd in there, and entering it, and providing some helpful shortcuts to do so.
 
+## WSL NOW HAS NATIVE SYSTEMD SUPPORT
+
+[As explained here](https://devblogs.microsoft.com/commandline/systemd-support-is-now-available-in-wsl/), if you are running Windows 11 and a version of WSL 0.67.6 or above. If this is available to you, you should use it instead of _genie_, because it's a much more elegant way of getting systemd to run.
+
+It's not quite perfect, however, so you should also check out _[bottle-imp](https://github.com/arkane-systems/bottle-imp)_, my friendly helper to make working with WSL's native systemd support a little easier.
+
+Using _genie_ on systems that have native _systemd_ support is not supported.
+
 ## REQUIREMENTS
 
 **NOTE:** Before you install _genie_ for the first time, read **ALL** of this page. This will save you a great deal of trouble later on. Especially, please note that on many distributions you **will** encounter the problem described under "Warning: Timing Out" below when you first run genie, and will need to resolve it before your system will operate correctly.

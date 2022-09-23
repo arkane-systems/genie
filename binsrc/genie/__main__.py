@@ -294,7 +294,7 @@ def inner_do_initialize():
     state = 'initializing'
     timeout = configuration.system_timeout()
 
-    while ('running' not in state) and timeout > 0:
+    while ('running' not in state and 'degraded' not in state) and timeout > 0:
         time.sleep(1)
         state = helpers.get_systemd_state(sdp)
 

@@ -2,8 +2,12 @@ systemd-genie (2.5) bullseye bookworm sid focal jammy; urgency=medium
 
         * Fixed Debian multiarch packaging.
         * Dynamically build WSLInterop.conf based on existing (fixes #287, #295).
+        * Fix for schrödinbug (fixes #298).
+        * Allow for faster timeout when system in degraded state.
+        * Added note and referrer about native systemd support.
+        * Added bottle-imp conflict to packages.
 
- -- Alistair Young <avatar@arkane-systems.net>  Sat, 25 Jun 2022 12:50:00 -0500
+ -- Alistair Young <avatar@arkane-systems.net>  Fri, 23 Sep 2022 15:00:00 -0500
 
 systemd-genie (2.4) bullseye bookworm sid focal jammy; urgency=medium
 

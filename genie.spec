@@ -23,6 +23,7 @@ Requires:      python3-pip
 Requires:      python3-psutil
 Requires:      systemd >= 232.25
 Requires:      systemd-container >= 232.25
+Conflicts:     bottle-imp
 # BuildRequires: git
 BuildRequires: make
 
@@ -78,10 +79,13 @@ rm -rf %{buildroot}
 %doc %{_mandir}/man8/genie.8.gz
 
 %changelog
-* Sat Jun 25 2022 Alistair Young <avatar@arkane-systems.net> 2.5-1
+* Fri Sep 23 2022 Alistair Young <avatar@arkane-systems.net> 2.5-1
 - Fixed Debian multiarch packaging.
-- Removed dependency on python3-psutil (fixes #272).
 - Dynamically build WSLInterop.conf based on existing (fixes #287, #295).
+- Fix for schrödinbug (fixes #298).
+- Allow for faster timeout when system in degraded state.
+- Added note and referrer about native systemd support.
+- Added bottle-imp conflict to packages.
 
 * Sat Jun 25 2022 Alistair Young <avatar@arkane-systems.net> 2.4-1
 - Fixed missing dependency versions.

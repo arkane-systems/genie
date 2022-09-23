@@ -11,6 +11,7 @@ arch=('x86_64')
 url="https://github.com/arkane-systems/genie"
 license=('Unlicense')
 depends=('daemonize' 'python>=3.7' 'python-psutil' 'systemd>=232.25' 'inetutils')
+conflicts=('bottle-imp')
 makedepends=('git' 'python-pip')
 options=(!strip)
 source=("git+https://github.com/arkane-systems/genie.git")
