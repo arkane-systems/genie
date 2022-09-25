@@ -77,8 +77,6 @@ Debian is the "native" distribution for _genie_ , for which read, "what the auth
 
 There is a .tar.gz of a complete genie install available from the releases, to right. As a last resort, you can try untarring this (it contains every needed file, with the correct permissions, in the correct path from /) onto your system while root. Don't do this unless you're confident you know what you're doing, you're willing to go looking for any resulting issues yourself, and you aren't afraid of accidentally breaking things. You will need to install the dependencies listed above beforehand.
 
-If you install from the tarball, you will need to enable the _wslg-xwayland.service_ and _wslg-xwayland.socket_ systemd units manually.
-
 #### Maintainers Wanted!
 
 We're actively looking for maintainers for everything that doesn't have a specific package. If you have the time, please contribute.
