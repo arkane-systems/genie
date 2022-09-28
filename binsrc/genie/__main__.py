@@ -17,7 +17,7 @@ import host
 import resolved
 
 # Global variables
-version = "2.4"
+version = "2.5"
 
 verbose = False
 login = None

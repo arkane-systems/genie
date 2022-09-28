@@ -3,7 +3,7 @@
 #
 
 # Genie version
-GENIEVERSION = 2.4
+GENIEVERSION = 2.5
 
 # Determine this makefile's path.
 # Be sure to place this BEFORE `include` directives, if any.
