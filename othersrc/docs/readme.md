@@ -61,8 +61,6 @@ Use the above Debian package. For current Ubuntu releases and the timing-out pro
 
 An Arch package (.zst) can be downloaded from the releases, to right. Install it manually, using `pacman -U <file>`.
 
-An unofficial package is also available on the AUR as genie-systemd-git ( https://aur.archlinux.org/packages/genie-systemd-git ).
-
 ### Fedora
 
 A Fedora package (.rpm) can be downloaded from the releases, to right. Install it manually, using `dnf install <file>`.
